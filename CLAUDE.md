@@ -129,6 +129,88 @@ The development server supports real-time code changes:
   - Monitor logs during first few user interactions
   - Check for any dependency warnings in deployment output
 
+## Host App Integration
+
+The app can be integrated into other React applications (e.g., `dbdemos-genai`) as a compiled standalone component with runtime configuration.
+
+### Integration Branch
+- **Branch**: `dbdemos_genai_integration` - dedicated branch for host app integration work
+- Contains all changes for runtime configuration and deployment script
+
+### Key Components
+
+1. **Runtime Configuration** (`client/src/config.ts`)
+   - Loads `app_config.json` at runtime
+   - Falls back to default config in development
+   - Allows host app to dynamically configure endpoints
+
+2. **Dynamic Endpoints** (`client/src/endpoints.ts`)
+   - Exports `getEndpoints()` function instead of static array
+   - Reads endpoints from loaded configuration
+   - Supports two endpoint types:
+     - `databricks-agent`: Agent endpoints using `input` field format
+     - `openai-chat`: OpenAI-compatible chat endpoints
+
+3. **Build Configuration** (`client/vite.config.ts`)
+   - Base path set to `./` for flexible deployment
+   - Code splitting for vendor libraries
+   - Sourcemaps enabled for production debugging
+
+4. **Deployment Script** (`scripts/prepare_for_host.sh`)
+   - Builds the React frontend
+   - Copies artifacts to specified output directory
+   - Creates `app_config.json.template`
+   - Generates integration guide
+
+### Usage
+
+```bash
+# Build for host integration
+./scripts/prepare_for_host.sh /path/to/host-app/public/agent-monitoring
+
+# Creates:
+# - Compiled app in specified directory
+# - app_config.json.template for endpoint configuration
+# - INTEGRATION_GUIDE.md with detailed instructions
+```
+
+### Configuration Format
+
+The host app should provide `app_config.json` in the deployment directory:
+
+```json
+{
+  "endpoints": [
+    {
+      "displayName": "Agent Name",
+      "endpointName": "endpoint-id",
+      "type": "databricks-agent"
+    }
+  ],
+  "apiBaseUrl": "/api"
+}
+```
+
+### API Requirements
+
+The host app must provide these backend endpoints:
+- `POST /api/invoke_endpoint` - Invoke agent/model endpoint
+- `GET /api/tracing_experiment` - Get MLflow experiment info
+- `POST /api/log_feedback` - Log user feedback
+
+### Development vs Deployment
+
+- **Local dev**: Uses hardcoded defaults from `config.ts`
+- **Deployed**: Loads config from `app_config.json` at runtime
+- **Backward compatible**: Still works as standalone app
+
+### Documentation
+
+- See `DEPLOYMENT.md` for complete integration guide
+- Includes patterns for static and dynamic configuration
+- Backend API specifications
+- Troubleshooting guide
+
 ## Reading Databricks Apps Logs
 
 - **Log Access Method**: Databricks Apps logs require OAuth authentication and are accessible through:

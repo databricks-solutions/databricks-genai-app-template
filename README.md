@@ -206,6 +206,75 @@ Make sure you've created a Custom Lakehouse App and you've set the `DATABRICKS_A
 
 Note: you may have to upgrade the databricks CLI for the above command to work.
 
+## Host App Integration
+
+The Agent Monitoring App can be integrated into other React applications (e.g., `dbdemos-genai`) as a compiled, standalone component with **runtime configuration**.
+
+### Quick Integration
+
+```bash
+# Build for integration
+./scripts/prepare_for_host.sh /path/to/host-app/public/agent-monitoring
+
+# The script will:
+# - Build the React frontend with optimized settings
+# - Copy all artifacts to the specified directory
+# - Create app_config.json template for endpoint configuration
+# - Generate detailed integration instructions
+```
+
+### Key Features
+
+**🔄 Runtime Configuration**
+- Endpoints loaded from `app_config.json` at runtime
+- No rebuild needed to add/remove endpoints
+- Host app can generate config dynamically
+
+**📦 Self-Contained**
+- Compiled to static HTML/JS/CSS
+- No dependencies on host app's React version
+- Code-split for optimal loading
+
+**🎨 Flexible Deployment**
+- Static file serving
+- Dynamic route integration
+- Environment-specific configuration
+
+### Configuration Example
+
+Create `app_config.json` in the deployment directory:
+
+```json
+{
+  "endpoints": [
+    {
+      "displayName": "My Agent",
+      "endpointName": "ka-6a76cd22-endpoint",
+      "type": "databricks-agent"
+    },
+    {
+      "displayName": "Claude Sonnet 4",
+      "endpointName": "databricks-claude-sonnet-4",
+      "type": "openai-chat"
+    }
+  ],
+  "apiBaseUrl": "/api"
+}
+```
+
+The app supports two endpoint types:
+- **`databricks-agent`**: For Databricks Agent endpoints (uses `input` field format)
+- **`openai-chat`**: For OpenAI-compatible endpoints (standard chat format)
+
+### For Complete Integration Guide
+
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for:
+- Detailed integration patterns
+- Dynamic configuration generation
+- Backend API requirements
+- Testing strategies
+- Troubleshooting guide
+
 ## Development
 
 ### Prerequisites

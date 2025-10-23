@@ -1,19 +1,19 @@
-"use client"
+"use client";
 
 import {
   SidebarGroup,
   SidebarGroupLabel,
   SidebarGroupContent,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { ENDPOINTS } from "@/endpoints"
-import { Spinner } from "@/components/Spinner"
+} from "@/components/ui/select";
+import { type Endpoint } from "@/endpoints";
+import { Spinner } from "@/components/Spinner";
 
 export function NavDocuments({
   selectedAgent,
@@ -21,12 +21,14 @@ export function NavDocuments({
   setMessages,
   experiment,
   experimentIsLoading,
+  endpoints,
 }: {
-  selectedAgent: string
-  setSelectedAgent: (value: string) => void
-  setMessages: (value: any) => void
-  experiment: any
-  experimentIsLoading: boolean
+  selectedAgent: string;
+  setSelectedAgent: (value: string) => void;
+  setMessages: (value: any) => void;
+  experiment: any;
+  experimentIsLoading: boolean;
+  endpoints: Endpoint[];
 }) {
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
@@ -48,7 +50,7 @@ export function NavDocuments({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="default">Databricks Agent</SelectItem>
-              {ENDPOINTS.map((endpoint) => (
+              {endpoints.map((endpoint) => (
                 <SelectItem
                   key={endpoint.endpointName}
                   value={endpoint.endpointName}
@@ -59,7 +61,7 @@ export function NavDocuments({
             </SelectContent>
           </Select>
         </div>
-        
+
         <div className="space-y-2">
           <label className="text-xs font-medium text-sidebar-foreground/70">
             MLFlow Experiment ID
@@ -80,5 +82,5 @@ export function NavDocuments({
         </div>
       </SidebarGroupContent>
     </SidebarGroup>
-  )
+  );
 }

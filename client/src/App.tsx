@@ -33,7 +33,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ENDPOINTS } from "@/endpoints";
+import { getEndpoints, type Endpoint } from "@/endpoints";
+import { loadConfig } from "@/config";
 import { useQueryExperiment } from "@/queries/useQueryTracing";
 import { Spinner } from "@/components/Spinner";
 import { SidebarProvider } from "@/components/ui/sidebar";
@@ -52,7 +53,17 @@ export function Chat() {
     }[]
   >([]);
   const [input, setInput] = useState("");
+  const [endpoints, setEndpoints] = useState<Endpoint[]>([]);
+  const [configLoaded, setConfigLoaded] = useState(false);
   const lastMessageRef = React.useRef<HTMLDivElement>(null);
+
+  // Load configuration on component mount
+  useEffect(() => {
+    loadConfig().then(() => {
+      setEndpoints(getEndpoints());
+      setConfigLoaded(true);
+    });
+  }, []);
 
   const { data: experiment, isLoading: experimentIsLoading } =
     useQueryExperiment();
@@ -80,7 +91,7 @@ export function Chat() {
       content: input,
     };
     setMessages([...messages, userMessage]);
-    const endpoint = ENDPOINTS.find(
+    const endpoint = endpoints.find(
       (endpoint) => endpoint.endpointName === selectedAgent
     );
 
@@ -161,6 +172,7 @@ export function Chat() {
           setMessages={setMessages}
           experiment={experiment}
           experimentIsLoading={experimentIsLoading}
+          endpoints={endpoints}
         />
         <main className="flex-1 flex items-center justify-center p-4">
           <Card className="flex flex-col w-full max-w-5xl shadow-sm h-[calc(100vh-2rem)]">

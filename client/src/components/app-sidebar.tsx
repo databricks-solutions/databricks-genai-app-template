@@ -11,6 +11,7 @@ import {
 import { NavDocuments } from "@/components/nav-documents"
 import { NavSecondary } from "@/components/nav-secondary"
 import { NavUser } from "@/components/nav-user"
+import { type Endpoint } from "@/endpoints"
 import {
   Sidebar,
   SidebarContent,
@@ -60,6 +61,7 @@ export function AppSidebar({
   setMessages,
   experiment,
   experimentIsLoading,
+  endpoints,
   ...props 
 }: React.ComponentProps<typeof Sidebar> & {
   children?: React.ReactNode
@@ -68,6 +70,7 @@ export function AppSidebar({
   setMessages: (value: any) => void
   experiment: any
   experimentIsLoading: boolean
+  endpoints: Endpoint[]
 }) {
   return (
     <Sidebar collapsible="offcanvas" {...props}>
@@ -96,6 +99,7 @@ export function AppSidebar({
           setMessages={setMessages}
           experiment={experiment}
           experimentIsLoading={experimentIsLoading}
+          endpoints={endpoints}
         />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
