@@ -1,0 +1,16 @@
+{
+  "endpoints": [
+    {
+      "displayName": "Your Agent Display Name",
+      "endpointName": "your-databricks-endpoint-name",
+      "type": "databricks-agent"
+    },
+    {
+      "displayName": "OpenAI Compatible Model",
+      "endpointName": "your-openai-compatible-endpoint",
+      "type": "openai-chat"
+    }
+  ],
+  "apiBaseUrl": "/api/agent-app"
+}
+
