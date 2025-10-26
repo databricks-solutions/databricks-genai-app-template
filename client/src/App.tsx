@@ -41,6 +41,7 @@ import { Spinner } from "@/components/Spinner";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { MessageContent } from "@/components/MessageContent";
+import { applyBrandStyles } from "@/lib/brandConfig";
 
 const queryClient = new QueryClient();
 
@@ -69,6 +70,17 @@ export function Chat() {
       setEndpoints(getEndpoints());
       setConfigLoaded(true);
     });
+
+    // Load brand configuration
+    fetch("/brand_config.json")
+      .then((response) => response.json())
+      .then((brandConfig) => {
+        applyBrandStyles(brandConfig);
+        console.log("✅ Brand styles applied");
+      })
+      .catch((err) => {
+        console.log("ℹ️ No brand_config.json found, using default styles");
+      });
   }, []);
 
   const { data: experiment, isLoading: experimentIsLoading } =

@@ -1,0 +1,21 @@
+{
+  "brand": {
+    "name": "Your Brand",
+    "logoUrl": "https://your-logo-url.com/logo.svg",
+    "colors": {
+      "primary": "#000000",
+      "secondary": "#ffffff",
+      "accent": "#3b82f6",
+      "background": "#ffffff",
+      "foreground": "#000000",
+      "muted": "#f1f5f9",
+      "mutedForeground": "#64748b",
+      "border": "#e2e8f0",
+      "input": "#e2e8f0",
+      "ring": "#3b82f6",
+      "destructive": "#ef4444",
+      "destructiveForeground": "#ffffff"
+    }
+  }
+}
+

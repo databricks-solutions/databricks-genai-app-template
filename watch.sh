@@ -49,7 +49,18 @@ uv run watchmedo auto-restart \
   uv -- run python -m scripts.make_fastapi_client &
 pid[0]=$!
 
-sleep 2 && open "http://localhost:8000"
+# Wait for backend to start and detect which port it's using
+sleep 3
+if lsof -i :8000 | grep -q LISTEN; then
+  BACKEND_PORT=8000
+elif lsof -i :8001 | grep -q LISTEN; then
+  BACKEND_PORT=8001
+  echo "⚠️  Port 8000 was occupied, backend started on port 8001"
+else
+  BACKEND_PORT=8000
+fi
+
+open "http://localhost:$BACKEND_PORT"
 
 # When control+c is pressed, kill all process ids.
 trap "pkill -P $$;  exit 1" INT

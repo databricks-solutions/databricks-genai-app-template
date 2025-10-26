@@ -18,6 +18,33 @@ export interface AppConfig {
 }
 
 // Default configuration (fallback if app_config.json not found)
+// Try both port 8000 and 8001 for backend
+const tryPort = async (port: number): Promise<boolean> => {
+  try {
+    const response = await fetch(`http://localhost:${port}/api/health`, {
+      method: "GET",
+      signal: AbortSignal.timeout(1000),
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
+};
+
+const detectBackendPort = async (): Promise<number> => {
+  // Try port 8000 first
+  if (await tryPort(8000)) {
+    return 8000;
+  }
+  // Fall back to 8001
+  if (await tryPort(8001)) {
+    console.log("ℹ️ Backend detected on port 8001");
+    return 8001;
+  }
+  // Default to 8000 if detection fails
+  return 8000;
+};
+
 const DEFAULT_CONFIG: AppConfig = {
   endpoints: [
     {
@@ -31,7 +58,7 @@ const DEFAULT_CONFIG: AppConfig = {
       type: "databricks-agent",
     },
   ],
-  apiBaseUrl: "http://localhost:8001/api", // Points to agent backend with table parsing
+  apiBaseUrl: `http://localhost:8000/api`, // Will be updated by detectBackendPort
 };
 
 let cachedConfig: AppConfig | null = null;
@@ -58,6 +85,9 @@ export async function loadConfig(): Promise<AppConfig> {
       return config;
     } else {
       console.log("ℹ️ No app_config.json found, using default configuration");
+      // Detect backend port before returning default config
+      const port = await detectBackendPort();
+      DEFAULT_CONFIG.apiBaseUrl = `http://localhost:${port}/api`;
       cachedConfig = DEFAULT_CONFIG;
       return DEFAULT_CONFIG;
     }
@@ -66,6 +96,9 @@ export async function loadConfig(): Promise<AppConfig> {
       "ℹ️ Could not load app_config.json, using default configuration:",
       error
     );
+    // Detect backend port before returning default config
+    const port = await detectBackendPort();
+    DEFAULT_CONFIG.apiBaseUrl = `http://localhost:${port}/api`;
     cachedConfig = DEFAULT_CONFIG;
     return DEFAULT_CONFIG;
   }

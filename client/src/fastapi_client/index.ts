@@ -8,6 +8,7 @@ export { OpenAPI } from './core/OpenAPI';
 export type { OpenAPIConfig } from './core/OpenAPI';
 
 export type { AgentRequestOptions } from './models/AgentRequestOptions';
+export type { BrandConfigRequest } from './models/BrandConfigRequest';
 export type { EndpointRequestOptions } from './models/EndpointRequestOptions';
 export type { HTTPValidationError } from './models/HTTPValidationError';
 export type { LogAssessmentRequestOptions } from './models/LogAssessmentRequestOptions';

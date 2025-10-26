@@ -3,6 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { AgentRequestOptions } from '../models/AgentRequestOptions';
+import type { BrandConfigRequest } from '../models/BrandConfigRequest';
 import type { EndpointRequestOptions } from '../models/EndpointRequestOptions';
 import type { LogAssessmentRequestOptions } from '../models/LogAssessmentRequestOptions';
 import type { QueryAgentResponse } from '../models/QueryAgentResponse';
@@ -87,6 +88,27 @@ export class DefaultService {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/invoke_endpoint',
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Get Brand Config
+     * Fetch brand configuration from brand.dev API.
+     * Extracts colors and logo URL to create a style configuration.
+     * @param requestBody
+     * @returns any Successful Response
+     * @throws ApiError
+     */
+    public static getBrandConfigApiBrandConfigPost(
+        requestBody: BrandConfigRequest,
+    ): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/brand_config',
             body: requestBody,
             mediaType: 'application/json',
             errors: {
