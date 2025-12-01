@@ -24,7 +24,6 @@ venv/
 
 # Analysis and summary files
 summary.md
-PROGRESS.md
 docs/
 
 # Build output
