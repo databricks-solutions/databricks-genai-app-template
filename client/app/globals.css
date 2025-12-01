@@ -1,0 +1,334 @@
+@import "tailwindcss";
+@import "../styles/theme.css";
+@import "../styles/textures.css";
+
+/* Import fonts - DM Sans, Montserrat, Inter, Roboto, Open Sans, JetBrains Mono */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Montserrat:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&family=Roboto:wght@400;500;700&family=Open+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* Databricks Core Colors - Light Mode */
+  --db-primary: #1B3139;           /* Navy - primary text */
+  --db-secondary: #EEEDE9;         /* Oat - secondary surfaces */
+  --db-background: #F5F5F5;        /* Slightly off-white for main bg */
+  --db-accent: #04355D;            /* Darker blue for accents */
+  --db-tertiary: #DCE0E2;          /* Light gray for subtle surfaces */
+  
+  /* Databricks Text Colors */
+  --db-text-primary: #1B3139;      /* Navy for main text */
+  --db-text-secondary: #04355D;    /* Darker blue for secondary text */
+  --db-text-muted: #6B7C84;        /* Muted for tertiary text */
+  --db-text-inverse: #FFFFFF;      /* White for text on dark backgrounds */
+  
+  /* Databricks Surface Colors */
+  --db-surface-paper: #FFFFFF;     /* Pure white for elevated cards/modals */
+  --db-surface-elevated: #EEEDE9;  /* Oat for raised surfaces */
+  --db-surface-subtle: #DCE0E2;    /* Light gray for subtle sections */
+  --db-surface-overlay: rgba(27, 49, 57, 0.04); /* Subtle navy overlay */
+  
+  /* Databricks Status Colors */
+  --db-status-success: #095A35;    /* Green from palette */
+  --db-status-warning: #F57C00;
+  --db-status-error: #C62828;
+  --db-status-info: #04355D;       /* Darker blue from palette */
+  
+  /* Databricks Typography */
+  --db-font-primary: "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --db-font-accent: "Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  
+  /* Map to existing variable names for compatibility */
+  --card: var(--db-surface-paper);
+  --card-foreground: var(--db-text-primary);
+  --popover: var(--db-surface-paper);
+  --popover-foreground: var(--db-text-primary);
+  --primary: var(--db-primary);
+  --primary-foreground: var(--db-text-inverse);
+  --secondary: var(--db-surface-elevated);
+  --secondary-foreground: var(--db-text-primary);
+  --muted: var(--db-surface-elevated);
+  --muted-foreground: var(--db-text-muted);
+  --accent: var(--db-accent);
+  --accent-foreground: var(--db-text-inverse);
+  --destructive: var(--db-status-error);
+  --destructive-foreground: var(--db-text-inverse);
+  --border: rgba(27, 49, 57, 0.12);
+  --input: var(--db-surface-paper);
+  --ring: var(--db-accent);
+  --radius: 0.625rem;
+  --sidebar: var(--db-surface-elevated);
+  --sidebar-foreground: var(--db-text-primary);
+  --sidebar-primary: var(--db-primary);
+  --sidebar-primary-foreground: var(--db-text-inverse);
+  --sidebar-accent: var(--db-secondary);
+  --sidebar-accent-foreground: var(--db-text-primary);
+  --sidebar-border: var(--db-surface-overlay);
+  --sidebar-ring: var(--db-accent);
+
+  --background: var(--db-background);
+  --foreground: var(--db-text-primary);
+
+  /* Chat-specific colors */
+  --color-chat-user: #1B3139;
+  --color-chat-user-text: #FFFFFF;
+  --color-chat-assistant: rgba(255, 255, 255, 0.7);
+  --color-chat-assistant-text: #1B3139;
+  --color-chat-timestamp: #6B7C84;
+}
+
+/* Dark mode overrides removed - now controlled by ThemeContext for full customization */
+/* .dark class no longer overrides CSS variables - theme system handles all color variations */
+
+@theme inline {
+  /* Databricks Fonts */
+  --font-sans: var(--db-font-primary);
+  --font-heading: var(--db-font-accent);
+  
+  /* Color Mappings */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  
+  /* Direct Databricks Color Access */
+  --color-db-primary: var(--db-primary);
+  --color-db-secondary: var(--db-secondary);
+  --color-db-background: var(--db-background);
+  --color-db-accent: var(--db-accent);
+  --color-db-text-primary: var(--db-text-primary);
+  --color-db-text-secondary: var(--db-text-secondary);
+  --color-db-text-muted: var(--db-text-muted);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--db-font-primary);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  /* Typography - Databricks Style */
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--color-text-heading);
+  }
+  
+  /* All headings use primary font (--font-primary / --db-font-accent) */
+  h1 {
+    font-family: var(--db-font-accent);
+    font-size: 2.25rem;
+    font-weight: 700;
+  }
+
+  h2 {
+    font-family: var(--db-font-accent);
+    font-size: 1.875rem;
+    font-weight: 700;
+  }
+
+  h3 {
+    font-family: var(--db-font-accent);
+    font-size: 1.5rem;
+    font-weight: 600;
+  }
+
+  h4 {
+    font-family: var(--db-font-accent);
+    font-size: 1.25rem;
+    font-weight: 600;
+  }
+
+  h5 {
+    font-family: var(--db-font-accent);
+    font-size: 1.125rem;
+    font-weight: 500;
+  }
+
+  h6 {
+    font-family: var(--db-font-accent);
+    font-size: 1rem;
+    font-weight: 500;
+  }
+  
+  p {
+    color: var(--color-text-primary);
+    line-height: 1.6;
+  }
+
+  a {
+    color: var(--color-accent-primary);
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  a:hover {
+    color: var(--color-accent-secondary);
+    text-decoration: underline;
+  }
+  
+  /* Add texture to main containers */
+  main, .main-content, .page-wrapper {
+    position: relative;
+  }
+}
+
+/* Custom scrollbar - using theme colors */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-scrollbar-track, transparent);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-scrollbar-thumb, rgb(148 163 184 / 0.5));
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-scrollbar-thumb-hover, rgb(148 163 184 / 0.7));
+}
+
+/* Aviation/Aerospace Themed Animations */
+@keyframes float-0 {
+  0%, 100% {
+    transform: translateY(0px) translateX(0px);
+    opacity: 0.6;
+  }
+  25% {
+    transform: translateY(-20px) translateX(10px);
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(-40px) translateX(-5px);
+    opacity: 0.8;
+  }
+  75% {
+    transform: translateY(-20px) translateX(-15px);
+    opacity: 1;
+  }
+}
+
+@keyframes float-1 {
+  0%, 100% {
+    transform: translateY(0px) translateX(0px) rotate(0deg);
+    opacity: 0.4;
+  }
+  33% {
+    transform: translateY(-30px) translateX(-10px) rotate(120deg);
+    opacity: 0.8;
+  }
+  66% {
+    transform: translateY(-15px) translateX(15px) rotate(240deg);
+    opacity: 0.6;
+  }
+}
+
+@keyframes float-2 {
+  0%, 100% {
+    transform: translateY(0px) translateX(0px) scale(1);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translateY(-25px) translateX(8px) scale(1.2);
+    opacity: 0.9;
+  }
+}
+
+@keyframes grid-move {
+  0% {
+    transform: translate(0, 0);
+  }
+  100% {
+    transform: translate(50px, 50px);
+  }
+}
+
+@keyframes radar-pulse {
+  0% {
+    transform: scale(0.8);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.2);
+    opacity: 0;
+  }
+}
+
+@keyframes constellation-twinkle {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.5);
+  }
+}
+
+@keyframes flight-path {
+  0% {
+    stroke-dashoffset: 1000;
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+}
+
+/* Gradient utilities */
+.bg-gradient-radial {
+  background: radial-gradient(ellipse at center, var(--tw-gradient-stops));
+}
+
+/* Tab underline animation */
+@keyframes slideIn {
+  from {
+    transform: scaleX(0);
+    opacity: 0;
+  }
+  to {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
+/* Three.js spatial network background - handled by SpatialNetworkBackground component */

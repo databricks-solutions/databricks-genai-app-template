@@ -1,0 +1,101 @@
+[
+  {
+    "id": "chat_1764528392734_bquf7y7ob",
+    "title": "list tools",
+    "agentId": "databricks-agent-01",
+    "messages": [
+      {
+        "role": "user",
+        "content": "list tools",
+        "id": "msg_1764528393010_bx45936ab",
+        "timestamp": "2025-11-30T18:46:33.010Z"
+      },
+      {
+        "role": "assistant",
+        "content": "Here are the tools available to me for analyzing Thales MRO and reliability operations:\n\n## Data Query Tools\n\n1. **MRO Control Tower Genie Space** (`query_space_01f0c482e842191587af6a40ad4044d8`)\n   - Query weekly MRO operations data\n   - Includes AOG hours and TAT days per site and airline\n   - Part number performance metrics\n   - Percentage of repairs within SLA\n   - Contract margin data per month\n   - Natural language queries supported\n\n2. **Projections Genie Space** (`query_space_01f0c4834b771b25a781884404c4af77`)\n   - Future projections of repair performance\n   - Forecasts percentage of repairs within SLA\n   - Analysis based on stock unit changes for PN families and sites\n   - TAT time impact analysis for specific PN families and sites\n\n## Polling Tools\n\n3. **MRO Control Tower Response Polling** (`poll_response_01f0c482e842191587af6a40ad4044d8`)\n   - Continue retrieving results from incomplete MRO Control Tower queries\n\n4. **Projections Response Polling** (`poll_response_01f0c4834b771b25a781884404c4af77`)\n   - Continue retrieving results from incomplete Projections queries\n\n## Search Tools\n\n5. **MRO Notes Vector Search** (`thales__ags_vx__idx_mro_notes`)\n   - Vector-based search through indexed MRO notes and documentation\n   - Useful for finding specific operational insights and historical context\n\n## Built-in Capabilities\n\n6. **Python Code Execution**\n   - Data analysis and visualization\n   - Mathematical calculations\n   - Data processing and transformation\n\nThese tools allow me to provide comprehensive analysis of MRO operations, performance metrics, future projections, and detailed operational insights for Thales AGS operations.",
+        "traceId": "549450b5-59a8-45d6-9994-c7afa9ab4ac4",
+        "traceSummary": {
+          "trace_id": "549450b5-59a8-45d6-9994-c7afa9ab4ac4",
+          "duration_ms": 0,
+          "status": "OK",
+          "tools_called": [],
+          "retrieval_calls": [],
+          "llm_calls": [],
+          "total_tokens": 0,
+          "spans_count": 0,
+          "function_calls": []
+        },
+        "id": "msg_1764528432485_65ktehz74",
+        "timestamp": "2025-11-30T18:47:12.485Z"
+      }
+    ],
+    "createdAt": "2025-11-30T18:46:32.734Z",
+    "updatedAt": "2025-11-30T18:47:12.485Z"
+  },
+  {
+    "id": "chat_1764521482827_ya8k9rpzd",
+    "title": "list tools",
+    "agentId": "databricks-agent-01",
+    "messages": [
+      {
+        "role": "user",
+        "content": "list tools",
+        "id": "msg_1764521483141_znh6u3eyq",
+        "timestamp": "2025-11-30T16:51:23.141Z"
+      },
+      {
+        "role": "assistant",
+        "content": "Here are the tools available to me for analyzing Thales MRO and reliability operations:\n\n## **Data Query Tools**\n\n1. **MRO Control Tower Genie Space** (`query_space_01f0c482e842191587af6a40ad4044d8`)\n   - Query weekly MRO operations data\n   - Includes AOG hours and TAT days per site and airline\n   - Part number performance metrics\n   - Percentage of repairs within SLA\n   - Contract margin data per month\n   - Natural language querying capability\n\n2. **Projections Genie Space** (`query_space_01f0c4834b771b25a781884404c4af77`)\n   - Future projections of repair performance\n   - Percentage of repairs within SLA predictions\n   - Impact analysis of stock unit changes for PN families and sites\n   - TAT time change projections\n   - What-if scenario modeling\n\n## **Search & Retrieval Tools**\n\n3. **MRO Notes Vector Search** (`thales__ags_vx__idx_mro_notes`)\n   - Vector-based search through indexed MRO documentation\n   - Semantic search capabilities for finding relevant maintenance notes and documentation\n\n## **Polling Tools**\n\n4. **MRO Control Tower Response Polling** (`poll_response_01f0c482e842191587af6a40ad4044d8`)\n   - Continue retrieving results from long-running MRO Control Tower queries\n\n5. **Projections Response Polling** (`poll_response_01f0c4834b771b25a781884404c4af77`)\n   - Continue retrieving results from long-running Projections queries\n\n## **Built-in Capabilities**\n- **Python Code Execution** - For data analysis, calculations, and visualizations\n- **Natural Language Processing** - For interpreting and structuring responses\n\nThese tools allow me to provide comprehensive insights into MRO operations, performance monitoring, predictive analytics, and operational optimization across different repair sites, airlines, and part numbers.",
+        "traceId": "4a5e9100-170e-447b-9bff-c8c24479be09",
+        "traceSummary": {
+          "trace_id": "4a5e9100-170e-447b-9bff-c8c24479be09",
+          "duration_ms": 0,
+          "status": "OK",
+          "tools_called": [],
+          "retrieval_calls": [],
+          "llm_calls": [],
+          "total_tokens": 0,
+          "spans_count": 0,
+          "function_calls": []
+        },
+        "id": "msg_1764521529308_jz8vvl2vt",
+        "timestamp": "2025-11-30T16:52:09.308Z"
+      }
+    ],
+    "createdAt": "2025-11-30T16:51:22.827Z",
+    "updatedAt": "2025-11-30T16:52:09.308Z"
+  },
+  {
+    "id": "chat_1764264326955_0e2i2titj",
+    "title": "test list tools please",
+    "agentId": "databricks-agent-01",
+    "messages": [
+      {
+        "role": "user",
+        "content": "test list tools please",
+        "id": "msg_1764264327239_mblc8qmri",
+        "timestamp": "2025-11-27T17:25:27.239Z"
+      },
+      {
+        "role": "assistant",
+        "content": "I have access to the following tools for Thales MRO operations:\n\n## **Data Query Tools:**\n\n1. **MRO Control Tower Genie Space** (`query_space_01f0c482e842191587af6a40ad4044d8`)\n   - Query weekly MRO operations data\n   - Includes AOG hours and TAT days per site and airline\n   - Part number performance metrics\n   - Percentage of repairs within SLA\n   - Contract margin per month data\n   - Natural language queries supported\n\n2. **Projections Genie Space** (`query_space_01f0c4834b771b25a781884404c4af77`)\n   - Future projections of repair performance\n   - Percentage of repairs within SLA forecasts\n   - Impact analysis of stock unit changes for PN families and sites\n   - TAT time change projections for PN families and sites\n\n## **Search Tools:**\n\n3. **MRO Notes Vector Search** (`thales__ags_vx__idx_mro_notes`)\n   - Vector-based search through indexed MRO documentation\n   - Semantic search capabilities for maintenance notes and records\n\n## **Polling Tools:**\n\n4. **Response Polling** (for both genie spaces)\n   - Continue retrieving results from long-running queries\n   - Ensures complete data retrieval for complex analyses\n\n## **Built-in Capabilities:**\n- **Python code execution** for data analysis and calculations\n- Natural language processing for operational insights\n- Data visualization and reporting\n\nThese tools allow me to help you with operational questions, performance analysis, contract monitoring, future projections, and detailed MRO insights across different repair sites, airlines, and part numbers.\n\nWhat would you like to explore or analyze?",
+        "traceId": "cc999d50-bb8e-4b8a-8d8f-2d71d41b1fb2",
+        "traceSummary": {
+          "trace_id": "cc999d50-bb8e-4b8a-8d8f-2d71d41b1fb2",
+          "duration_ms": 0,
+          "status": "OK",
+          "tools_called": [],
+          "retrieval_calls": [],
+          "llm_calls": [],
+          "total_tokens": 0,
+          "spans_count": 0,
+          "function_calls": []
+        },
+        "id": "msg_1764264371086_k3ammf8te",
+        "timestamp": "2025-11-27T17:26:11.086Z"
+      }
+    ],
+    "createdAt": "2025-11-27T17:25:26.955Z",
+    "updatedAt": "2025-11-27T17:26:11.086Z"
+  }
+]

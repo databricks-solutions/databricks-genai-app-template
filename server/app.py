@@ -21,6 +21,7 @@ from starlette.requests import Request
 from .agents.databricks_assistant import databricks_agent
 from .agents.model_serving import model_serving_endpoint
 from .brand_service import brand_service
+from .chat_storage import storage, Chat, Message
 from .tracing import (
   get_mlflow_experiment_id,
   setup_mlflow_tracing,
@@ -274,6 +275,97 @@ class EndpointRequestOptions(BaseModel):
 async def invoke_endpoint(options: EndpointRequestOptions):
   """Agent API."""
   return model_serving_endpoint(options.endpoint_name, options.messages, options.endpoint_type)
+
+
+# ============================================================================
+# CHAT MANAGEMENT ENDPOINTS
+# In-memory chat storage with max 10 chats limit
+# ============================================================================
+
+
+@app.get(f'{API_PREFIX}/chats')
+async def get_all_chats():
+  """Get all chats sorted by updated_at (newest first).
+
+  Returns list of chat objects with messages.
+  """
+  logger.info('Fetching all chats')
+  chats = storage.get_all()
+  logger.info(f'Retrieved {len(chats)} chats')
+
+  # Convert to dict for JSON serialization
+  return [chat.dict() for chat in chats]
+
+
+class CreateChatRequest(BaseModel):
+  """Request to create a new chat."""
+
+  title: Optional[str] = "New Chat"
+  agent_id: Optional[str] = None
+
+
+@app.post(f'{API_PREFIX}/chats')
+async def create_new_chat(request: CreateChatRequest):
+  """Create a new chat session.
+
+  If 10 chats already exist, deletes the oldest chat.
+  """
+  logger.info(f'Creating new chat: title="{request.title}", agent_id={request.agent_id}')
+
+  chat = storage.create(title=request.title, agent_id=request.agent_id)
+
+  logger.info(f'Chat created: {chat.id}')
+  return chat.dict()
+
+
+@app.get(f'{API_PREFIX}/chats/{chat_id}')
+async def get_chat_by_id(chat_id: str):
+  """Get specific chat by ID with all messages."""
+  logger.info(f'Fetching chat: {chat_id}')
+
+  chat = storage.get(chat_id)
+  if not chat:
+    logger.warning(f'Chat not found: {chat_id}')
+    return Response(
+      content=f'Chat {chat_id} not found',
+      status_code=404
+    )
+
+  logger.info(f'Retrieved chat {chat_id} with {len(chat.messages)} messages')
+  return chat.dict()
+
+
+@app.delete(f'{API_PREFIX}/chats/{chat_id}')
+async def delete_chat_by_id(chat_id: str):
+  """Delete specific chat by ID."""
+  logger.info(f'Deleting chat: {chat_id}')
+
+  success = storage.delete(chat_id)
+  if not success:
+    logger.warning(f'Chat not found for deletion: {chat_id}')
+    return Response(
+      content=f'Chat {chat_id} not found',
+      status_code=404
+    )
+
+  logger.info(f'Chat deleted: {chat_id}')
+  return {'success': True, 'deleted_chat_id': chat_id}
+
+
+@app.delete(f'{API_PREFIX}/chats')
+async def clear_all_chats():
+  """Delete all chats."""
+  logger.info('Clearing all chats')
+
+  count = storage.clear_all()
+
+  logger.info(f'Cleared {count} chats')
+  return {'success': True, 'deleted_count': count}
+
+
+# ============================================================================
+# END CHAT MANAGEMENT ENDPOINTS
+# ============================================================================
 
 
 if not IS_DEV:

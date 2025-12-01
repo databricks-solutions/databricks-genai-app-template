@@ -3,6 +3,7 @@
 __pycache__
 .idea/
 .env
+.env.local
 .vscode/settings.json
 .claude/
 .mypy_cache/
@@ -15,7 +16,24 @@ __pycache__
 .coverage.*.*.*.*
 .coverage.*.*.*.*.*
 
+# Python virtual environment
+.venv/
+venv/
+
 .helper_files/
 
 # Analysis and summary files
 summary.md
+PROGRESS.md
+docs/
+
+# Build output
+dist/
+
+# Old client backup
+client_old_backup/
+
+# Next.js
+client/.next/
+client/out/
+client/node_modules/
