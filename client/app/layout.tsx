@@ -2,7 +2,7 @@ import type React from "react"
 import type { Metadata } from "next"
 import { DM_Sans, Montserrat, Inter } from "next/font/google"
 import "./globals.css"
-import { appConfig } from "@/lib/config"
+import { getAppConfigServer } from "@/lib/config-server"
 
 // Databricks primary font - DM Sans
 const dmSans = DM_Sans({
@@ -28,10 +28,15 @@ const inter = Inter({
   display: "swap",
 })
 
-export const metadata: Metadata = {
-  title: appConfig.branding.tabTitle,
-  description: appConfig.branding.description,
-  generator: 'v0.dev'
+// Generate metadata (server-side)
+export function generateMetadata(): Metadata {
+  const config = getAppConfigServer()
+
+  return {
+    title: config.branding.tabTitle,
+    description: config.branding.description,
+    generator: 'v0.dev'
+  }
 }
 
 export default function RootLayout({

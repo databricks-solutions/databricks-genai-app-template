@@ -1,10 +1,10 @@
 "use client"
 
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { Edit, User } from 'lucide-react'
 import { useThemeContext } from '@/contexts/ThemeContext'
-import { appConfig } from '@/lib/config'
+import { getAppConfig, type AppBranding } from '@/lib/config'
 
 interface TopBarProps {
   activeTab: 'chat' | 'dashboard' | 'tools' | 'about'
@@ -14,6 +14,17 @@ interface TopBarProps {
 
 export function TopBar({ activeTab, onTabChange, onEditModeToggle }: TopBarProps) {
   const { } = useThemeContext()
+  const [branding, setBranding] = useState<AppBranding>({
+    tabTitle: 'AI Assistant',
+    appName: 'AI Assistant',
+    companyName: '',
+    description: '',
+    logoPath: '/logos/databricks-symbol-color.svg'
+  })
+
+  useEffect(() => {
+    getAppConfig().then(config => setBranding(config.branding))
+  }, [])
 
   const tabs = [
     { id: 'dashboard' as const, label: 'Overview' },
@@ -25,22 +36,24 @@ export function TopBar({ activeTab, onTabChange, onEditModeToggle }: TopBarProps
   return (
     <header className="sticky top-0 z-30 w-full h-[var(--header-height)] bg-[var(--color-background-2)] backdrop-blur-lg border-b border-[var(--color-border)]">
       <div className="flex items-center justify-between h-full px-4 lg:px-6">
-        {/* Left Section - Thales Logo & Company Name */}
+        {/* Left Section - Logo & Company Name */}
         <div className="flex items-center gap-4">
-          {/* Thales Logo */}
+          {/* Logo */}
           <div className="relative w-24 h-8">
             <Image
-              src={appConfig.branding.logoPath}
-              alt={appConfig.branding.name}
+              src={branding.logoPath}
+              alt={branding.appName}
               fill
               className="object-contain"
             />
           </div>
 
           {/* Company Name */}
-          <h1 className="text-2xl font-medium tracking-tight text-[var(--color-text-heading)]">
-            {appConfig.branding.companyName}
-          </h1>
+          {branding.companyName && (
+            <h1 className="text-2xl font-medium tracking-tight text-[var(--color-text-heading)]">
+              {branding.companyName}
+            </h1>
+          )}
         </div>
 
         {/* Right Section - Navigation Tabs and Icons */}

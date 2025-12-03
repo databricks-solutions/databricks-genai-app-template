@@ -1,0 +1,15 @@
+{
+  "branding": {
+    "tabTitle": "Wingman.ai",
+    "appName": "Wingman",
+    "companyName": "Thales",
+    "description": "AI Assistant for MRO & Reliability Operations",
+    "logoPath": "/logos/databricks-symbol-color.svg"
+  },
+  "dashboard": {
+    "title": "MRO Analytics Dashboard",
+    "subtitle": "Monitor, analyze and improve MRO & Reliability operations across sites and airlines",
+    "iframeUrl": "https://adb-984752964297111.11.azuredatabricks.net/embed/dashboardsv3/01f0c3fa4bde1b90a79aca97efe4c697?o=984752964297111",
+    "showPadding": true
+  }
+}

@@ -1,0 +1,56 @@
+[
+  {
+    "id": "chat_1764768955377_rt1taeab1",
+    "title": "list tools",
+    "agentId": "databricks-agent-01",
+    "messages": [],
+    "createdAt": "2025-12-03T13:35:55.377Z",
+    "updatedAt": "2025-12-03T13:35:55.377Z"
+  },
+  {
+    "id": "chat_1764768801687_1ci0p1mjq",
+    "title": "list tools",
+    "agentId": "databricks-agent-01",
+    "messages": [],
+    "createdAt": "2025-12-03T13:33:21.687Z",
+    "updatedAt": "2025-12-03T13:33:21.687Z"
+  },
+  {
+    "id": "chat_1764767650113_0ulk6ph8m",
+    "title": "list tools",
+    "agentId": "databricks-agent-01",
+    "messages": [
+      {
+        "role": "user",
+        "content": "list tools",
+        "id": "msg_1764767650431_txm4x19ia",
+        "timestamp": "2025-12-03T13:14:10.431Z"
+      }
+    ],
+    "createdAt": "2025-12-03T13:14:10.113Z",
+    "updatedAt": "2025-12-03T13:14:10.431Z"
+  },
+  {
+    "id": "chat_1764767622215_t4t2tx1v9",
+    "title": "list tools",
+    "agentId": "databricks-agent-01",
+    "messages": [
+      {
+        "role": "user",
+        "content": "list tools",
+        "id": "msg_1764767622225_vfma2fyfp",
+        "timestamp": "2025-12-03T13:13:42.225Z"
+      }
+    ],
+    "createdAt": "2025-12-03T13:13:42.215Z",
+    "updatedAt": "2025-12-03T13:13:42.225Z"
+  },
+  {
+    "id": "chat_1764767275971_ci8pe2jxy",
+    "title": "list tools",
+    "agentId": "databricks-agent-01",
+    "messages": [],
+    "createdAt": "2025-12-03T13:07:55.971Z",
+    "updatedAt": "2025-12-03T13:07:55.971Z"
+  }
+]

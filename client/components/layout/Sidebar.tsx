@@ -115,8 +115,8 @@ export function Sidebar({
         id: chat.id,
         title: chat.title,
         lastMessage: chat.messages.length > 0 ? chat.messages[chat.messages.length - 1].content : '',
-        timestamp: new Date(chat.updatedAt),
-        preview: chat.messages.length > 0 
+        timestamp: new Date(chat.updated_at),
+        preview: chat.messages.length > 0
           ? chat.messages[chat.messages.length - 1].content.slice(0, 50) + '...'
           : ''
       }))

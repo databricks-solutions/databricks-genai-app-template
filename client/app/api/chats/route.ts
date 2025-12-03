@@ -1,35 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getAllChats, createChat } from '@/lib/chat-storage'
-import { getUserId } from '@/lib/auth-helpers'
-
-// Dev-only logger
-const devLog = (...args: any[]) => {
-  if (process.env.NODE_ENV !== 'production') {
-    console.log(...args)
-  }
-}
 
 export async function GET(request: NextRequest) {
   try {
-    // Extract user ID for multi-user isolation
-    const userId = getUserId(request)
-    devLog(`👤 GET /api/chats - User ID: ${userId}`)
+    // Proxy to Python backend
+    const response = await fetch('http://localhost:8000/api/chats')
 
-    // Get all chats for this user from storage
-    const chats = await getAllChats(userId)
+    if (!response.ok) {
+      return NextResponse.json(
+        { error: 'Failed to fetch chats' },
+        { status: response.status }
+      )
+    }
 
-    // Convert to JSON-serializable format
-    const serializedChats = chats.map(chat => ({
-      ...chat,
-      createdAt: chat.createdAt.toISOString(),
-      updatedAt: chat.updatedAt.toISOString(),
-      messages: chat.messages.map(msg => ({
-        ...msg,
-        timestamp: msg.timestamp.toISOString()
-      }))
-    }))
-
-    return NextResponse.json(serializedChats)
+    const chats = await response.json()
+    return NextResponse.json(chats)
   } catch (error) {
     console.error('Error fetching chats:', error)
     return NextResponse.json(
@@ -41,24 +25,24 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    // Extract user ID for multi-user isolation
-    const userId = getUserId(request)
-    devLog(`👤 POST /api/chats - User ID: ${userId}`)
-
     const body = await request.json()
-    const { title, agentId } = body
 
-    const newChat = await createChat(title || 'New Chat', agentId, userId)
+    // Proxy to Python backend
+    const response = await fetch('http://localhost:8000/api/chats', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    })
 
-    // Convert to JSON-serializable format
-    const serializedChat = {
-      ...newChat,
-      createdAt: newChat.createdAt.toISOString(),
-      updatedAt: newChat.updatedAt.toISOString(),
-      messages: []
+    if (!response.ok) {
+      return NextResponse.json(
+        { error: 'Failed to create chat' },
+        { status: response.status }
+      )
     }
 
-    return NextResponse.json(serializedChat)
+    const chat = await response.json()
+    return NextResponse.json(chat)
   } catch (error) {
     console.error('Error creating chat:', error)
     return NextResponse.json(

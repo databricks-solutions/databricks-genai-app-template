@@ -1,48 +1,145 @@
-// AI Assistant Application Configuration
-// This file centralizes all configuration options for easy customization
+/**
+ * Application Configuration API Client
+ *
+ * Fetches configuration from backend API endpoints instead of hardcoded values.
+ * Configuration is loaded from /config/*.json files on the server.
+ */
 
-export const appConfig = {
-  // Application Branding
-  branding: {
-    tabTitle: "Phoenix",
-    name: "Phoenix UI",
-    description: "Customizable UI to serve your Databricks dashboards and agents",
-    companyName: "",
-    logoPath: "/logos/databricks-symbol-color.svg",
-  },
-
-  // Databricks Integration
-  databricks: {
-    token: process.env.DATABRICKS_TOKEN || '',
-  },
-
-  // Dashboard Configuration
-  // To embed your Databricks dashboard:
-  // 1. Set the iframeUrl to your Databricks dashboard embed URL
-  // 2. Customize the title and subtitle to match your dashboard content
-  // 3. Leave iframeUrl empty ("") to show a placeholder message instead
-  dashboard: {
-    title: "Analytics Dashboard",
-    subtitle: "Leverage your Databricks gold data and data warehouses to serve your dashboards everywhere",
-    iframeUrl: process.env.NEXT_PUBLIC_DASHBOARD_IFRAME_URL || "",
-    // Set NEXT_PUBLIC_DASHBOARD_IFRAME_URL in your .env.local file
-    // Example: NEXT_PUBLIC_DASHBOARD_IFRAME_URL=https://adb-984752964297111.11.azuredatabricks.net/embed/dashboardsv3/01f0c3fa4bde1b90a79aca97efe4c697?o=984752964297111
-
-    // Display settings
-    showPadding: true  // Set to false to remove padding around the iframe
-  },
+// Type definitions
+export interface AppBranding {
+  tabTitle: string
+  appName: string
+  companyName: string
+  description: string
+  logoPath: string
 }
 
-// Type definitions for better TypeScript support
-export type AppConfig = typeof appConfig
-
-// Environment detection helpers
-export function isRunningInDatabricksApps(): boolean {
-  // If there's no DATABRICKS_TOKEN in env, we're running on Databricks Apps
-  return !appConfig.databricks.token
+export interface DashboardConfig {
+  title: string
+  subtitle: string
+  iframeUrl: string
+  showPadding: boolean
 }
 
+export interface AppConfig {
+  branding: AppBranding
+  dashboard: DashboardConfig
+}
+
+// In-memory cache to avoid repeated API calls
+let cachedAppConfig: AppConfig | null = null
+let configLoadingPromise: Promise<AppConfig> | null = null
+
+/**
+ * Fetch application configuration from backend API.
+ * Results are cached to avoid repeated API calls.
+ */
+export async function getAppConfig(): Promise<AppConfig> {
+  // Return cached config if available
+  if (cachedAppConfig) {
+    return cachedAppConfig
+  }
+
+  // If already loading, return the existing promise
+  if (configLoadingPromise) {
+    return configLoadingPromise
+  }
+
+  // Start loading config
+  configLoadingPromise = (async () => {
+    try {
+      const response = await fetch('/api/config/app')
+
+      if (!response.ok) {
+        throw new Error(`Failed to load config: ${response.statusText}`)
+      }
+
+      const config = await response.json()
+
+      // Validate required fields
+      if (!config.branding || !config.dashboard) {
+        throw new Error('Invalid config structure')
+      }
+
+      cachedAppConfig = config
+      return config
+
+    } catch (error) {
+      console.error('Error loading app config:', error)
+
+      // Return fallback config if API fails
+      const fallbackConfig: AppConfig = {
+        branding: {
+          tabTitle: 'AI Assistant',
+          appName: 'AI Assistant',
+          companyName: '',
+          description: 'AI-powered assistant',
+          logoPath: '/logos/databricks-symbol-color.svg'
+        },
+        dashboard: {
+          title: 'Dashboard',
+          subtitle: 'Analytics and insights',
+          iframeUrl: '',
+          showPadding: true
+        }
+      }
+
+      cachedAppConfig = fallbackConfig
+      return fallbackConfig
+
+    } finally {
+      configLoadingPromise = null
+    }
+  })()
+
+  return configLoadingPromise
+}
+
+/**
+ * Get synchronous app config (uses cached value).
+ * Returns null if config hasn't been loaded yet.
+ * Use getAppConfig() for async loading.
+ */
+export function getAppConfigSync(): AppConfig | null {
+  return cachedAppConfig
+}
+
+/**
+ * Reload configuration from server (clears cache).
+ */
+export async function reloadAppConfig(): Promise<AppConfig> {
+  cachedAppConfig = null
+  configLoadingPromise = null
+  return getAppConfig()
+}
+
+/**
+ * Environment detection helpers
+ */
 export function isRunningLocally(): boolean {
-  // If there's a DATABRICKS_TOKEN in env, we're running locally
-  return !!appConfig.databricks.token
+  if (typeof window === 'undefined') {
+    return false // Server-side rendering
+  }
+  return window.location.hostname === 'localhost' ||
+         window.location.hostname === '127.0.0.1'
+}
+
+export function isRunningInDatabricksApps(): boolean {
+  if (typeof window === 'undefined') {
+    return false
+  }
+  return !isRunningLocally()
+}
+
+// Legacy export for backward compatibility
+// NOTE: This is now async and must be awaited!
+export const appConfig = {
+  async branding() {
+    const config = await getAppConfig()
+    return config.branding
+  },
+  async dashboard() {
+    const config = await getAppConfig()
+    return config.dashboard
+  }
 }

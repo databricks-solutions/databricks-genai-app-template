@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createMLflowClient, MLflowSpan } from '@/lib/mlflow-client'
-import { promises as fs } from 'fs'
-import path from 'path'
 
 // Convert MLflow span to UI format
 function convertSpanToUIFormat(span: MLflowSpan, allSpans: MLflowSpan[]): any {
@@ -43,19 +41,18 @@ export async function GET(
       return NextResponse.json(getMockTraceData())
     }
 
-    // Load agents config to get host and experiment ID
-    const agentsFilePath = path.join(process.cwd(), 'public', 'metadata', 'agents.json')
-    const agentsFileContents = await fs.readFile(agentsFilePath, 'utf8')
-    const agentsData = JSON.parse(agentsFileContents)
-    
-    // Extract host from agent endpoint URL
-    const firstAgent = agentsData.agents[0]
-    const databricksHost = firstAgent?.endpoint_url?.split('/serving-endpoints')[0]
-    
+    // Get Databricks host from environment
+    const databricksHost = process.env.DATABRICKS_HOST
+
     if (!databricksHost) {
-      console.warn('Could not extract Databricks host from agents config')
+      console.warn('DATABRICKS_HOST not set in environment')
       return NextResponse.json(getMockTraceData())
     }
+
+    // Load agents config to get experiment ID
+    const agentsResponse = await fetch('http://localhost:8000/api/agents')
+    const agentsData = await agentsResponse.json()
+    const firstAgent = agentsData.agents?.[0]
 
     // If no experiment ID provided, use from agents config
     const expId = experimentId || firstAgent?.mlflow_experiment_id

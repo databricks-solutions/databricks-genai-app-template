@@ -129,9 +129,9 @@ export function ChatView({ chatId, onChatIdChange, selectedAgentId, onAgentChang
       const chat = await response.json()
 
       // Restore the agent for this chat
-      if (chat.agentId && onAgentChange) {
-        devLog('🔄 Restoring agent for chat:', chat.agentId)
-        onAgentChange(chat.agentId)
+      if (chat.agent_id && onAgentChange) {
+        devLog('🔄 Restoring agent for chat:', chat.agent_id)
+        onAgentChange(chat.agent_id)
       }
 
       const loadedMessages = chat.messages.map((msg: any) => ({
@@ -184,7 +184,7 @@ export function ChatView({ chatId, onChatIdChange, selectedAgentId, onAgentChang
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             title: content.slice(0, 50),
-            agentId: selectedAgentId  // Save the agent with the chat
+            agent_id: selectedAgentId  // Save the agent with the chat
           })
         })
 
@@ -238,7 +238,28 @@ export function ChatView({ chatId, onChatIdChange, selectedAgentId, onAgentChang
         throw new Error(`API returned ${response.status}: ${errorText}`)
       }
 
-      // Handle streaming response
+      // Handle simple JSON response (not streaming for now)
+      const data = await response.json()
+      devLog('📦 Got response data:', data)
+
+      const assistantContent = data.content || 'No response'
+
+      const assistantMessage: Message = {
+        id: assistantMessageId,
+        role: 'assistant',
+        content: assistantContent,
+        timestamp: new Date()
+      }
+
+      setMessages(prev => [...prev, assistantMessage])
+      assistantMessageCreated = true
+      setIsLoading(false)
+      devLog('✅ Assistant message added to UI')
+
+      return
+
+      // Old streaming code (disabled for now)
+      /*
       const reader = response.body?.getReader()
       const decoder = new TextDecoder()
 
@@ -539,6 +560,7 @@ export function ChatView({ chatId, onChatIdChange, selectedAgentId, onAgentChang
       } finally {
         reader.releaseLock()
       }
+      */
 
     } catch (error) {
       // Handle AbortError gracefully (user switched chats)

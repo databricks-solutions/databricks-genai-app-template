@@ -1,0 +1,27 @@
+{
+  "title": "About Wingman.ai",
+  "subtitle": "AI-Powered MRO Operations Assistant",
+  "videoUrl": "",
+  "sections": [
+    {
+      "heading": "What is Wingman?",
+      "content": "Wingman is an AI-powered assistant designed to help monitor, analyze, and improve MRO (Maintenance, Repair, and Operations) and Reliability operations across sites and airlines. Built on Databricks, Wingman provides real-time insights and natural language access to your operational data."
+    },
+    {
+      "heading": "Key Features",
+      "bullets": [
+        "Natural language queries for operational data",
+        "Real-time metrics monitoring",
+        "Predictive analytics and projections",
+        "Integration with Genie Rooms and Vector Search",
+        "Python code execution for custom analysis"
+      ]
+    },
+    {
+      "heading": "Getting Started",
+      "content": "Select an agent from the chat interface and start asking questions about your MRO operations. You can explore weekly metrics, view projections, search technical notes, and much more - all through natural conversation."
+    }
+  ],
+  "images": [],
+  "footer": "Powered by Databricks"
+}

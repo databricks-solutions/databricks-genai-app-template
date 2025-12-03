@@ -1,13 +1,24 @@
 "use client"
 
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Sparkles } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { appConfig } from '@/lib/config'
+import { getAppConfig, type DashboardConfig } from '@/lib/config'
 
 export function DashboardView() {
   const router = useRouter()
-  const { title, subtitle, iframeUrl, showPadding } = appConfig.dashboard
+  const [dashboard, setDashboard] = useState<DashboardConfig>({
+    title: 'Dashboard',
+    subtitle: 'Loading...',
+    iframeUrl: '',
+    showPadding: true
+  })
+
+  useEffect(() => {
+    getAppConfig().then(config => setDashboard(config.dashboard))
+  }, [])
+
+  const { title, subtitle, iframeUrl, showPadding } = dashboard
 
   // Case 1: Dashboard iframe is provided
   if (iframeUrl) {
@@ -66,13 +77,16 @@ export function DashboardView() {
           </p>
           <ol className="list-decimal list-inside space-y-2 text-base ml-4">
             <li>
-              Open <code className="px-2 py-1 bg-[var(--color-muted)]/30 rounded text-sm font-mono text-[var(--color-accent-primary)]">lib/config.ts</code>
+              Open <code className="px-2 py-1 bg-[var(--color-muted)]/30 rounded text-sm font-mono text-[var(--color-accent-primary)]">config/app.json</code>
             </li>
             <li>
               Set the <code className="px-2 py-1 bg-[var(--color-muted)]/30 rounded text-sm font-mono text-[var(--color-accent-primary)]">dashboard.iframeUrl</code> to your Databricks dashboard embed URL
             </li>
             <li>
               Customize the <code className="px-2 py-1 bg-[var(--color-muted)]/30 rounded text-sm font-mono text-[var(--color-accent-primary)]">dashboard.title</code> and <code className="px-2 py-1 bg-[var(--color-muted)]/30 rounded text-sm font-mono text-[var(--color-accent-primary)]">dashboard.subtitle</code> as needed
+            </li>
+            <li>
+              Restart the development server to see your changes
             </li>
           </ol>
         </div>

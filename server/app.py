@@ -18,10 +18,12 @@ from pydantic import BaseModel
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 
-from .agents.databricks_assistant import databricks_agent
+# LangChain agent import - commented out for now (not using it yet)
+# from .agents.databricks_assistant import databricks_agent
 from .agents.model_serving import model_serving_endpoint
 from .brand_service import brand_service
 from .chat_storage import storage, Chat, Message
+from .config_loader import config_loader
 from .tracing import (
   get_mlflow_experiment_id,
   setup_mlflow_tracing,
@@ -148,6 +150,80 @@ async def health_check():
     }
 
 
+@app.get(f'{API_PREFIX}/agents')
+async def get_agents():
+  """Get list of available agents from configuration.
+
+  Returns agent metadata including:
+  - Agent IDs and display names
+  - Deployment types (databricks-endpoint or langchain-agent)
+  - Endpoint names
+  - Tool descriptions
+  - MLflow experiment IDs
+  """
+  logger.info('Fetching available agents')
+
+  try:
+    agents_data = config_loader.agents_config
+    agents = agents_data.get('agents', [])
+    logger.info(f'Loaded {len(agents)} agents from configuration')
+
+    return agents_data
+
+  except Exception as e:
+    logger.error(f'Error loading agents: {str(e)}')
+    return {
+      'agents': [],
+      'error': f'Failed to load agents: {str(e)}'
+    }
+
+
+@app.get(f'{API_PREFIX}/config/app')
+async def get_app_config():
+  """Get application configuration (branding, dashboard, etc).
+
+  Returns:
+  - Branding info (app name, logo, company name)
+  - Dashboard configuration (iframe URL, title, subtitle)
+  """
+  logger.info('Fetching app configuration')
+
+  try:
+    app_config = config_loader.app_config
+    logger.info('✅ App configuration loaded')
+    return app_config
+
+  except Exception as e:
+    logger.error(f'Error loading app config: {str(e)}')
+    return {
+      'error': f'Failed to load app configuration: {str(e)}'
+    }
+
+
+@app.get(f'{API_PREFIX}/config/about')
+async def get_about_config():
+  """Get about page configuration.
+
+  Returns:
+  - About page title and content
+  - Video URL
+  - Section content
+  - Images
+  """
+  logger.info('Fetching about page configuration')
+
+  try:
+    about_config = config_loader.about_config
+    logger.info('✅ About page configuration loaded')
+    return about_config
+
+  except Exception as e:
+    logger.error(f'Error loading about config: {str(e)}')
+    return {
+      'error': f'Failed to load about configuration: {str(e)}'
+    }
+
+
 class BrandConfigRequest(BaseModel):
   """Request options for fetching brand configuration."""
 
@@ -200,28 +276,15 @@ client = MlflowClient()
 
 @app.post(f'{API_PREFIX}/agent')
 async def agent(options: AgentRequestOptions) -> QueryAgentResponse:
-  """Agent API."""
-  # Log agent requests for monitoring (will appear in Databricks Apps logs)
-  user_message = ''
-  if options.inputs.get('messages'):
-    user_message = options.inputs['messages'][-1].get('content', '')[:100]  # First 100 chars
+  """Agent API - OLD ENDPOINT (not used, kept for backwards compatibility)."""
+  # This endpoint uses the LangChain agent which is not configured yet
+  # Use /api/invoke_endpoint instead
+  logger.warning('Old /api/agent endpoint called - this is deprecated')
 
-  logger.info(f"Agent request received: '{user_message}...'")
-
-  try:
-    response = databricks_agent(**options.inputs)
-    trace_id = mlflow.get_last_active_trace_id()
-
-    # Log successful response
-    logger.info(f'Agent response generated successfully. Trace ID: {trace_id}')
-
-    return QueryAgentResponse(
-      response=response,
-      trace_id=trace_id,
-    )
-  except Exception as e:
-    logger.error(f'Agent request failed: {str(e)}')
-    raise
+  return QueryAgentResponse(
+    response={'error': 'This endpoint is deprecated. Use /api/invoke_endpoint instead.'},
+    trace_id=None,
+  )
 
 
 # Log feedback with traceId, assessmentName, and assessmentValue
@@ -265,16 +328,72 @@ async def log_feedback(options: LogAssessmentRequestOptions):
 class EndpointRequestOptions(BaseModel):
   """Request options for the agent API."""
 
-  # Kwargs to the agent function.
-  endpoint_name: str
+  # Agent ID to invoke
+  agent_id: str
+  # Messages to send to the agent
   messages: list[dict[str, str]]
-  endpoint_type: str = 'openai-chat'  # Default to OpenAI format
 
 
 @app.post(f'{API_PREFIX}/invoke_endpoint')
 async def invoke_endpoint(options: EndpointRequestOptions):
-  """Agent API."""
-  return model_serving_endpoint(options.endpoint_name, options.messages, options.endpoint_type)
+  """Invoke an agent endpoint based on agent configuration.
+
+  Routes to the appropriate handler based on agent deployment_type:
+  - databricks-endpoint: Calls external Databricks serving endpoint
+  - langchain-agent: Calls built-in LangChain agent (not yet implemented)
+  """
+  logger.info(f'Invoking agent: {options.agent_id}')
+
+  # Look up agent configuration
+  agent = config_loader.get_agent_by_id(options.agent_id)
+
+  if not agent:
+    logger.error(f'Agent not found: {options.agent_id}')
+    return {
+      'error': f'Agent not found: {options.agent_id}',
+      'message': 'Please check your agent configuration'
+    }
+
+  deployment_type = agent.get('deployment_type', 'databricks-endpoint')
+  logger.info(f'Agent deployment type: {deployment_type}')
+
+  try:
+    if deployment_type == 'databricks-endpoint':
+      # Call external Databricks serving endpoint
+      endpoint_name = agent.get('endpoint_name')
+
+      if not endpoint_name:
+        logger.error(f'No endpoint_name configured for agent: {options.agent_id}')
+        return {
+          'error': 'Invalid agent configuration',
+          'message': f'Agent {options.agent_id} has no endpoint_name configured'
+        }
+
+      logger.info(f'Calling Databricks endpoint: {endpoint_name}')
+      return model_serving_endpoint(
+        endpoint_name=endpoint_name,
+        messages=options.messages,
+        endpoint_type='databricks-agent'
+      )
+
+    elif deployment_type == 'langchain-agent':
+      # Call built-in LangChain agent (for future use)
+      logger.warning('LangChain agent type not yet implemented')
+      return {
+        'error': 'Not implemented',
+        'message': 'LangChain agents are not yet supported. Please use databricks-endpoint type.'
+      }
+
+    else:
+      logger.error(f'Unknown deployment_type: {deployment_type}')
+      return {
+        'error': 'Invalid deployment type',
+        'message': f'Unknown deployment_type: {deployment_type}. Supported types: databricks-endpoint, langchain-agent'
+      }
+
+  except Exception as e:
+    logger.error(f'Error invoking agent {options.agent_id}: {str(e)}')
+    raise
 
 
 # ============================================================================
@@ -318,7 +437,7 @@ async def create_new_chat(request: CreateChatRequest):
   return chat.dict()
 
 
-@app.get(f'{API_PREFIX}/chats/{chat_id}')
+@app.get(API_PREFIX + '/chats/{chat_id}')
 async def get_chat_by_id(chat_id: str):
   """Get specific chat by ID with all messages."""
   logger.info(f'Fetching chat: {chat_id}')
@@ -335,7 +454,7 @@ async def get_chat_by_id(chat_id: str):
   return chat.dict()
 
 
-@app.delete(f'{API_PREFIX}/chats/{chat_id}')
+@app.delete(API_PREFIX + '/chats/{chat_id}')
 async def delete_chat_by_id(chat_id: str):
   """Delete specific chat by ID."""
   logger.info(f'Deleting chat: {chat_id}')

@@ -18,10 +18,16 @@ export function useAgents(): UseAgentsResult {
   const [error, setError] = useState<Error | null>(null)
 
   useEffect(() => {
-    fetch('/metadata/agents.json')
-      .then(res => res.json())
+    // Fetch from Python backend API (not from local file)
+    fetch('/api/agents')
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`Failed to load agents: ${res.status}`)
+        }
+        return res.json()
+      })
       .then(data => {
-        setAgents(data.agents)
+        setAgents(data.agents || [])
         setLoading(false)
       })
       .catch(err => {
