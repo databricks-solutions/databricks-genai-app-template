@@ -1,24 +1,24 @@
-/* Thales AGS Aviation MRO Theming System - Deep Ocean Blue Aesthetic */
+/* Default Theme Variables - Placeholder values overridden by ThemeContext at runtime */
 
 :root {
-  /* Core Colors - Thales AGS Light Mode */
-  --color-primary: #003D82;           /* Thales deep ocean blue */
-  --color-primary-hover: #1E5B9E;     /* Rich blue */
-  --color-primary-active: #002A5C;    /* Darker ocean blue */
-  --color-secondary: #D4E7F4;         /* Rich ocean blue-grey */
-  --color-secondary-hover: #C0DBF0;   /* Deeper ocean blue-grey */
-  --color-secondary-active: #A8CBDE;  /* Ocean blue */
-  --color-background: #F0F7FC;        /* Pale ice blue */
-  --color-foreground: #001B3D;        /* Deep ocean navy */
-  --color-accent: #003D82;            /* Thales ocean blue */
-  --color-accent-hover: #4A90E2;      /* Bright ocean blue */
-  --color-muted: #D4E7F4;             /* Rich ocean blue-grey */
-  --color-muted-foreground: #5B8DB8;  /* Steel blue */
+  /* Core Colors - Placeholder defaults (overridden by ThemeContext) */
+  --color-primary: #003D82;
+  --color-primary-hover: #1E5B9E;
+  --color-primary-active: #002A5C;
+  --color-secondary: #D4E7F4;
+  --color-secondary-hover: #C0DBF0;
+  --color-secondary-active: #A8CBDE;
+  --color-background: #F0F7FC;
+  --color-foreground: #001B3D;
+  --color-accent: #003D82;
+  --color-accent-hover: #4A90E2;
+  --color-muted: #D4E7F4;
+  --color-muted-foreground: #5B8DB8;
   --color-border: rgba(168, 203, 222, 0.7);
-  --color-input: #F0F7FC;             /* Pale ice blue input */
-  --color-ring: #003D82;              /* Thales ocean blue */
+  --color-input: #F0F7FC;
+  --color-ring: #003D82;
 
-  /* Status Colors - Aviation MRO */
+  /* Status Colors - Placeholder defaults (overridden by ThemeContext) */
   --color-success: #0B7F5B;
   --color-success-background: #D1FAE5;
   --color-warning: #D97706;
@@ -28,14 +28,14 @@
   --color-info: #1E5B9E;
   --color-info-background: #DBEAFE;
 
-  /* Chat Colors - Thales AGS */
-  --color-chat-user: #003D82;         /* Thales ocean blue */
-  --color-chat-user-text: #FFFFFF;    /* White */
-  --color-chat-assistant: #E8F4FB;    /* Light ocean blue */
-  --color-chat-assistant-text: #0A3D62; /* Rich ocean blue */
-  --color-chat-timestamp: #5B8DB8;    /* Steel blue */
-  
-  /* Typography - Databricks */
+  /* Chat Colors - Placeholder defaults (overridden by ThemeContext) */
+  --color-chat-user: #003D82;
+  --color-chat-user-text: #FFFFFF;
+  --color-chat-assistant: #E8F4FB;
+  --color-chat-assistant-text: #0A3D62;
+  --color-chat-timestamp: #5B8DB8;
+
+  /* Typography - Placeholder defaults (overridden by ThemeContext) */
   --font-family: "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-family-accent: "Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-family-mono: 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
@@ -55,7 +55,7 @@
   --line-height-relaxed: 1.7;
   --letter-spacing: -0.01em;
   
-  /* Spacing */
+  /* Spacing - Used by components (not overridden) */
   --spacing-unit: 0.25rem;
   --spacing-xs: calc(var(--spacing-unit) * 1); /* 4px */
   --spacing-sm: calc(var(--spacing-unit) * 2); /* 8px */
@@ -64,8 +64,8 @@
   --spacing-xl: calc(var(--spacing-unit) * 8); /* 32px */
   --spacing-2xl: calc(var(--spacing-unit) * 12); /* 48px */
   --spacing-3xl: calc(var(--spacing-unit) * 16); /* 64px */
-  
-  /* Borders */
+
+  /* Borders - Used by components (not overridden) */
   --border-radius-sm: 4px;
   --border-radius: 8px;
   --border-radius-md: 12px;
@@ -74,7 +74,7 @@
   --border-radius-full: 9999px;
   --border-width: 1px;
   
-  /* Shadows */
+  /* Shadows - Used by components (not overridden) */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
@@ -82,49 +82,49 @@
   --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   --shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
-  
-  /* Transitions */
+
+  /* Transitions - Used by components (not overridden) */
   --transition-fast: 150ms ease;
   --transition-base: 250ms ease;
   --transition-slow: 300ms ease;
   --transition-slowest: 500ms ease;
-  
-  /* Z-indexes */
+
+  /* Z-indexes - Used by components (not overridden) */
   --z-dropdown: 50;
   --z-modal: 100;
   --z-popover: 200;
   --z-tooltip: 300;
-  
-  /* Layout */
+
+  /* Layout - Used by components (not overridden) */
   --sidebar-width: 280px;
   --header-height: 64px;
   --chat-input-max-height: 200px;
-  
-  /* Animations */
+
+  /* Animations - Used by components (not overridden) */
   --animation-slide-in: slideIn 0.3s ease-out;
   --animation-fade-in: fadeIn 0.3s ease-out;
   --animation-scale-in: scaleIn 0.3s ease-out;
 }
 
-/* Dark mode overrides - Thales AGS Aviation MRO */
+/* Dark mode overrides - Placeholder defaults (overridden by ThemeContext) */
 [data-theme="dark"] {
-  --color-primary: #E0E7FF;           /* Light indigo - readable on dark */
-  --color-primary-hover: #C7D2FE;     /* Lighter indigo */
-  --color-primary-active: #FFFFFF;    /* Pure white */
-  --color-secondary: #1E293B;         /* Dark slate */
-  --color-secondary-hover: #334155;   /* Lighter slate */
-  --color-secondary-active: #0F172A;  /* Very dark slate */
-  --color-background: #020617;        /* Deep navy background */
-  --color-foreground: #F1F5F9;        /* Light slate */
-  --color-accent: #3B82F6;            /* Bright blue */
-  --color-accent-hover: #8B5CF6;      /* Purple accent */
-  --color-muted: #1E293B;             /* Dark slate */
-  --color-muted-foreground: #94A3B8;  /* Slate-400 */
+  --color-primary: #E0E7FF;
+  --color-primary-hover: #C7D2FE;
+  --color-primary-active: #FFFFFF;
+  --color-secondary: #1E293B;
+  --color-secondary-hover: #334155;
+  --color-secondary-active: #0F172A;
+  --color-background: #020617;
+  --color-foreground: #F1F5F9;
+  --color-accent: #3B82F6;
+  --color-accent-hover: #8B5CF6;
+  --color-muted: #1E293B;
+  --color-muted-foreground: #94A3B8;
   --color-border: rgba(148, 163, 184, 0.2);
-  --color-input: #1E293B;             /* Dark slate */
-  --color-ring: #3B82F6;              /* Bright blue */
+  --color-input: #1E293B;
+  --color-ring: #3B82F6;
 
-  /* Status Colors - Aviation MRO Dark */
+  /* Status Colors - Placeholder defaults (overridden by ThemeContext) */
   --color-success: #10B981;
   --color-success-background: #064E3B;
   --color-warning: #F59E0B;
@@ -134,13 +134,13 @@
   --color-info: #3B82F6;
   --color-info-background: #1E3A8A;
 
-  /* Chat Colors - Thales AGS Dark */
-  --color-chat-user: #3B82F6;         /* Bright blue */
-  --color-chat-user-text: #FFFFFF;    /* White */
-  --color-chat-assistant: #1E293B;    /* Dark slate */
-  --color-chat-assistant-text: #E0E7FF; /* Light indigo */
-  
-  /* Shadows (adjusted for dark mode) */
+  /* Chat Colors - Placeholder defaults (overridden by ThemeContext) */
+  --color-chat-user: #3B82F6;
+  --color-chat-user-text: #FFFFFF;
+  --color-chat-assistant: #1E293B;
+  --color-chat-assistant-text: #E0E7FF;
+
+  /* Shadows - Dark mode adjustments (used by components) */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
   --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.4), 0 1px 2px 0 rgba(0, 0, 0, 0.3);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
