@@ -12,7 +12,7 @@ name = "databricks-phoenix-app-template"
 version = "0.1.0"
 description = "Databricks GenAI App Template (Phoenix)"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 dependencies = [
   "fastapi[standard]>=0.115.8",
   "mlflow[databricks]>=3.1",

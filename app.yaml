@@ -2,6 +2,3 @@ command: [
   "uvicorn",
   "server.app:app"
 ]
-env:
-  - name: 'MLFLOW_EXPERIMENT_ID'
-    value: '1967744795615174'
