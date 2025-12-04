@@ -3,40 +3,42 @@
 @import "../styles/textures.css";
 
 /* Import fonts - DM Sans, Montserrat, Inter, Roboto, Open Sans, JetBrains Mono */
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Montserrat:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&family=Roboto:wght@400;500;700&family=Open+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Montserrat:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&family=Roboto:wght@400;500;700&family=Open+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap");
 
 @custom-variant dark (&:is(.dark *));
 
 :root {
   /* Databricks Core Colors - Light Mode */
-  --db-primary: #1B3139;           /* Navy - primary text */
-  --db-secondary: #EEEDE9;         /* Oat - secondary surfaces */
-  --db-background: #F5F5F5;        /* Slightly off-white for main bg */
-  --db-accent: #04355D;            /* Darker blue for accents */
-  --db-tertiary: #DCE0E2;          /* Light gray for subtle surfaces */
-  
+  --db-primary: #1b3139; /* Navy - primary text */
+  --db-secondary: #eeede9; /* Oat - secondary surfaces */
+  --db-background: #f5f5f5; /* Slightly off-white for main bg */
+  --db-accent: #04355d; /* Darker blue for accents */
+  --db-tertiary: #dce0e2; /* Light gray for subtle surfaces */
+
   /* Databricks Text Colors */
-  --db-text-primary: #1B3139;      /* Navy for main text */
-  --db-text-secondary: #04355D;    /* Darker blue for secondary text */
-  --db-text-muted: #6B7C84;        /* Muted for tertiary text */
-  --db-text-inverse: #FFFFFF;      /* White for text on dark backgrounds */
-  
+  --db-text-primary: #1b3139; /* Navy for main text */
+  --db-text-secondary: #04355d; /* Darker blue for secondary text */
+  --db-text-muted: #6b7c84; /* Muted for tertiary text */
+  --db-text-inverse: #ffffff; /* White for text on dark backgrounds */
+
   /* Databricks Surface Colors */
-  --db-surface-paper: #FFFFFF;     /* Pure white for elevated cards/modals */
-  --db-surface-elevated: #EEEDE9;  /* Oat for raised surfaces */
-  --db-surface-subtle: #DCE0E2;    /* Light gray for subtle sections */
+  --db-surface-paper: #ffffff; /* Pure white for elevated cards/modals */
+  --db-surface-elevated: #eeede9; /* Oat for raised surfaces */
+  --db-surface-subtle: #dce0e2; /* Light gray for subtle sections */
   --db-surface-overlay: rgba(27, 49, 57, 0.04); /* Subtle navy overlay */
-  
+
   /* Databricks Status Colors */
-  --db-status-success: #095A35;    /* Green from palette */
-  --db-status-warning: #F57C00;
-  --db-status-error: #C62828;
-  --db-status-info: #04355D;       /* Darker blue from palette */
-  
+  --db-status-success: #095a35; /* Green from palette */
+  --db-status-warning: #f57c00;
+  --db-status-error: #c62828;
+  --db-status-info: #04355d; /* Darker blue from palette */
+
   /* Databricks Typography */
-  --db-font-primary: "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --db-font-accent: "Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  
+  --db-font-primary:
+    "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --db-font-accent:
+    "Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
   /* Map to existing variable names for compatibility */
   --card: var(--db-surface-paper);
   --card-foreground: var(--db-text-primary);
@@ -69,11 +71,11 @@
   --foreground: var(--db-text-primary);
 
   /* Chat-specific colors */
-  --color-chat-user: #1B3139;
-  --color-chat-user-text: #FFFFFF;
+  --color-chat-user: #1b3139;
+  --color-chat-user-text: #ffffff;
   --color-chat-assistant: rgba(255, 255, 255, 0.7);
-  --color-chat-assistant-text: #1B3139;
-  --color-chat-timestamp: #6B7C84;
+  --color-chat-assistant-text: #1b3139;
+  --color-chat-timestamp: #6b7c84;
 }
 
 /* Dark mode overrides removed - now controlled by ThemeContext for full customization */
@@ -83,7 +85,7 @@
   /* Databricks Fonts */
   --font-sans: var(--db-font-primary);
   --font-heading: var(--db-font-accent);
-  
+
   /* Color Mappings */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -116,7 +118,7 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-  
+
   /* Direct Databricks Color Access */
   --color-db-primary: var(--db-primary);
   --color-db-secondary: var(--db-secondary);
@@ -137,12 +139,17 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
-  
+
   /* Typography - Databricks Style */
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     color: var(--color-text-heading);
   }
-  
+
   /* All headings use primary font (--font-primary / --db-font-accent) */
   h1 {
     font-family: var(--db-font-accent);
@@ -179,7 +186,7 @@
     font-size: 1rem;
     font-weight: 500;
   }
-  
+
   p {
     color: var(--color-text-primary);
     line-height: 1.6;
@@ -195,9 +202,11 @@
     color: var(--color-accent-secondary);
     text-decoration: underline;
   }
-  
+
   /* Add texture to main containers */
-  main, .main-content, .page-wrapper {
+  main,
+  .main-content,
+  .page-wrapper {
     position: relative;
   }
 }
@@ -222,7 +231,8 @@
 
 /* Aviation/Aerospace Themed Animations */
 @keyframes float-0 {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0px) translateX(0px);
     opacity: 0.6;
   }
@@ -241,7 +251,8 @@
 }
 
 @keyframes float-1 {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0px) translateX(0px) rotate(0deg);
     opacity: 0.4;
   }
@@ -256,7 +267,8 @@
 }
 
 @keyframes float-2 {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0px) translateX(0px) scale(1);
     opacity: 0.5;
   }
@@ -287,7 +299,8 @@
 }
 
 @keyframes constellation-twinkle {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0.3;
     transform: scale(1);
   }

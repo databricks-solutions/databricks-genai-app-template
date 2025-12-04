@@ -1,83 +1,89 @@
-"use client"
+"use client";
 
-import { useState, useEffect, Suspense } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
-import { TopBar } from "@/components/layout/TopBar"
-import { Sidebar } from "@/components/layout/Sidebar"
-import { MainContent } from "@/components/layout/MainContent"
-import { EditModePanel } from "@/components/modals/EditModePanel"
-import { CustomThemeProvider } from "@/contexts/ThemeContext"
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { TopBar } from "@/components/layout/TopBar";
+import { Sidebar } from "@/components/layout/Sidebar";
+import { MainContent } from "@/components/layout/MainContent";
+import { EditModePanel } from "@/components/modals/EditModePanel";
+import { CustomThemeProvider } from "@/contexts/ThemeContext";
 
 // Dev-only logger
 const devLog = (...args: any[]) => {
-  if (process.env.NODE_ENV !== 'production') {
-    console.log(...args)
+  if (process.env.NODE_ENV !== "production") {
+    console.log(...args);
   }
-}
+};
 
 // Wrapper component for search params
 function TabSync({
-  onTabChange
+  onTabChange,
 }: {
-  onTabChange: (tab: 'chat' | 'dashboard' | 'tools' | 'about') => void
+  onTabChange: (tab: "chat" | "dashboard" | "tools" | "about") => void;
 }) {
-  const searchParams = useSearchParams()
+  const searchParams = useSearchParams();
 
   useEffect(() => {
-    const tab = searchParams.get('tab')
-    if (tab && ['chat', 'dashboard', 'tools', 'about'].includes(tab)) {
-      onTabChange(tab as 'chat' | 'dashboard' | 'tools' | 'about')
+    const tab = searchParams.get("tab");
+    if (tab && ["chat", "dashboard", "tools", "about"].includes(tab)) {
+      onTabChange(tab as "chat" | "dashboard" | "tools" | "about");
     }
-  }, [searchParams, onTabChange])
+  }, [searchParams, onTabChange]);
 
-  return null
+  return null;
 }
 
 function HomeContent() {
-  const router = useRouter()
+  const router = useRouter();
 
-  const [mounted, setMounted] = useState(false)
-  const [activeTab, setActiveTab] = useState<'chat' | 'dashboard' | 'tools' | 'about'>('dashboard')
-  const [currentChatId, setCurrentChatId] = useState<string | undefined>(undefined)
-  const [isEditMode, setIsEditMode] = useState(false)
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
-  const [selectedAgentId, setSelectedAgentId] = useState<string>('')
-  const [initialChatMessage, setInitialChatMessage] = useState<string | undefined>(undefined)
+  const [mounted, setMounted] = useState(false);
+  const [activeTab, setActiveTab] = useState<
+    "chat" | "dashboard" | "tools" | "about"
+  >("dashboard");
+  const [currentChatId, setCurrentChatId] = useState<string | undefined>(
+    undefined,
+  );
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [selectedAgentId, setSelectedAgentId] = useState<string>("");
+  const [initialChatMessage, setInitialChatMessage] = useState<
+    string | undefined
+  >(undefined);
 
   useEffect(() => {
-    setMounted(true)
+    setMounted(true);
     // Load collapsed state from localStorage
-    const savedCollapsed = localStorage.getItem('sidebarCollapsed')
+    const savedCollapsed = localStorage.getItem("sidebarCollapsed");
     if (savedCollapsed !== null) {
-      setIsSidebarCollapsed(savedCollapsed === 'true')
+      setIsSidebarCollapsed(savedCollapsed === "true");
     }
-  }, [])
+  }, []);
 
-  const handleTabChange = (tab: 'chat' | 'dashboard' | 'tools' | 'about') => {
-    setActiveTab(tab)
+  const handleTabChange = (tab: "chat" | "dashboard" | "tools" | "about") => {
+    setActiveTab(tab);
     // Update URL with the new tab
-    router.push(`/?tab=${tab}`, { scroll: false })
-  }
+    router.push(`/?tab=${tab}`, { scroll: false });
+  };
 
   const handleNewChat = () => {
     // Clear the current chat ID to start fresh
     // The chat will be created automatically when the user sends their first message
-    setCurrentChatId(undefined)
-    handleTabChange('chat')
-    devLog('🆕 Starting new chat session')
-  }
+    setCurrentChatId(undefined);
+    handleTabChange("chat");
+    devLog("🆕 Starting new chat session");
+  };
 
   const handleChatSelect = (chatId: string) => {
-    setCurrentChatId(chatId)
-    handleTabChange('chat')
+    setCurrentChatId(chatId);
+    handleTabChange("chat");
     // Close sidebar on mobile after selection
     if (window.innerWidth < 1024) {
-      setIsSidebarOpen(false)
+      setIsSidebarOpen(false);
     }
-  }
+  };
 
-  if (!mounted) return null
+  if (!mounted) return null;
 
   return (
     <div className="h-screen bg-[var(--color-background)] flex flex-col overflow-hidden">
@@ -96,7 +102,7 @@ function HomeContent() {
       {/* Main Layout - Flexible height */}
       <div className="flex-1 flex relative overflow-hidden">
         {/* Sidebar - Only show on Chat tab */}
-        {activeTab === 'chat' && (
+        {activeTab === "chat" && (
           <>
             {/* Sidebar - Desktop */}
             <div className="hidden lg:block flex-shrink-0">
@@ -106,8 +112,11 @@ function HomeContent() {
                 onNewChat={handleNewChat}
                 isCollapsed={isSidebarCollapsed}
                 onCollapse={(collapsed) => {
-                  setIsSidebarCollapsed(collapsed)
-                  localStorage.setItem('sidebarCollapsed', collapsed.toString())
+                  setIsSidebarCollapsed(collapsed);
+                  localStorage.setItem(
+                    "sidebarCollapsed",
+                    collapsed.toString(),
+                  );
                 }}
                 selectedAgentId={selectedAgentId}
                 onAgentChange={setSelectedAgentId}
@@ -140,12 +149,9 @@ function HomeContent() {
       </div>
 
       {/* Edit Mode Panel */}
-      <EditModePanel
-        isOpen={isEditMode}
-        onClose={() => setIsEditMode(false)}
-      />
+      <EditModePanel isOpen={isEditMode} onClose={() => setIsEditMode(false)} />
     </div>
-  )
+  );
 }
 
 export default function Home() {
@@ -153,5 +159,5 @@ export default function Home() {
     <CustomThemeProvider>
       <HomeContent />
     </CustomThemeProvider>
-  )
+  );
 }

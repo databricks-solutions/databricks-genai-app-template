@@ -1,5 +1,7 @@
-# Deploy the Lakehouse App.
-# For configuration options see README.md and .env.local.
+#!/bin/bash
+
+# Deploy to Databricks Apps
+# Requires DATABRICKS_APP_NAME and LHA_SOURCE_CODE_PATH in .env.local
 
 set -e
 
@@ -36,85 +38,75 @@ then
   databricks auth login --host "$DATABRICKS_HOST"
 fi
 
-mkdir -p client/build
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "📦 Building Application"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
 
-# Generate requirements.txt from pyproject.toml preserving version ranges
-uv run python scripts/generate_semver_requirements.py
+# Generate requirements.txt from pyproject.toml
+echo "🐍 Generating requirements.txt from pyproject.toml..."
+uv run python scripts/generate_server_requirements.py
 
-# Update app.yaml with MLFLOW_EXPERIMENT_ID from .env.local
-if [ -n "$MLFLOW_EXPERIMENT_ID" ]; then
-  echo "🔧 Setting MLFLOW_EXPERIMENT_ID to $MLFLOW_EXPERIMENT_ID in app.yaml..."
-  sed -i.bak "s/value: 'your-experiment-id'/value: '$MLFLOW_EXPERIMENT_ID'/" app.yaml
-  rm -f app.yaml.bak
-else
-  echo "⚠️  MLFLOW_EXPERIMENT_ID not found in environment"
-fi
+# Build Next.js frontend
+echo "🎨 Building Next.js frontend..."
+cd client && BROWSER=none npm run build && cd ..
 
-# Build fastapi client.
-uv run python -m scripts.make_fastapi_client
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "🚀 Deploying to Databricks Apps"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
 
-# Build javascript.
-pushd client && BROWSER=none npm run build && popd
-
+# Sync code to workspace
+echo "📤 Syncing code to workspace..."
 databricks sync . "$LHA_SOURCE_CODE_PATH" \
   --profile "$DATABRICKS_CONFIG_PROFILE"
 
+# Deploy app
+echo ""
+echo "🎯 Deploying app: $DATABRICKS_APP_NAME..."
 databricks apps deploy $DATABRICKS_APP_NAME \
-  --source-code-path "$LHA_SOURCE_CODE_PATH"\
+  --source-code-path "$LHA_SOURCE_CODE_PATH" \
   --profile "$DATABRICKS_CONFIG_PROFILE"
 
 echo ""
-echo "🎉 Deployment completed!"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "✅ Deployment Complete"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 
-# Get app status and URL
-echo "📊 Checking app status..."
+# Verify deployment
+echo "📊 Verifying deployment..."
 APP_STATUS=$(databricks apps list --profile "$DATABRICKS_CONFIG_PROFILE" | grep "$DATABRICKS_APP_NAME" || echo "")
 
 if [ -n "$APP_STATUS" ]; then
-  echo "✅ App found in Databricks Apps list"
+  echo "✅ App is deployed"
+  echo ""
   echo "$APP_STATUS"
   echo ""
-  
-  # Wait a moment for app to start up
-  echo "⏳ Waiting for app to start up..."
-  sleep 10
-  
-  # Attempt to get app URL and test health endpoint
-  echo "🔍 Testing app health..."
-  
-  # Note: You'll need to replace this with your actual app URL pattern
-  # This is a placeholder that would need to be customized based on your Databricks setup
-  echo "📋 Post-deployment checklist:"
+  echo "📋 Next Steps:"
   echo ""
-  echo "🔗 App Access:"
-  echo "  • Navigate to Compute → Apps in your Databricks workspace"
-  echo "  • Click on '$DATABRICKS_APP_NAME' to access your app"
-  echo "  • Test the chat interface to verify agent functionality"
+  echo "  1. Access App:"
+  echo "     • Navigate to Compute → Apps in Databricks workspace"
+  echo "     • Click '$DATABRICKS_APP_NAME' to open the app"
   echo ""
-  echo "📊 Monitoring Setup:"
-  echo "  • App Logs: Click 'Logs' tab in your app overview"
-  echo "  • Direct Log Access: Add /logz to your app URL"
-  echo "  • Health Check: Add /api/health to your app URL"
-  echo "  • MLflow Traces: Check experiment ID $MLFLOW_EXPERIMENT_ID"
+  echo "  2. Monitor App:"
+  echo "     • Logs: Click 'Logs' tab or visit {app-url}/logz"
+  echo "     • Health: Visit {app-url}/api/health"
   echo ""
-  echo "🧪 Verification Steps:"
-  echo "  1. Send a test message in the chat interface"
-  echo "  2. Verify logs appear in the Logs tab"
-  echo "  3. Check MLflow experiment for new traces"
-  echo "  4. Test thumbs up/down feedback functionality"
-  echo ""
-  echo "🚨 Troubleshooting:"
-  echo "  • If app won't start: Check Environment tab for errors"
-  echo "  • If no logs: Verify app writes to stdout/stderr"
-  echo "  • If MLflow issues: Check MLFLOW_EXPERIMENT_ID in Environment"
+  echo "  3. Test Functionality:"
+  echo "     • Send a test message in the chat interface"
+  echo "     • Verify agent responses and markdown rendering"
+  echo "     • Check logs for any errors"
   echo ""
 else
-  echo "⚠️  App not found in apps list - deployment may have failed"
+  echo "⚠️  App not found - deployment may have failed"
   echo ""
-  echo "🔧 Debugging steps:"
+  echo "Debugging steps:"
   echo "  1. Run: databricks apps list --profile $DATABRICKS_CONFIG_PROFILE"
-  echo "  2. Check your .env.local file for correct DATABRICKS_APP_NAME"
-  echo "  3. Verify workspace permissions for app deployment"
-  echo "  4. Check app.yaml configuration file"
+  echo "  2. Verify DATABRICKS_APP_NAME in .env.local"
+  echo "  3. Check workspace permissions for app deployment"
+  echo "  4. Review deployment logs above for errors"
+  echo ""
 fi

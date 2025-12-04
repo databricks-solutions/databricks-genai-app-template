@@ -1,33 +1,46 @@
-"use client"
+"use client";
 
-import React from 'react'
-import { ThumbsUp, ThumbsDown, Search, Clock, Zap, Wrench, Database, Copy, Check } from 'lucide-react'
-import { Message as MessageType } from '@/lib/types'
-import { ChartRenderer } from './ChartRenderer'
-import { formatDistanceToNow } from 'date-fns'
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
-import { oneDark, oneLight } from 'react-syntax-highlighter/dist/cjs/styles/prism'
-import { Button } from '@/components/ui/button'
-import { useThemeContext } from '@/contexts/ThemeContext'
+import React from "react";
+import {
+  ThumbsUp,
+  ThumbsDown,
+  Search,
+  Clock,
+  Zap,
+  Wrench,
+  Database,
+  Copy,
+  Check,
+} from "lucide-react";
+import { Message as MessageType } from "@/lib/types";
+import { ChartRenderer } from "./ChartRenderer";
+import { formatDistanceToNow } from "date-fns";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import {
+  oneDark,
+  oneLight,
+} from "react-syntax-highlighter/dist/cjs/styles/prism";
+import { Button } from "@/components/ui/button";
+import { useThemeContext } from "@/contexts/ThemeContext";
 
 interface MessageProps {
-  message: MessageType
-  onFeedback: (messageId: string, type: 'positive' | 'negative') => void
-  onViewTrace: (messageId: string) => void
+  message: MessageType;
+  onFeedback: (messageId: string, type: "positive" | "negative") => void;
+  onViewTrace: (messageId: string) => void;
 }
 
 // Code block component with copy functionality
 function CodeBlock({ language, value }: { language: string; value: string }) {
-  const [copied, setCopied] = React.useState(false)
-  const { theme } = useThemeContext()
+  const [copied, setCopied] = React.useState(false);
+  const { theme } = useThemeContext();
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(value)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
+    navigator.clipboard.writeText(value);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   return (
     <div className="relative group my-4">
@@ -51,17 +64,20 @@ function CodeBlock({ language, value }: { language: string; value: string }) {
         </button>
       </div>
       <SyntaxHighlighter
-        language={language || 'text'}
-        style={theme === 'dark' ? oneDark : oneLight}
+        language={language || "text"}
+        style={theme === "dark" ? oneDark : oneLight}
         customStyle={{
           margin: 0,
-          borderRadius: '0.75rem',
-          fontSize: '0.875rem',
-          lineHeight: '1.6',
-          padding: '1rem',
-          background: theme === 'dark' ? 'rgba(15, 23, 42, 0.8)' : 'rgba(241, 245, 249, 0.8)',
+          borderRadius: "0.75rem",
+          fontSize: "0.875rem",
+          lineHeight: "1.6",
+          padding: "1rem",
+          background:
+            theme === "dark"
+              ? "rgba(15, 23, 42, 0.8)"
+              : "rgba(241, 245, 249, 0.8)",
         }}
-        showLineNumbers={value.split('\n').length > 3}
+        showLineNumbers={value.split("\n").length > 3}
         wrapLines={true}
         wrapLongLines={false}
       >
@@ -73,29 +89,35 @@ function CodeBlock({ language, value }: { language: string; value: string }) {
         </div>
       )}
     </div>
-  )
+  );
 }
 
 export function Message({ message, onFeedback, onViewTrace }: MessageProps) {
-  const isUser = message.role === 'user'
+  const isUser = message.role === "user";
 
   return (
     <div
-      className={`flex ${isUser ? 'justify-end' : 'justify-start'} animate-in fade-in-0 slide-in-from-bottom-2 duration-300`}
+      className={`flex ${isUser ? "justify-end" : "justify-start"} animate-in fade-in-0 slide-in-from-bottom-2 duration-300`}
     >
       {/* Message Content */}
-      <div className={`min-w-0 ${isUser ? 'items-end' : 'items-start'}`} style={{ maxWidth: '70%' }}>
+      <div
+        className={`min-w-0 ${isUser ? "items-end" : "items-start"}`}
+        style={{ maxWidth: "70%" }}
+      >
         <div
           className={`
             rounded-2xl px-4 py-3 transition-all duration-300
-            ${isUser
-              ? 'bg-[var(--color-chat-user-bg)] shadow-lg hover:shadow-xl'
-              : 'bg-[var(--color-chat-assistant-bg)] shadow-sm hover:shadow-md'
+            ${
+              isUser
+                ? "bg-[var(--color-chat-user-bg)] shadow-lg hover:shadow-xl"
+                : "bg-[var(--color-chat-assistant-bg)] shadow-sm hover:shadow-md"
             }
           `}
         >
           {isUser ? (
-            <p className="whitespace-pre-wrap break-words text-[var(--color-chat-text)]">{message.content}</p>
+            <p className="whitespace-pre-wrap break-words text-[var(--color-chat-text)]">
+              {message.content}
+            </p>
           ) : (
             <div className="prose prose-sm max-w-none break-words text-[var(--color-text-primary)]">
               <ReactMarkdown
@@ -171,13 +193,13 @@ export function Message({ message, onFeedback, onViewTrace }: MessageProps) {
 
                   // Inline code
                   code: ({ className, children, ...props }: any) => {
-                    const match = /language-(\w+)/.exec(className || '')
-                    const language = match ? match[1] : ''
-                    const value = String(children).replace(/\n$/, '')
+                    const match = /language-(\w+)/.exec(className || "");
+                    const language = match ? match[1] : "";
+                    const value = String(children).replace(/\n$/, "");
 
                     // Block code (has language or multiline)
-                    if (match || value.includes('\n')) {
-                      return <CodeBlock language={language} value={value} />
+                    if (match || value.includes("\n")) {
+                      return <CodeBlock language={language} value={value} />;
                     }
 
                     // Inline code
@@ -188,12 +210,12 @@ export function Message({ message, onFeedback, onViewTrace }: MessageProps) {
                       >
                         {children}
                       </code>
-                    )
+                    );
                   },
 
                   // Code blocks (pre wrapping)
                   pre: ({ children }) => {
-                    return <>{children}</>
+                    return <>{children}</>;
                   },
 
                   // Blockquotes
@@ -275,7 +297,9 @@ export function Message({ message, onFeedback, onViewTrace }: MessageProps) {
         </div>
 
         {/* Timestamp */}
-        <div className={`mt-1 text-xs text-[var(--color-text-muted)] ${isUser ? 'text-right' : 'text-left'}`}>
+        <div
+          className={`mt-1 text-xs text-[var(--color-text-muted)] ${isUser ? "text-right" : "text-left"}`}
+        >
           {formatDistanceToNow(message.timestamp, { addSuffix: true })}
         </div>
 
@@ -283,27 +307,52 @@ export function Message({ message, onFeedback, onViewTrace }: MessageProps) {
         {!isUser && message.traceSummary && (
           <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
             {message.traceSummary.duration_ms > 0 && (
-              <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-[var(--color-muted)] text-[var(--color-text-muted)]" title="Total execution time">
+              <div
+                className="flex items-center gap-1 px-2 py-1 rounded-md bg-[var(--color-muted)] text-[var(--color-text-muted)]"
+                title="Total execution time"
+              >
                 <Clock className="h-3 w-3" />
-                <span>{(message.traceSummary.duration_ms / 1000).toFixed(2)}s</span>
+                <span>
+                  {(message.traceSummary.duration_ms / 1000).toFixed(2)}s
+                </span>
               </div>
             )}
             {message.traceSummary.total_tokens > 0 && (
-              <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-[var(--color-muted)] text-[var(--color-text-muted)]" title="Total tokens used">
+              <div
+                className="flex items-center gap-1 px-2 py-1 rounded-md bg-[var(--color-muted)] text-[var(--color-text-muted)]"
+                title="Total tokens used"
+              >
                 <Zap className="h-3 w-3" />
-                <span>{message.traceSummary.total_tokens.toLocaleString()} tokens</span>
+                <span>
+                  {message.traceSummary.total_tokens.toLocaleString()} tokens
+                </span>
               </div>
             )}
             {message.traceSummary.tools_called.length > 0 && (
-              <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-[var(--color-muted)] text-[var(--color-text-muted)]" title={`Tools: ${message.traceSummary.tools_called.map(t => t.name).join(', ')}`}>
+              <div
+                className="flex items-center gap-1 px-2 py-1 rounded-md bg-[var(--color-muted)] text-[var(--color-text-muted)]"
+                title={`Tools: ${message.traceSummary.tools_called.map((t) => t.name).join(", ")}`}
+              >
                 <Wrench className="h-3 w-3" />
-                <span>{message.traceSummary.tools_called.length} tool{message.traceSummary.tools_called.length !== 1 ? 's' : ''}</span>
+                <span>
+                  {message.traceSummary.tools_called.length} tool
+                  {message.traceSummary.tools_called.length !== 1 ? "s" : ""}
+                </span>
               </div>
             )}
             {message.traceSummary.retrieval_calls.length > 0 && (
-              <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-[var(--color-muted)] text-[var(--color-text-muted)]" title="Document retrievals">
+              <div
+                className="flex items-center gap-1 px-2 py-1 rounded-md bg-[var(--color-muted)] text-[var(--color-text-muted)]"
+                title="Document retrievals"
+              >
                 <Database className="h-3 w-3" />
-                <span>{message.traceSummary.retrieval_calls.reduce((sum, r) => sum + (r.num_documents || 0), 0)} docs</span>
+                <span>
+                  {message.traceSummary.retrieval_calls.reduce(
+                    (sum, r) => sum + (r.num_documents || 0),
+                    0,
+                  )}{" "}
+                  docs
+                </span>
               </div>
             )}
           </div>
@@ -315,7 +364,7 @@ export function Message({ message, onFeedback, onViewTrace }: MessageProps) {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => onFeedback(message.id, 'positive')}
+              onClick={() => onFeedback(message.id, "positive")}
               className="h-7 w-7 rounded-full hover:bg-[var(--color-success-hover)] hover:text-[var(--color-success)] hover:scale-110 transition-all duration-200"
               title="Helpful response"
             >
@@ -324,7 +373,7 @@ export function Message({ message, onFeedback, onViewTrace }: MessageProps) {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => onFeedback(message.id, 'negative')}
+              onClick={() => onFeedback(message.id, "negative")}
               className="h-7 w-7 rounded-full hover:bg-[var(--color-error-hover)] hover:text-[var(--color-error)] hover:scale-110 transition-all duration-200"
               title="Not helpful"
             >
@@ -345,5 +394,5 @@ export function Message({ message, onFeedback, onViewTrace }: MessageProps) {
         )}
       </div>
     </div>
-  )
+  );
 }

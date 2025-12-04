@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate requirements.txt with semantic versioning ranges from pyproject.toml.
+"""Generate server requirements.txt from pyproject.toml.
 
 This script helps avoid conflicts with pre-installed packages in Databricks Apps.
 """
@@ -10,11 +10,8 @@ from pathlib import Path
 try:
   import tomllib  # Python 3.11+
 except ImportError:
-  try:
-    import tomli as tomllib  # Fallback for older Python
-  except ImportError:
-    # Fallback to manual parsing if no toml library available
-    tomllib = None
+  # Fallback to manual parsing if no toml library available
+  tomllib = None
 
 
 def parse_dependencies_manual(content):
@@ -41,8 +38,8 @@ def parse_dependencies_manual(content):
   return dependencies
 
 
-def generate_semver_requirements():
-  """Extract dependencies from pyproject.toml and write requirements.txt with semver ranges."""
+def generate_server_requirements():
+  """Extract dependencies from pyproject.toml and write requirements.txt."""
   # Read pyproject.toml
   pyproject_path = Path('pyproject.toml')
   if not pyproject_path.exists():
@@ -81,9 +78,9 @@ def generate_semver_requirements():
   with open('requirements.txt', 'w') as f:
     f.write('\n'.join(requirements_content))
 
-  print('Generated requirements.txt with semantic versioning ranges')
-  print(f'Dependencies: {len(dependencies)} from pyproject.toml + conflict-prevention ranges')
+  print('Generated requirements.txt from pyproject.toml')
+  print(f'Dependencies: {len(dependencies)} from pyproject.toml')
 
 
 if __name__ == '__main__':
-  generate_semver_requirements()
+  generate_server_requirements()

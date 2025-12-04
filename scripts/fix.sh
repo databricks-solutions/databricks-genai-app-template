@@ -15,7 +15,7 @@ echo "Formatting TypeScript/JavaScript files..."
 cd client
 npm run format 2>/dev/null || {
     echo "No npm format script found, using prettier directly..."
-    npx prettier --write "src/**/*.{ts,tsx,js,jsx,json,css}" 2>/dev/null || {
+    npx prettier --write "{app,components,contexts,hooks,lib,styles}/**/*.{ts,tsx,js,jsx,json,css}" 2>/dev/null || {
         echo "Prettier not available, skipping TypeScript formatting"
     }
 }

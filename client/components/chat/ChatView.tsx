@@ -1,279 +1,319 @@
-"use client"
+"use client";
 
-import React, { useState, useEffect, useRef } from 'react'
-import { MessageList } from './MessageList'
-import { ChatInput } from './ChatInput'
-import { FeedbackModal } from '@/components/modals/FeedbackModal'
-import { TraceModal } from '@/components/modals/TraceModal'
-import { FunctionCallNotification } from '@/components/notifications/FunctionCallNotification'
-import { Message } from '@/lib/types'
-import { TraceSummary } from '@/lib/mlflow-client'
+import React, { useState, useEffect, useRef } from "react";
+import { MessageList } from "./MessageList";
+import { ChatInput } from "./ChatInput";
+import { FeedbackModal } from "@/components/modals/FeedbackModal";
+import { TraceModal } from "@/components/modals/TraceModal";
+import { FunctionCallNotification } from "@/components/notifications/FunctionCallNotification";
+import { Message } from "@/lib/types";
+import { TraceSummary } from "@/lib/mlflow-client";
 
 // Dev-only logger
 const devLog = (...args: any[]) => {
-  if (process.env.NODE_ENV !== 'production') {
-    console.log(...args)
+  if (process.env.NODE_ENV !== "production") {
+    console.log(...args);
   }
-}
+};
 
 interface ChatViewProps {
-  chatId?: string
-  onChatIdChange?: (chatId: string) => void
-  selectedAgentId?: string
-  onAgentChange?: (agentId: string) => void
-  initialMessage?: string
+  chatId?: string;
+  onChatIdChange?: (chatId: string) => void;
+  selectedAgentId?: string;
+  onAgentChange?: (agentId: string) => void;
+  initialMessage?: string;
 }
 
-export function ChatView({ chatId, onChatIdChange, selectedAgentId, onAgentChange, initialMessage }: ChatViewProps) {
-  const [messages, setMessages] = useState<Message[]>([])
-  const [isLoading, setIsLoading] = useState(false)
-  const [currentSessionId, setCurrentSessionId] = useState<string | undefined>(chatId)
+export function ChatView({
+  chatId,
+  onChatIdChange,
+  selectedAgentId,
+  onAgentChange,
+  initialMessage,
+}: ChatViewProps) {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [currentSessionId, setCurrentSessionId] = useState<string | undefined>(
+    chatId,
+  );
   const [feedbackModal, setFeedbackModal] = useState<{
-    isOpen: boolean
-    messageId: string
-    feedbackType: 'positive' | 'negative'
-  }>({ isOpen: false, messageId: '', feedbackType: 'positive' })
+    isOpen: boolean;
+    messageId: string;
+    feedbackType: "positive" | "negative";
+  }>({ isOpen: false, messageId: "", feedbackType: "positive" });
   const [traceModal, setTraceModal] = useState<{
-    isOpen: boolean
-    traceId: string
+    isOpen: boolean;
+    traceId: string;
     functionCalls?: Array<{
-      call_id: string
-      name: string
-      arguments: any
-      output: any
+      call_id: string;
+      name: string;
+      arguments: any;
+      output: any;
+    }>;
+    userMessage?: string;
+    assistantResponse?: string;
+  }>({ isOpen: false, traceId: "" });
+  const [activeFunctionCalls, setActiveFunctionCalls] = useState<
+    Array<{
+      call_id: string;
+      name: string;
+      arguments?: any;
+      output?: any;
+      status: "calling" | "completed" | "error";
     }>
-    userMessage?: string
-    assistantResponse?: string
-  }>({ isOpen: false, traceId: '' })
-  const [activeFunctionCalls, setActiveFunctionCalls] = useState<Array<{
-    call_id: string
-    name: string
-    arguments?: any
-    output?: any
-    status: 'calling' | 'completed' | 'error'
-  }>>([])
+  >([]);
 
-  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Stream management refs
-  const abortControllerRef = useRef<AbortController | null>(null)
-  const activeStreamChatIdRef = useRef<string | undefined>(undefined)
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const activeStreamChatIdRef = useRef<string | undefined>(undefined);
 
   // Load chat messages when chatId changes
   useEffect(() => {
     // Check if we're switching to a different chat or starting new
-    const isDifferentChat = chatId !== currentSessionId
+    const isDifferentChat = chatId !== currentSessionId;
 
     if (isDifferentChat) {
       // Abort any active stream from the previous chat
       if (abortControllerRef.current) {
-        devLog('🛑 Aborting stream for previous chat:', currentSessionId)
-        abortControllerRef.current.abort()
-        abortControllerRef.current = null
+        devLog("🛑 Aborting stream for previous chat:", currentSessionId);
+        abortControllerRef.current.abort();
+        abortControllerRef.current = null;
       }
-      activeStreamChatIdRef.current = undefined
+      activeStreamChatIdRef.current = undefined;
 
-      devLog('🔄 Chat session changed:', { from: currentSessionId, to: chatId })
-      setCurrentSessionId(chatId)
+      devLog("🔄 Chat session changed:", {
+        from: currentSessionId,
+        to: chatId,
+      });
+      setCurrentSessionId(chatId);
 
       if (chatId) {
-        devLog('📂 Loading chat history for:', chatId)
-        loadChatHistory(chatId)
+        devLog("📂 Loading chat history for:", chatId);
+        loadChatHistory(chatId);
       } else {
         // New chat - completely reset state
-        devLog('🆕 New chat - resetting all state')
-        setMessages([])
-        setIsLoading(false)
-        setFeedbackModal({ isOpen: false, messageId: '', feedbackType: 'positive' })
-        setTraceModal({ isOpen: false, traceId: '' })
+        devLog("🆕 New chat - resetting all state");
+        setMessages([]);
+        setIsLoading(false);
+        setFeedbackModal({
+          isOpen: false,
+          messageId: "",
+          feedbackType: "positive",
+        });
+        setTraceModal({ isOpen: false, traceId: "" });
       }
     }
-  }, [chatId, currentSessionId])
+  }, [chatId, currentSessionId]);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
-    scrollToBottom()
-  }, [messages])
+    scrollToBottom();
+  }, [messages]);
 
   // Auto-send initial message if provided
   useEffect(() => {
     if (initialMessage && !chatId && messages.length === 0 && !isLoading) {
-      devLog('📨 Auto-sending initial message:', initialMessage)
-      sendMessage(initialMessage)
+      devLog("📨 Auto-sending initial message:", initialMessage);
+      sendMessage(initialMessage);
     }
-  }, [initialMessage, chatId, messages.length, isLoading])
+  }, [initialMessage, chatId, messages.length, isLoading]);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
   const loadChatHistory = async (id: string) => {
     try {
-      const response = await fetch(`/api/chats/${id}`)
+      const response = await fetch(`/api/chats/${id}`);
 
       // Check if response is OK
       if (!response.ok) {
-        console.error(`Failed to load chat: ${response.status} ${response.statusText}`)
-        setMessages([])
-        return
+        console.error(
+          `Failed to load chat: ${response.status} ${response.statusText}`,
+        );
+        setMessages([]);
+        return;
       }
 
       // Check if response is JSON
-      const contentType = response.headers.get('content-type')
-      if (!contentType || !contentType.includes('application/json')) {
-        console.error('Response is not JSON:', contentType)
-        setMessages([])
-        return
+      const contentType = response.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        console.error("Response is not JSON:", contentType);
+        setMessages([]);
+        return;
       }
 
-      const chat = await response.json()
+      const chat = await response.json();
 
       // Restore the agent for this chat
       if (chat.agent_id && onAgentChange) {
-        devLog('🔄 Restoring agent for chat:', chat.agent_id)
-        onAgentChange(chat.agent_id)
+        devLog("🔄 Restoring agent for chat:", chat.agent_id);
+        onAgentChange(chat.agent_id);
       }
 
       const loadedMessages = chat.messages.map((msg: any) => ({
         ...msg,
         timestamp: new Date(msg.timestamp),
         // Deep clone traceSummary to ensure no reference sharing
-        traceSummary: msg.traceSummary ? JSON.parse(JSON.stringify(msg.traceSummary)) : undefined
-      }))
+        traceSummary: msg.traceSummary
+          ? JSON.parse(JSON.stringify(msg.traceSummary))
+          : undefined,
+      }));
 
-      devLog('📂 Loaded', loadedMessages.length, 'messages from chat history')
-      setMessages(loadedMessages)
+      devLog("📂 Loaded", loadedMessages.length, "messages from chat history");
+      setMessages(loadedMessages);
     } catch (error) {
-      console.error('Failed to load chat history:', error)
-      setMessages([])
+      console.error("Failed to load chat history:", error);
+      setMessages([]);
     }
-  }
+  };
 
   const sendMessage = async (content: string) => {
-    if (!content.trim()) return
+    if (!content.trim()) return;
 
-    devLog('📤 Sending message:', content)
-    devLog('🎯 Current state:', { chatId, selectedAgentId, hasOnChatIdChange: !!onChatIdChange })
+    devLog("📤 Sending message:", content);
+    devLog("🎯 Current state:", {
+      chatId,
+      selectedAgentId,
+      hasOnChatIdChange: !!onChatIdChange,
+    });
 
     // Create new AbortController for this request
-    const abortController = new AbortController()
-    abortControllerRef.current = abortController
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
 
     const userMessage: Message = {
       id: `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      role: 'user',
+      role: "user",
       content,
-      timestamp: new Date()
-    }
+      timestamp: new Date(),
+    };
 
-    setMessages(prev => [...prev, userMessage])
-    setIsLoading(true)
+    setMessages((prev) => [...prev, userMessage]);
+    setIsLoading(true);
 
     // Create assistant message ID (but don't add to messages yet - wait for first stream event)
-    const assistantMessageId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-    let assistantMessageCreated = false
-    devLog('💬 Prepared message ID:', assistantMessageId)
+    const assistantMessageId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    let assistantMessageCreated = false;
+    devLog("💬 Prepared message ID:", assistantMessageId);
 
     try {
       // If no chatId, we need to create a new chat first
-      let activeChatId = chatId
+      let activeChatId = chatId;
       if (!activeChatId) {
-        devLog('📝 Creating new chat with agent:', selectedAgentId)
-        const createResponse = await fetch('/api/chats', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+        devLog("📝 Creating new chat with agent:", selectedAgentId);
+        const createResponse = await fetch("/api/chats", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             title: content.slice(0, 50),
-            agent_id: selectedAgentId  // Save the agent with the chat
-          })
-        })
+            agent_id: selectedAgentId, // Save the agent with the chat
+          }),
+        });
 
         if (!createResponse.ok) {
-          throw new Error(`Failed to create chat: ${createResponse.status}`)
+          throw new Error(`Failed to create chat: ${createResponse.status}`);
         }
 
-        const newChat = await createResponse.json()
-        activeChatId = newChat.id
-        devLog('✅ Created new chat:', activeChatId, 'with agent:', selectedAgentId)
+        const newChat = await createResponse.json();
+        activeChatId = newChat.id;
+        devLog(
+          "✅ Created new chat:",
+          activeChatId,
+          "with agent:",
+          selectedAgentId,
+        );
 
         // Update internal session ID immediately to prevent reset
-        setCurrentSessionId(activeChatId)
+        setCurrentSessionId(activeChatId);
 
         // Update parent component with new chatId
         if (activeChatId && onChatIdChange) {
-          onChatIdChange(activeChatId)
+          onChatIdChange(activeChatId);
         }
       }
-      
+
       if (!activeChatId) {
-        throw new Error('No chat ID available')
+        throw new Error("No chat ID available");
       }
 
       // Capture the chatId for this stream (frozen for validation)
-      const streamChatId = activeChatId
-      activeStreamChatIdRef.current = streamChatId
-      devLog('🎯 Stream chatId locked:', streamChatId)
+      const streamChatId = activeChatId;
+      activeStreamChatIdRef.current = streamChatId;
+      devLog("🎯 Stream chatId locked:", streamChatId);
 
       // Clear any previous function call notifications
-      setActiveFunctionCalls([])
+      setActiveFunctionCalls([]);
 
-      devLog('🔌 Calling /api/chat with chatId:', activeChatId, 'agentId:', selectedAgentId)
+      devLog(
+        "🔌 Calling /api/chat with chatId:",
+        activeChatId,
+        "agentId:",
+        selectedAgentId,
+      );
 
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           chatId: activeChatId,
           messages: [...messages, userMessage],
-          agentId: selectedAgentId
+          agentId: selectedAgentId,
         }),
-        signal: abortController.signal
-      })
+        signal: abortController.signal,
+      });
 
-      devLog('📡 Response status:', response.status, 'Content-Type:', response.headers.get('Content-Type'))
+      devLog(
+        "📡 Response status:",
+        response.status,
+        "Content-Type:",
+        response.headers.get("Content-Type"),
+      );
 
       if (!response.ok) {
-        const errorText = await response.text()
-        console.error('API error:', errorText)
-        throw new Error(`API returned ${response.status}: ${errorText}`)
+        const errorText = await response.text();
+        console.error("API error:", errorText);
+        throw new Error(`API returned ${response.status}: ${errorText}`);
       }
 
       // Handle simple JSON response (not streaming for now)
-      const data = await response.json()
-      devLog('📦 Got response data:', data)
+      const data = await response.json();
+      devLog("📦 Got response data:", data);
 
-      const assistantContent = data.content || 'No response'
+      const assistantContent = data.content || "No response";
 
       const assistantMessage: Message = {
         id: assistantMessageId,
-        role: 'assistant',
+        role: "assistant",
         content: assistantContent,
-        timestamp: new Date()
-      }
+        timestamp: new Date(),
+      };
 
-      setMessages(prev => [...prev, assistantMessage])
-      assistantMessageCreated = true
-      devLog('✅ Assistant message added to UI')
+      setMessages((prev) => [...prev, assistantMessage]);
+      assistantMessageCreated = true;
+      devLog("✅ Assistant message added to UI");
 
       // Save messages to backend storage
       try {
         await fetch(`/api/chats/${activeChatId}/messages`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             messages: [
-              { role: 'user', content },
-              { role: 'assistant', content: assistantContent }
-            ]
-          })
-        })
-        devLog('💾 Messages saved to backend')
+              { role: "user", content },
+              { role: "assistant", content: assistantContent },
+            ],
+          }),
+        });
+        devLog("💾 Messages saved to backend");
       } catch (saveError) {
-        console.error('Failed to save messages:', saveError)
+        console.error("Failed to save messages:", saveError);
       }
 
-      setIsLoading(false)
-      return
+      setIsLoading(false);
+      return;
 
       // Old streaming code (disabled for now)
       /*
@@ -578,164 +618,182 @@ export function ChatView({ chatId, onChatIdChange, selectedAgentId, onAgentChang
         reader.releaseLock()
       }
       */
-
     } catch (error) {
       // Handle AbortError gracefully (user switched chats)
-      if (error instanceof Error && error.name === 'AbortError') {
-        devLog('✅ Stream aborted cleanly - user switched chats')
+      if (error instanceof Error && error.name === "AbortError") {
+        devLog("✅ Stream aborted cleanly - user switched chats");
         // Remove any temporary assistant message created before abort
         if (assistantMessageCreated) {
-          setMessages(prev => prev.filter(msg => msg.id !== assistantMessageId))
+          setMessages((prev) =>
+            prev.filter((msg) => msg.id !== assistantMessageId),
+          );
         }
-        return // Don't show error to user
+        return; // Don't show error to user
       }
 
       // Handle real errors
-      console.error('❌ Failed to send message:', error)
+      console.error("❌ Failed to send message:", error);
 
       // Remove the temporary assistant message on error (if it was created)
       if (assistantMessageCreated) {
-        setMessages(prev => prev.filter(msg => msg.id !== assistantMessageId))
+        setMessages((prev) =>
+          prev.filter((msg) => msg.id !== assistantMessageId),
+        );
       }
 
       // Show detailed error message
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-      setMessages(prev => [...prev, {
-        id: `error_${Date.now()}`,
-        role: 'assistant',
-        content: `❌ Sorry, I encountered an error: ${errorMessage}\n\nPlease check:\n- Your DATABRICKS_TOKEN is set correctly\n- The agent endpoint is accessible\n- Your internet connection`,
-        timestamp: new Date()
-      }])
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `error_${Date.now()}`,
+          role: "assistant",
+          content: `❌ Sorry, I encountered an error: ${errorMessage}\n\nPlease check:\n- Your DATABRICKS_TOKEN is set correctly\n- The agent endpoint is accessible\n- Your internet connection`,
+          timestamp: new Date(),
+        },
+      ]);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
       // Clear abort controller ref
-      abortControllerRef.current = null
+      abortControllerRef.current = null;
     }
-  }
+  };
 
-  const handleFeedback = (messageId: string, type: 'positive' | 'negative') => {
-    setFeedbackModal({ isOpen: true, messageId, feedbackType: type })
-  }
+  const handleFeedback = (messageId: string, type: "positive" | "negative") => {
+    setFeedbackModal({ isOpen: true, messageId, feedbackType: type });
+  };
 
   const handleTrace = (messageId: string) => {
-    console.group('🔍 TRACE VIEWER DEBUG')
-    devLog('='.repeat(80))
-    devLog('Clicked message ID:', messageId)
-    devLog('Total messages in state:', messages.length)
-    
+    console.group("🔍 TRACE VIEWER DEBUG");
+    devLog("=".repeat(80));
+    devLog("Clicked message ID:", messageId);
+    devLog("Total messages in state:", messages.length);
+
     // Log ALL messages first to see what's stored
-    devLog('\n📋 ALL MESSAGES IN STATE:')
+    devLog("\n📋 ALL MESSAGES IN STATE:");
     messages.forEach((msg, idx) => {
-      devLog(`\nMessage [${idx}]:`)
-      devLog('  ID:', msg.id)
-      devLog('  Role:', msg.role)
-      devLog('  Content:', msg.content)
-      devLog('  TraceId:', msg.traceId)
-      devLog('  Timestamp:', msg.timestamp)
-      devLog('  Has TraceSummary:', !!msg.traceSummary)
+      devLog(`\nMessage [${idx}]:`);
+      devLog("  ID:", msg.id);
+      devLog("  Role:", msg.role);
+      devLog("  Content:", msg.content);
+      devLog("  TraceId:", msg.traceId);
+      devLog("  Timestamp:", msg.timestamp);
+      devLog("  Has TraceSummary:", !!msg.traceSummary);
       if (msg.traceSummary) {
-        devLog('  TraceSummary:', {
+        devLog("  TraceSummary:", {
           trace_id: msg.traceSummary.trace_id,
-          function_calls_count: msg.traceSummary.function_calls?.length || 0
-        })
+          function_calls_count: msg.traceSummary.function_calls?.length || 0,
+        });
         if (msg.traceSummary.function_calls) {
           msg.traceSummary.function_calls.forEach((fc, fcIdx) => {
             devLog(`    Function Call [${fcIdx}]:`, {
               name: fc.name,
               call_id: fc.call_id,
               arguments: fc.arguments,
-              output_preview: fc.output ? JSON.stringify(fc.output).substring(0, 100) : 'N/A'
-            })
-          })
+              output_preview: fc.output
+                ? JSON.stringify(fc.output).substring(0, 100)
+                : "N/A",
+            });
+          });
         }
       }
-    })
-    
+    });
+
     // Find the specific message by its unique ID
-    const messageIndex = messages.findIndex(m => m.id === messageId)
-    const message = messages[messageIndex]
-    
+    const messageIndex = messages.findIndex((m) => m.id === messageId);
+    const message = messages[messageIndex];
+
     if (!message) {
-      console.error('❌ Message not found:', messageId)
-      console.groupEnd()
-      return
+      console.error("❌ Message not found:", messageId);
+      console.groupEnd();
+      return;
     }
-    
-    devLog('\n✅ SELECTED MESSAGE:')
+
+    devLog("\n✅ SELECTED MESSAGE:");
     devLog({
       index: messageIndex,
       id: message.id,
       role: message.role,
       content: message.content,
       traceId: message.traceId,
-      function_calls: message.traceSummary?.function_calls
-    })
-    
+      function_calls: message.traceSummary?.function_calls,
+    });
+
     // Find the user message that came before this assistant message
-    let userMessage = ''
+    let userMessage = "";
     for (let i = messageIndex - 1; i >= 0; i--) {
-      if (messages[i].role === 'user') {
-        userMessage = messages[i].content
-        devLog('\n📨 Found corresponding user message:')
-        devLog('   Content:', userMessage)
-        devLog('   Index:', i)
-        break
+      if (messages[i].role === "user") {
+        userMessage = messages[i].content;
+        devLog("\n📨 Found corresponding user message:");
+        devLog("   Content:", userMessage);
+        devLog("   Index:", i);
+        break;
       }
     }
-    
-    const traceId = message.traceId || ''
-    const functionCalls = message.traceSummary?.function_calls
-    const assistantResponse = message.content
-    
-    devLog('\n🔨 BUILDING TRACE WITH:')
-    devLog('   User Message:', userMessage)
-    devLog('   Assistant Response:', assistantResponse.substring(0, 100))
-    devLog('   Function Calls:', functionCalls?.length || 0)
-    
+
+    const traceId = message.traceId || "";
+    const functionCalls = message.traceSummary?.function_calls;
+    const assistantResponse = message.content;
+
+    devLog("\n🔨 BUILDING TRACE WITH:");
+    devLog("   User Message:", userMessage);
+    devLog("   Assistant Response:", assistantResponse.substring(0, 100));
+    devLog("   Function Calls:", functionCalls?.length || 0);
+
     if (functionCalls && functionCalls.length > 0) {
-      devLog('\n   Function Call Details:')
+      devLog("\n   Function Call Details:");
       functionCalls.forEach((fc, idx) => {
         devLog(`   [${idx}]`, {
           name: fc.name,
           call_id: fc.call_id,
           arguments: fc.arguments,
-          output: fc.output
-        })
-      })
+          output: fc.output,
+        });
+      });
     }
-    
-    devLog('='.repeat(80))
-    console.groupEnd()
-    
+
+    devLog("=".repeat(80));
+    console.groupEnd();
+
     // Deep clone to ensure no reference issues in modal
-    const clonedFunctionCalls = functionCalls ? JSON.parse(JSON.stringify(functionCalls)) : undefined
-    
-    setTraceModal({ 
-      isOpen: true, 
+    const clonedFunctionCalls = functionCalls
+      ? JSON.parse(JSON.stringify(functionCalls))
+      : undefined;
+
+    setTraceModal({
+      isOpen: true,
       traceId,
       functionCalls: clonedFunctionCalls,
       userMessage,
-      assistantResponse
-    })
-  }
+      assistantResponse,
+    });
+  };
 
   const submitFeedback = async (comment: string) => {
     try {
-      await fetch('/api/feedback', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      await fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           messageId: feedbackModal.messageId,
           feedbackType: feedbackModal.feedbackType,
-          comment
-        })
-      })
+          comment,
+        }),
+      });
       // Show success notification in production
     } catch (error) {
-      console.warn('⚠️ Feedback feature - Work In Progress. Python backend endpoint needed:', error)
+      console.warn(
+        "⚠️ Feedback feature - Work In Progress. Python backend endpoint needed:",
+        error,
+      );
     }
-    setFeedbackModal({ isOpen: false, messageId: '', feedbackType: 'positive' })
-  }
+    setFeedbackModal({
+      isOpen: false,
+      messageId: "",
+      feedbackType: "positive",
+    });
+  };
 
   return (
     <div className="flex flex-col h-full bg-transparent">
@@ -765,14 +823,14 @@ export function ChatView({ chatId, onChatIdChange, selectedAgentId, onAgentChang
       {/* Modals */}
       <FeedbackModal
         isOpen={feedbackModal.isOpen}
-        onClose={() => setFeedbackModal(prev => ({ ...prev, isOpen: false }))}
+        onClose={() => setFeedbackModal((prev) => ({ ...prev, isOpen: false }))}
         onSubmit={submitFeedback}
         feedbackType={feedbackModal.feedbackType}
       />
-      
+
       <TraceModal
         isOpen={traceModal.isOpen}
-        onClose={() => setTraceModal(prev => ({ ...prev, isOpen: false }))}
+        onClose={() => setTraceModal((prev) => ({ ...prev, isOpen: false }))}
         traceId={traceModal.traceId}
         functionCalls={traceModal.functionCalls}
         userMessage={traceModal.userMessage}
@@ -786,5 +844,5 @@ export function ChatView({ chatId, onChatIdChange, selectedAgentId, onAgentChang
         autoHideDuration={5000}
       />
     </div>
-  )
+  );
 }

@@ -26,6 +26,11 @@ fi
 echo ""
 
 # Activate virtual environment
+if [ ! -d ".venv" ]; then
+    echo "❌ Virtual environment not found"
+    echo "Run: ./scripts/setup.sh"
+    exit 1
+fi
 source .venv/bin/activate
 
 # Start FastAPI backend in background

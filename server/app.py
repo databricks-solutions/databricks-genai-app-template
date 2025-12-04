@@ -24,7 +24,7 @@ from starlette.requests import Request
 # from .agents.databricks_assistant import databricks_agent
 from .agents.model_serving import model_serving_endpoint
 from .brand_service import brand_service
-from .chat_storage import storage, Chat, Message
+from .chat_storage import Message, storage
 from .config_loader import config_loader
 from .tracing import (
   get_mlflow_experiment_id,
@@ -174,10 +174,7 @@ async def get_agents():
 
   except Exception as e:
     logger.error(f'Error loading agents: {str(e)}')
-    return {
-      'agents': [],
-      'error': f'Failed to load agents: {str(e)}'
-    }
+    return {'agents': [], 'error': f'Failed to load agents: {str(e)}'}
 
 
 @app.get(f'{API_PREFIX}/config/app')
@@ -197,9 +194,7 @@ async def get_app_config():
 
   except Exception as e:
     logger.error(f'Error loading app config: {str(e)}')
-    return {
-      'error': f'Failed to load app configuration: {str(e)}'
-    }
+    return {'error': f'Failed to load app configuration: {str(e)}'}
 
 
 @app.get(f'{API_PREFIX}/config/about')
@@ -221,9 +216,7 @@ async def get_about_config():
 
   except Exception as e:
     logger.error(f'Error loading about config: {str(e)}')
-    return {
-      'error': f'Failed to load about configuration: {str(e)}'
-    }
+    return {'error': f'Failed to load about configuration: {str(e)}'}
 
 
 class BrandConfigRequest(BaseModel):
@@ -353,7 +346,7 @@ async def invoke_endpoint(options: EndpointRequestOptions):
     logger.error(f'Agent not found: {options.agent_id}')
     return {
       'error': f'Agent not found: {options.agent_id}',
-      'message': 'Please check your agent configuration'
+      'message': 'Please check your agent configuration',
     }
 
   deployment_type = agent.get('deployment_type', 'databricks-endpoint')
@@ -368,14 +361,12 @@ async def invoke_endpoint(options: EndpointRequestOptions):
         logger.error(f'No endpoint_name configured for agent: {options.agent_id}')
         return {
           'error': 'Invalid agent configuration',
-          'message': f'Agent {options.agent_id} has no endpoint_name configured'
+          'message': f'Agent {options.agent_id} has no endpoint_name configured',
         }
 
       logger.info(f'Calling Databricks endpoint: {endpoint_name}')
       return model_serving_endpoint(
-        endpoint_name=endpoint_name,
-        messages=options.messages,
-        endpoint_type='databricks-agent'
+        endpoint_name=endpoint_name, messages=options.messages, endpoint_type='databricks-agent'
       )
 
     elif deployment_type == 'langchain-agent':
@@ -383,14 +374,14 @@ async def invoke_endpoint(options: EndpointRequestOptions):
       logger.warning('LangChain agent type not yet implemented')
       return {
         'error': 'Not implemented',
-        'message': 'LangChain agents are not yet supported. Please use databricks-endpoint type.'
+        'message': 'LangChain agents are not yet supported. Please use databricks-endpoint type.',
       }
 
     else:
       logger.error(f'Unknown deployment_type: {deployment_type}')
       return {
         'error': 'Invalid deployment type',
-        'message': f'Unknown deployment_type: {deployment_type}. Supported types: databricks-endpoint, langchain-agent'
+        'message': f'Unknown deployment_type: {deployment_type}. Supported types: databricks-endpoint, langchain-agent',
       }
 
   except Exception as e:
@@ -421,7 +412,7 @@ async def get_all_chats():
 class CreateChatRequest(BaseModel):
   """Request to create a new chat."""
 
-  title: Optional[str] = "New Chat"
+  title: Optional[str] = 'New Chat'
   agent_id: Optional[str] = None
 
 
@@ -447,10 +438,7 @@ async def get_chat_by_id(chat_id: str):
   chat = storage.get(chat_id)
   if not chat:
     logger.warning(f'Chat not found: {chat_id}')
-    return Response(
-      content=f'Chat {chat_id} not found',
-      status_code=404
-    )
+    return Response(content=f'Chat {chat_id} not found', status_code=404)
 
   logger.info(f'Retrieved chat {chat_id} with {len(chat.messages)} messages')
   return chat.dict()
@@ -470,18 +458,15 @@ async def add_messages_to_chat(chat_id: str, request: AddMessageRequest):
   chat = storage.get(chat_id)
   if not chat:
     logger.warning(f'Chat not found: {chat_id}')
-    return Response(
-      content=f'Chat {chat_id} not found',
-      status_code=404
-    )
+    return Response(content=f'Chat {chat_id} not found', status_code=404)
 
   # Add each message
   for msg_data in request.messages:
     message = Message(
-      id=f"msg_{uuid.uuid4().hex[:12]}",
+      id=f'msg_{uuid.uuid4().hex[:12]}',
       role=msg_data['role'],
       content=msg_data['content'],
-      timestamp=datetime.now()
+      timestamp=datetime.now(),
     )
     storage.add_message(chat_id, message)
 
@@ -497,10 +482,7 @@ async def delete_chat_by_id(chat_id: str):
   success = storage.delete(chat_id)
   if not success:
     logger.warning(f'Chat not found for deletion: {chat_id}')
-    return Response(
-      content=f'Chat {chat_id} not found',
-      status_code=404
-    )
+    return Response(content=f'Chat {chat_id} not found', status_code=404)
 
   logger.info(f'Chat deleted: {chat_id}')
   return {'success': True, 'deleted_chat_id': chat_id}

@@ -1,223 +1,108 @@
 #!/bin/bash
 
-# Setup script for .env.local file
-# This script will help you configure your .env.local file
+# Setup script - Configure environment and install dependencies
+
+set -e
 
 ENV_FILE=".env.local"
 
-echo "🔧 Environment Setup Script"
-echo "This script will help you configure your .env.local file"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "🔧 Environment Setup"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 
-# Function to extract value from .env.local file
-get_env_value() {
-    local key=$1
-    if [ -f "$ENV_FILE" ]; then
-        grep "^${key}=" "$ENV_FILE" | cut -d'=' -f2- | sed 's/^"//;s/"$//'
-    fi
-}
-
-# Function to prompt with existing value
-prompt_with_existing() {
-    local key=$1
-    local prompt=$2
-    local existing_value=$(get_env_value "$key")
-    local new_value
-    
-    if [ ! -z "$existing_value" ]; then
-        read -p "$prompt [current: $existing_value]: " new_value
-        if [ -z "$new_value" ]; then
-            echo "$existing_value"
-        else
-            echo "$new_value"
-        fi
-    else
-        read -p "$prompt: " new_value
-        echo "$new_value"
-    fi
-}
-
-# Check if .env.local already exists
-EXISTING_CONFIG=false
+# Check if .env.local exists
 if [ -f "$ENV_FILE" ]; then
-    echo "⚠️  .env.local file already exists!"
+    echo "⚠️  .env.local already exists"
     echo ""
-    echo "Choose an option:"
-    echo "1) Update existing values (keep current values, only change what you want)"
-    echo "2) Overwrite completely (start fresh)"
-    echo "3) Skip configuration (keep existing file as-is)"
+    read -p "Overwrite? (y/n): " -n 1 -r
     echo ""
-    read -p "Enter your choice (1/2/3): " -n 1 -r
-    echo ""
-    case $REPLY in
-        1)
-            echo "📝 Updating existing configuration..."
-            EXISTING_CONFIG=true
-            ;;
-        2)
-            echo "📝 Creating new configuration..."
-            ;;
-        3)
-            echo "✅ Keeping existing configuration."
-            echo ""
-            # Skip to dependency installation
-            DATABRICKS_HOST=""
-            DATABRICKS_TOKEN=""
-            DATABRICKS_APP_NAME=""
-            LHA_SOURCE_CODE_PATH=""
-            MLFLOW_EXPERIMENT_ID=""
-            DATABRICKS_CONFIG_PROFILE=""
-            ;;
-        *)
-            echo "❌ Invalid choice. Exiting."
-            exit 1
-            ;;
-    esac
-    echo ""
-fi
-
-# Only prompt for configuration if not skipping
-if [[ $REPLY != "3" ]]; then
-    echo "📝 Please provide the following configuration values:"
-    if [ "$EXISTING_CONFIG" = true ]; then
-        echo "(Press Enter to keep current value, or type new value to change)"
-    fi
-    echo ""
-
-    # Prompt for required variables with existing values
-    if [ "$EXISTING_CONFIG" = true ]; then
-        DATABRICKS_HOST=$(prompt_with_existing "DATABRICKS_HOST" "DATABRICKS_HOST")
-        DATABRICKS_TOKEN=$(prompt_with_existing "DATABRICKS_TOKEN" "DATABRICKS_TOKEN (hidden)")
-        DATABRICKS_APP_NAME=$(prompt_with_existing "DATABRICKS_APP_NAME" "DATABRICKS_APP_NAME")
-        LHA_SOURCE_CODE_PATH=$(prompt_with_existing "LHA_SOURCE_CODE_PATH" "LHA_SOURCE_CODE_PATH")
-        MLFLOW_EXPERIMENT_ID=$(prompt_with_existing "MLFLOW_EXPERIMENT_ID" "MLFLOW_EXPERIMENT_ID")
-        
-        # Optional variable
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        echo "Skipping environment configuration..."
         echo ""
-        echo "📝 Optional configuration:"
-        DATABRICKS_CONFIG_PROFILE=$(prompt_with_existing "DATABRICKS_CONFIG_PROFILE" "DATABRICKS_CONFIG_PROFILE (optional)")
     else
-        read -p "DATABRICKS_HOST (e.g., https://your-workspace.cloud.databricks.com): " DATABRICKS_HOST
-        read -p "DATABRICKS_TOKEN (your Databricks personal access token): " DATABRICKS_TOKEN
-        read -p "DATABRICKS_APP_NAME (name of your Databricks app): " DATABRICKS_APP_NAME
-        read -p "LHA_SOURCE_CODE_PATH (path to your source code in Databricks workspace): " LHA_SOURCE_CODE_PATH
-        read -p "MLFLOW_EXPERIMENT_ID (MLflow experiment ID): " MLFLOW_EXPERIMENT_ID
-        
-        # Optional variable
-        echo ""
-        echo "📝 Optional configuration:"
-        read -p "DATABRICKS_CONFIG_PROFILE (optional - press Enter to skip): " DATABRICKS_CONFIG_PROFILE
+        rm "$ENV_FILE"
     fi
 fi
 
-# Create the .env.local file (only if not skipping configuration)
-if [[ $REPLY != "3" ]]; then
+# Configure environment if .env.local doesn't exist or was deleted
+if [ ! -f "$ENV_FILE" ]; then
+    echo "📝 Required Configuration (for local development):"
     echo ""
-    echo "📄 Creating .env.local file..."
+    read -p "DATABRICKS_HOST (e.g., https://adb-xxx.azuredatabricks.net): " DATABRICKS_HOST
+    read -p "DATABRICKS_TOKEN (your personal access token): " DATABRICKS_TOKEN
 
+    echo ""
+    echo "📝 Optional Configuration (for deployment to Databricks Apps):"
+    echo ""
+    read -p "DATABRICKS_APP_NAME (press Enter to skip): " DATABRICKS_APP_NAME
+    read -p "LHA_SOURCE_CODE_PATH (e.g., /Workspace/Users/you@company.com/app-name, press Enter to skip): " LHA_SOURCE_CODE_PATH
+
+    # Create .env.local
     cat > "$ENV_FILE" << EOF
 # Generated by setup.sh on $(date)
-
-DATABRICKS_HOST="$DATABRICKS_HOST"
-DATABRICKS_TOKEN="$DATABRICKS_TOKEN"
-DATABRICKS_APP_NAME="$DATABRICKS_APP_NAME"
-LHA_SOURCE_CODE_PATH="$LHA_SOURCE_CODE_PATH"
-MLFLOW_EXPERIMENT_ID="$MLFLOW_EXPERIMENT_ID"
+# Required for local development
+DATABRICKS_HOST=$DATABRICKS_HOST
+DATABRICKS_TOKEN=$DATABRICKS_TOKEN
 EOF
 
-    # Add config profile if provided
-    if [ ! -z "$DATABRICKS_CONFIG_PROFILE" ]; then
-        echo "DATABRICKS_CONFIG_PROFILE=\"$DATABRICKS_CONFIG_PROFILE\"" >> "$ENV_FILE"
+    # Add deployment config if provided
+    if [ ! -z "$DATABRICKS_APP_NAME" ]; then
+        echo "
+# Deployment configuration
+DATABRICKS_APP_NAME=$DATABRICKS_APP_NAME" >> "$ENV_FILE"
+    fi
+
+    if [ ! -z "$LHA_SOURCE_CODE_PATH" ]; then
+        echo "LHA_SOURCE_CODE_PATH=$LHA_SOURCE_CODE_PATH" >> "$ENV_FILE"
     fi
 
     echo ""
-    echo "✅ .env.local file created successfully!"
-    echo ""
-    echo "📋 Summary of configuration:"
-    echo "  DATABRICKS_HOST: $DATABRICKS_HOST"
-    echo "  DATABRICKS_TOKEN: [HIDDEN]"
-    echo "  DATABRICKS_APP_NAME: $DATABRICKS_APP_NAME"
-    echo "  LHA_SOURCE_CODE_PATH: $LHA_SOURCE_CODE_PATH"
-    echo "  MLFLOW_EXPERIMENT_ID: $MLFLOW_EXPERIMENT_ID"
-    if [ ! -z "$DATABRICKS_CONFIG_PROFILE" ]; then
-        echo "  DATABRICKS_CONFIG_PROFILE: $DATABRICKS_CONFIG_PROFILE"
-    fi
+    echo "✅ .env.local created"
 fi
 
 echo ""
-echo "📦 Installing dependencies..."
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "📦 Installing Dependencies"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 
-# Install Python dependencies
-echo "🐍 Installing Python dependencies with uv..."
-if command -v uv >/dev/null 2>&1; then
-    uv sync
-    echo "✅ Python dependencies installed successfully!"
-else
-    echo "❌ uv is not installed."
+# Install Python dependencies with uv
+echo "🐍 Installing Python dependencies..."
+if ! command -v uv &> /dev/null; then
+    echo "❌ uv not found"
+    read -p "Install uv now? (Y/n): " -n 1 -r
     echo ""
-    read -p "Would you like to install uv now? (Y/n): " -n 1 -r
-    echo ""
-    if [[ $REPLY =~ ^[Nn]$ ]]; then
-        echo "⚠️  Skipping Python dependency installation. You can install uv later with:"
-        echo "   curl -LsSf https://astral.sh/uv/install.sh | sh"
-    else
-        echo "📥 Installing uv..."
+    if [[ ! $REPLY =~ ^[Nn]$ ]]; then
         curl -LsSf https://astral.sh/uv/install.sh | sh
-        # Source the shell to get uv in PATH
         export PATH="$HOME/.cargo/bin:$PATH"
-        if command -v uv >/dev/null 2>&1; then
-            echo "✅ uv installed successfully!"
-            uv sync
-            echo "✅ Python dependencies installed successfully!"
-        else
-            echo "❌ uv installation failed. Please restart your terminal and run setup again."
-        fi
-    fi
-fi
-
-echo ""
-
-# Install frontend dependencies
-echo "📱 Installing frontend dependencies with bun..."
-if command -v bun >/dev/null 2>&1; then
-    # Remove any npm lock files that shouldn't be there
-    [ -f client/package-lock.json ] && rm client/package-lock.json
-    pushd client > /dev/null
-    bun install
-    popd > /dev/null
-    echo "✅ Frontend dependencies installed successfully!"
-else
-    echo "❌ bun is not installed."
-    echo ""
-    read -p "Would you like to install bun now? (Y/n): " -n 1 -r
-    echo ""
-    if [[ $REPLY =~ ^[Nn]$ ]]; then
-        echo "⚠️  Skipping frontend dependency installation. You can install bun later with:"
-        echo "   curl -fsSL https://bun.sh/install | bash"
     else
-        echo "📥 Installing bun..."
-        curl -fsSL https://bun.sh/install | bash
-        # Source the shell to get bun in PATH
-        export BUN_INSTALL="$HOME/.bun"
-        export PATH="$BUN_INSTALL/bin:$PATH"
-        if command -v bun >/dev/null 2>&1; then
-            echo "✅ bun installed successfully!"
-            # Remove any npm lock files that shouldn't be there
-            [ -f client/package-lock.json ] && rm client/package-lock.json
-            pushd client > /dev/null
-            bun install
-            popd > /dev/null
-            echo "✅ Frontend dependencies installed successfully!"
-        else
-            echo "❌ bun installation failed. Please restart your terminal and run setup again."
-        fi
+        echo "⚠️  Install uv manually: curl -LsSf https://astral.sh/uv/install.sh | sh"
+        exit 1
     fi
 fi
 
+# uv sync creates .venv/ and installs all dependencies from pyproject.toml
+uv sync
+echo "✅ Python dependencies installed (.venv/ created)"
 echo ""
-echo "🚀 Setup complete! You can now run your application with these environment variables!"
+
+# Install frontend dependencies with npm
+echo "📱 Installing frontend dependencies..."
+if ! command -v npm &> /dev/null; then
+    echo "❌ npm not found - install Node.js first"
+    exit 1
+fi
+
+cd client && npm install && cd ..
+echo "✅ Frontend dependencies installed"
+
 echo ""
-echo "📋 Next steps:"
-echo "  1. Run './watch.sh' to start development servers"
-echo "  2. Open http://localhost:8000 to see your app"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "🚀 Setup Complete!"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+echo "Next steps:"
+echo "  1. Run: ./scripts/start_dev.sh"
+echo "  2. Open: http://localhost:3000"
+echo ""
