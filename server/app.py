@@ -12,8 +12,8 @@ from starlette.middleware.cors import CORSMiddleware
 # Routers for organizing endpoints
 from .routers import agent, chat, config, health
 
-# Tracing setup
-from .tracing import setup_mlflow_tracing
+# Import tracing module to set up MLflow tracking URI for feedback logging
+from . import tracing  # noqa: F401
 
 # Configure logging for Databricks Apps monitoring
 # Logs written to stdout/stderr will be available in Databricks Apps UI and /logz endpoint
@@ -53,9 +53,6 @@ app.add_middleware(
 )
 
 API_PREFIX = '/api'
-
-# Setup MLflow tracing for agent observability
-setup_mlflow_tracing()
 
 # Include routers for modular endpoint organization
 app.include_router(health.router, prefix=API_PREFIX, tags=['health'])

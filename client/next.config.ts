@@ -57,7 +57,7 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com data:",
               "img-src 'self' data: blob: https:",
-              "connect-src 'self' https:",
+              "connect-src 'self' https: http://localhost:8000",
               "frame-src https:", // Allow embedding external dashboards (Databricks)
               "frame-ancestors 'none'"
             ].join('; ')

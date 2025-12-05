@@ -2,18 +2,27 @@
 
 import json
 import logging
-from typing import Union
+from typing import Type, Union
 
 import mlflow
 from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
-from ..agents.model_serving import model_serving_endpoint, model_serving_endpoint_stream
+from ..agents.handlers import BaseDeploymentHandler, DatabricksEndpointHandler
 from ..config_loader import config_loader
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
+
+# Handler registry: maps deployment_type to handler class
+DEPLOYMENT_HANDLERS: dict[str, Type[BaseDeploymentHandler]] = {
+  'databricks-endpoint': DatabricksEndpointHandler,
+  # Future handlers can be added here:
+  # 'openai-compatible': OpenAIHandler,
+  # 'local-model': LocalModelHandler,
+  # 'custom-api': CustomAPIHandler,
+}
 
 
 class LogAssessmentRequest(BaseModel):
@@ -63,13 +72,14 @@ async def log_feedback(options: LogAssessmentRequest):
 
 @router.post('/invoke_endpoint')
 async def invoke_endpoint(options: InvokeEndpointRequest):
-  """Invoke a Databricks agent endpoint.
+  """Invoke an agent endpoint.
 
-  Currently only supports 'databricks-endpoint' deployment type.
-  Calls external Databricks model serving endpoints.
+  Supports multiple deployment types via handler pattern.
+  Each deployment type has its own handler for request/response formatting.
   Supports both streaming and non-streaming modes.
   """
-  logger.info(f'Invoking agent: {options.agent_id} (stream={options.stream})')
+  logger.info(f'🎯 Invoking agent: {options.agent_id} (stream={options.stream})')
+  logger.info(f'📦 Request payload: agent_id={options.agent_id}, stream={options.stream}, messages={len(options.messages)}')
 
   # Look up agent configuration
   agent = config_loader.get_agent_by_id(options.agent_id)
@@ -84,47 +94,34 @@ async def invoke_endpoint(options: InvokeEndpointRequest):
   deployment_type = agent.get('deployment_type', 'databricks-endpoint')
   logger.info(f'Agent deployment type: {deployment_type}')
 
+  # Get the appropriate handler for this deployment type
+  handler_class = DEPLOYMENT_HANDLERS.get(deployment_type)
+
+  if not handler_class:
+    logger.error(f'Unsupported deployment_type: {deployment_type}')
+    supported_types = ', '.join(DEPLOYMENT_HANDLERS.keys())
+    return {
+      'error': 'Unsupported deployment type',
+      'message': f'Deployment type "{deployment_type}" is not supported. Supported types: {supported_types}',
+    }
+
   try:
-    if deployment_type == 'databricks-endpoint':
-      # Call external Databricks serving endpoint
-      endpoint_name = agent.get('endpoint_name')
+    # Instantiate the handler with agent configuration
+    handler = handler_class(agent)
 
-      if not endpoint_name:
-        logger.error(f'No endpoint_name configured for agent: {options.agent_id}')
-        return {
-          'error': 'Invalid agent configuration',
-          'message': f'Agent {options.agent_id} has no endpoint_name configured',
+    # Use streaming or non-streaming based on request
+    if options.stream:
+      return StreamingResponse(
+        handler.invoke_stream(messages=options.messages),
+        media_type='text/event-stream',
+        headers={
+          'Cache-Control': 'no-cache',
+          'Connection': 'keep-alive',
+          'X-Accel-Buffering': 'no'  # Disable nginx buffering
         }
-
-      logger.info(f'Calling Databricks endpoint: {endpoint_name}')
-
-      # Use streaming or non-streaming based on request
-      if options.stream:
-        return StreamingResponse(
-          model_serving_endpoint_stream(
-            endpoint_name=endpoint_name,
-            messages=options.messages,
-            endpoint_type='databricks-agent'
-          ),
-          media_type='text/event-stream',
-          headers={
-            'Cache-Control': 'no-cache',
-            'Connection': 'keep-alive',
-            'X-Accel-Buffering': 'no'  # Disable nginx buffering
-          }
-        )
-      else:
-        return model_serving_endpoint(
-          endpoint_name=endpoint_name, messages=options.messages, endpoint_type='databricks-agent'
-        )
-
+      )
     else:
-      # Only databricks-endpoint deployment type is supported for now
-      logger.error(f'Unsupported deployment_type: {deployment_type}')
-      return {
-        'error': 'Unsupported deployment type',
-        'message': f'Only "databricks-endpoint" deployment type is supported. Got: {deployment_type}',
-      }
+      return handler.invoke(messages=options.messages)
 
   except Exception as e:
     logger.error(f'Error invoking agent {options.agent_id}: {str(e)}')

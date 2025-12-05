@@ -257,7 +257,10 @@ export function ChatView({
         selectedAgentId,
       );
 
-      const response = await fetch("/api/invoke_endpoint", {
+      // Development: Call backend directly to avoid Next.js dev server buffering the stream
+      // Production: Use relative URL (same origin - FastAPI serves both frontend and API)
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || ''
+      const response = await fetch(`${backendUrl}/api/invoke_endpoint`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -303,6 +306,8 @@ export function ChatView({
       let streamedContent = ''
       let traceId = ''
       let traceSummary: TraceSummary | null = null
+      let lastUpdateTime = 0
+      const UPDATE_INTERVAL = 50 // Update UI every 50ms for smooth streaming
 
       try {
         console.log("🌊 STREAMING: Entering read loop");
@@ -382,13 +387,18 @@ export function ChatView({
                   }
                   setMessages(prev => [...prev, assistantMessage])
                   devLog('✨ Created assistant message on first stream')
+                  lastUpdateTime = Date.now()
                 } else {
-                  // Update the assistant message in real-time
-                  setMessages(prev => prev.map(msg =>
-                    msg.id === assistantMessageId
-                      ? { ...msg, content: streamedContent }
-                      : msg
-                  ))
+                  // Throttle updates: only update UI every UPDATE_INTERVAL ms
+                  const now = Date.now()
+                  if (now - lastUpdateTime >= UPDATE_INTERVAL) {
+                    setMessages(prev => prev.map(msg =>
+                      msg.id === assistantMessageId
+                        ? { ...msg, content: streamedContent }
+                        : msg
+                    ))
+                    lastUpdateTime = now
+                  }
                 }
               }
 

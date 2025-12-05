@@ -8,8 +8,6 @@ from typing import Optional
 from fastapi import APIRouter
 from pydantic import BaseModel
 
-from ..tracing import get_mlflow_experiment_id
-
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
@@ -43,11 +41,13 @@ async def get_tracing_experiment():
   if host and not host.startswith('https://'):
     host = f'https://{host}'
 
-  experiment_id = get_mlflow_experiment_id()
+  # Note: App-level experiment ID not used anymore
+  # Agents have their own experiment IDs in agents.json
+  experiment_id = None
 
   return ExperimentInfo(
     experiment_id=experiment_id,
-    link=f'{host}/ml/experiments/{experiment_id}?compareRunsMode=TRACES' if host else None,
+    link=f'{host}/ml/experiments/{experiment_id}?compareRunsMode=TRACES' if (host and experiment_id) else None,
   )
 
 
@@ -55,15 +55,12 @@ async def get_tracing_experiment():
 async def health_check(is_dev: bool = False):
   """Health check endpoint for monitoring app status.
 
-  Returns application health status including MLflow connectivity.
+  Returns application health status.
   """
   try:
-    experiment_id = get_mlflow_experiment_id()
-
     health_status = {
       'status': 'healthy',
       'timestamp': int(time.time() * 1000),
-      'mlflow_experiment_id': experiment_id,
       'environment': 'development' if is_dev else 'production',
     }
 
