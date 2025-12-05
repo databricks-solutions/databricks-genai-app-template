@@ -6,8 +6,7 @@ import { ChatInput } from "./ChatInput";
 import { FeedbackModal } from "@/components/modals/FeedbackModal";
 import { TraceModal } from "@/components/modals/TraceModal";
 import { FunctionCallNotification } from "@/components/notifications/FunctionCallNotification";
-import { Message } from "@/lib/types";
-import { TraceSummary } from "@/lib/mlflow-client";
+import { Message, TraceSummary } from "@/lib/types";
 
 // Dev-only logger
 const devLog = (...args: any[]) => {

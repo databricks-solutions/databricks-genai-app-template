@@ -60,11 +60,10 @@ async def log_feedback(options: LogAssessmentRequest):
 
 @router.post('/invoke_endpoint')
 async def invoke_endpoint(options: InvokeEndpointRequest):
-  """Invoke an agent endpoint based on configuration.
+  """Invoke a Databricks agent endpoint.
 
-  Routes to the appropriate handler based on agent deployment_type:
-  - databricks-endpoint: Calls external Databricks serving endpoint
-  - langchain-agent: Calls built-in LangChain agent (not yet implemented)
+  Currently only supports 'databricks-endpoint' deployment type.
+  Calls external Databricks model serving endpoints.
   """
   logger.info(f'Invoking agent: {options.agent_id}')
 
@@ -98,19 +97,12 @@ async def invoke_endpoint(options: InvokeEndpointRequest):
         endpoint_name=endpoint_name, messages=options.messages, endpoint_type='databricks-agent'
       )
 
-    elif deployment_type == 'langchain-agent':
-      # Call built-in LangChain agent (for future use)
-      logger.warning('LangChain agent type not yet implemented')
-      return {
-        'error': 'Not implemented',
-        'message': 'LangChain agents are not yet supported. Please use databricks-endpoint type.',
-      }
-
     else:
-      logger.error(f'Unknown deployment_type: {deployment_type}')
+      # Only databricks-endpoint deployment type is supported for now
+      logger.error(f'Unsupported deployment_type: {deployment_type}')
       return {
-        'error': 'Invalid deployment type',
-        'message': f'Unknown deployment_type: {deployment_type}. Supported types: databricks-endpoint, langchain-agent',
+        'error': 'Unsupported deployment type',
+        'message': f'Only "databricks-endpoint" deployment type is supported. Got: {deployment_type}',
       }
 
   except Exception as e:

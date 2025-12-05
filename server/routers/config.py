@@ -16,7 +16,7 @@ async def get_agents():
 
   Returns agent metadata including:
   - Agent IDs and display names
-  - Deployment types (databricks-endpoint or langchain-agent)
+  - Deployment type (currently only databricks-endpoint is supported)
   - Endpoint names
   - Tool descriptions
   - MLflow experiment IDs

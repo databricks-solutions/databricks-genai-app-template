@@ -142,25 +142,6 @@ export interface AgentMetadata {
   agents: Agent[]
 }
 
-export interface AppConfig {
-  branding: {
-    tabTitle: string
-    name: string
-    description: string
-    companyName: string
-    divider: string
-    logoPath: string
-  }
-  tools: Tool[]
-  databricks: {
-    dashboard: {
-      id: string
-      name: string
-      iframeUrl: string
-    }
-  }
-}
-
 export interface TraceSpan {
   name: string
   duration: number

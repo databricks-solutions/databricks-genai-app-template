@@ -3,21 +3,13 @@
 import React, { useState, useEffect } from 'react'
 import { X, Clock, ChevronRight, ChevronDown, Code, Database, Brain } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { TraceSpan } from '@/lib/types'
 
 // Dev-only logger
 const devLog = (...args: any[]) => {
   if (process.env.NODE_ENV !== 'production') {
     console.log(...args)
   }
-}
-
-interface TraceSpan {
-  name: string
-  duration: number
-  input: any
-  output: any
-  type: 'llm' | 'tool' | 'retrieval' | 'other'
-  children?: TraceSpan[]
 }
 
 interface FunctionCall {
