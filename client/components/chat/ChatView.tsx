@@ -248,19 +248,21 @@ export function ChatView({
       setActiveFunctionCalls([]);
 
       devLog(
-        "🔌 Calling /api/chat with chatId:",
+        "🔌 Calling /api/invoke_endpoint with chatId:",
         activeChatId,
         "agentId:",
         selectedAgentId,
       );
 
-      const response = await fetch("/api/chat", {
+      const response = await fetch("/api/invoke_endpoint", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          chatId: activeChatId,
-          messages: [...messages, userMessage],
-          agentId: selectedAgentId,
+          agent_id: selectedAgentId,
+          messages: [...messages, userMessage].map((m) => ({
+            role: m.role,
+            content: m.content,
+          })),
         }),
         signal: abortController.signal,
       });
@@ -278,11 +280,12 @@ export function ChatView({
         throw new Error(`API returned ${response.status}: ${errorText}`);
       }
 
-      // Handle simple JSON response (not streaming for now)
+      // Handle OpenAI-like response format
       const data = await response.json();
       devLog("📦 Got response data:", data);
 
-      const assistantContent = data.content || "No response";
+      const assistantContent =
+        data.choices?.[0]?.message?.content || "No response";
 
       const assistantMessage: Message = {
         id: assistantMessageId,
@@ -771,23 +774,13 @@ export function ChatView({
   };
 
   const submitFeedback = async (comment: string) => {
-    try {
-      await fetch("/api/feedback", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          messageId: feedbackModal.messageId,
-          feedbackType: feedbackModal.feedbackType,
-          comment,
-        }),
-      });
-      // Show success notification in production
-    } catch (error) {
-      console.warn(
-        "⚠️ Feedback feature - Work In Progress. Python backend endpoint needed:",
-        error,
-      );
-    }
+    // TODO: Implement feedback functionality
+    console.log("Feedback disabled for now:", {
+      messageId: feedbackModal.messageId,
+      feedbackType: feedbackModal.feedbackType,
+      comment,
+    });
+
     setFeedbackModal({
       isOpen: false,
       messageId: "",

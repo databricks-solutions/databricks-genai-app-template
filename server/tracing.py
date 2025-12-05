@@ -48,30 +48,14 @@ else:
 
 
 def setup_mlflow_tracing():
-  """Sets up MLflow tracing."""
-  # MLflow tracking is already configured at module level
-  # This function just enables LangChain autologging
+  """Sets up MLflow tracing.
 
-  # Only enable autologging if we have a valid experiment
+  Note: LangChain autologging is not used in this application.
+  Tracing is handled via @mlflow.trace decorators on individual functions.
+  """
+  # MLflow tracking is already configured at module level
   if MLFLOW_EXPERIMENT_ID and IS_DESTINATION_ONLINE:
-    # Enable LangChain autologging
-    # This automatically logs:
-    # - LLM calls with prompts and completions
-    # - Tool invocations with inputs and outputs
-    # - Agent executor runs with full conversation history
-    # - Retriever queries and results (if using RAG)
-    mlflow.langchain.autolog(
-      log_input_examples=True,
-      log_model_signatures=True,
-      log_models=False,  # We don't need to log models, just traces
-      log_datasets=False,
-      log_inputs_outputs=True,
-      disable=False,
-      exclusive=False,
-      disable_for_unsupported_versions=False,
-      silent=False,
-    )
-    print('✅ MLflow LangChain autologging enabled')
+    print('✅ MLflow tracing enabled')
   else:
     print('⚠️  MLflow tracing disabled - running without monitoring')
 

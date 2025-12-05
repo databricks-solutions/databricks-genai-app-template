@@ -120,45 +120,19 @@ export function TraceModal({ isOpen, onClose, traceId, functionCalls, userMessag
   }
 
   const fetchTraceData = async () => {
+    // TODO: Implement trace fetching functionality
     setIsLoading(true)
-    try {
-      devLog('📡 Fetching trace from API:', traceId)
-      const response = await fetch(`/api/trace/${traceId}`)
-      
-      if (!response.ok) {
-        throw new Error(`Failed to fetch trace: ${response.status}`)
-      }
-      
-      const data = await response.json()
-      devLog('✅ Received trace data:', data)
-      
-      if (data.spans && data.spans.length > 0) {
-        setTraceData(data.spans)
-        // Auto-expand first level
-        setExpandedNodes(new Set(data.spans.map((s: TraceSpan) => s.name)))
-      } else {
-        // Fallback to empty trace
-        setTraceData([{
-          name: 'No trace data available',
-          duration: 0,
-          type: 'other',
-          input: {},
-          output: {}
-        }])
-      }
-    } catch (error) {
-      console.error('Failed to fetch trace data:', error)
-      // Show error in trace viewer
-      setTraceData([{
-        name: 'Error loading trace',
-        duration: 0,
-        type: 'other',
-        input: {},
-        output: { error: String(error) }
-      }])
-    } finally {
-      setIsLoading(false)
-    }
+    console.log('Trace viewing disabled for now:', traceId)
+
+    setTraceData([{
+      name: 'Trace viewing disabled',
+      duration: 0,
+      type: 'other',
+      input: {},
+      output: { message: 'Trace functionality will be implemented later' }
+    }])
+
+    setIsLoading(false)
   }
 
   const toggleNode = (path: string) => {
