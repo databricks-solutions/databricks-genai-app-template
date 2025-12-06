@@ -1,51 +1,60 @@
-"use client"
+"use client";
 
-import React, { useState, useEffect } from 'react'
-import { X, ThumbsUp, ThumbsDown } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import React, { useState, useEffect } from "react";
+import { X, ThumbsUp, ThumbsDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface FeedbackModalProps {
-  isOpen: boolean
-  onClose: () => void
-  onSubmit: (comment: string) => void
-  feedbackType: 'positive' | 'negative'
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: (comment: string) => void;
+  feedbackType: "positive" | "negative";
 }
 
-export function FeedbackModal({ isOpen, onClose, onSubmit, feedbackType }: FeedbackModalProps) {
-  const [comment, setComment] = useState('')
+export function FeedbackModal({
+  isOpen,
+  onClose,
+  onSubmit,
+  feedbackType,
+}: FeedbackModalProps) {
+  const [comment, setComment] = useState("");
 
   useEffect(() => {
     if (isOpen) {
       // Reset comment when modal opens
-      setComment('')
+      setComment("");
     }
-  }, [isOpen])
+  }, [isOpen]);
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
-        onClose()
+      if (e.key === "Escape" && isOpen) {
+        onClose();
       }
-    }
+    };
 
-    document.addEventListener('keydown', handleEscape)
-    return () => document.removeEventListener('keydown', handleEscape)
-  }, [isOpen, onClose])
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [isOpen, onClose]);
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   const handleSubmit = () => {
-    onSubmit(comment)
-    setComment('')
-  }
+    onSubmit(comment);
+    setComment("");
+  };
 
-  const title = feedbackType === 'positive' 
-    ? 'Why was this helpful?' 
-    : 'Why was this not helpful?'
+  const title =
+    feedbackType === "positive"
+      ? "Why was this helpful?"
+      : "Why was this not helpful?";
 
-  const icon = feedbackType === 'positive'
-    ? <ThumbsUp className="h-5 w-5 text-[var(--color-success)]" />
-    : <ThumbsDown className="h-5 w-5 text-[var(--color-error)]" />
+  const icon =
+    feedbackType === "positive" ? (
+      <ThumbsUp className="h-5 w-5 text-[var(--color-success)]" />
+    ) : (
+      <ThumbsDown className="h-5 w-5 text-[var(--color-error)]" />
+    );
 
   return (
     <>
@@ -92,10 +101,7 @@ export function FeedbackModal({ isOpen, onClose, onSubmit, feedbackType }: Feedb
 
           {/* Footer */}
           <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-[var(--color-border)]">
-            <Button
-              variant="secondary"
-              onClick={onClose}
-            >
+            <Button variant="secondary" onClick={onClose}>
               Cancel
             </Button>
             <Button
@@ -108,5 +114,5 @@ export function FeedbackModal({ isOpen, onClose, onSubmit, feedbackType }: Feedb
         </div>
       </div>
     </>
-  )
+  );
 }

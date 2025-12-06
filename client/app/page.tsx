@@ -70,7 +70,9 @@ function HomeContent() {
   const handleNewChat = () => {
     // Prevent creating new chat while streaming a response
     if (isStreaming) {
-      alert("⏳ Please wait for the current response to complete before starting a new chat.");
+      alert(
+        "⏳ Please wait for the current response to complete before starting a new chat.",
+      );
       return;
     }
 
@@ -84,7 +86,9 @@ function HomeContent() {
   const handleChatSelect = (chatId: string) => {
     // Prevent switching chats while streaming a response
     if (isStreaming) {
-      alert("⏳ Please wait for the current response to complete before switching chats.");
+      alert(
+        "⏳ Please wait for the current response to complete before switching chats.",
+      );
       return;
     }
 

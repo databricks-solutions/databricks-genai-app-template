@@ -215,9 +215,16 @@ export function ChatView({
 
     // Declare variables outside try block so they're accessible in finally
     let activeChatId: string | undefined = chatId;
-    let streamedContent = '';
-    let traceId = '';
+    let streamedContent = "";
+    let traceId = "";
     let traceSummary: TraceSummary | null = null;
+    // Track function calls locally during streaming (not state - state updates are async!)
+    let collectedFunctionCalls: Array<{
+      call_id: string;
+      name: string;
+      arguments?: any;
+      output?: any;
+    }> = [];
 
     try {
       // If no chatId, we need to create a new chat first
@@ -275,7 +282,7 @@ export function ChatView({
 
       // Development: Call backend directly to avoid Next.js dev server buffering the stream
       // Production: Use relative URL (same origin - FastAPI serves both frontend and API)
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || ''
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "";
       const response = await fetch(`${backendUrl}/api/invoke_endpoint`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -318,10 +325,10 @@ export function ChatView({
       console.log("🌊 STREAMING: Reader created successfully");
       devLog("📖 Starting to read stream...");
 
-      let buffer = ''
+      let buffer = "";
       // streamedContent, traceId, traceSummary now declared outside try block
-      let lastUpdateTime = 0
-      const UPDATE_INTERVAL = 50 // Update UI every 50ms for smooth streaming
+      let lastUpdateTime = 0;
+      const UPDATE_INTERVAL = 50; // Update UI every 50ms for smooth streaming
 
       try {
         console.log("🌊 STREAMING: Entering read loop");
@@ -334,292 +341,432 @@ export function ChatView({
           }
 
           chunkCount++;
-          console.log(`🌊 STREAMING: Chunk ${chunkCount}, bytes:`, value?.length);
+          console.log(
+            `🌊 STREAMING: Chunk ${chunkCount}, bytes:`,
+            value?.length,
+          );
 
           buffer += decoder.decode(value, { stream: true });
           const lines = buffer.split("\n");
           console.log(`🌊 STREAMING: Split into ${lines.length} lines`);
-          
+
           // Keep the last incomplete line in the buffer
-          buffer = lines.pop() || ''
+          buffer = lines.pop() || "";
 
           for (const line of lines) {
             // Skip empty lines
-            if (!line.trim()) continue
+            if (!line.trim()) continue;
 
             // Skip lines that don't start with data:
-            if (!line.startsWith('data: ')) continue
+            if (!line.startsWith("data: ")) continue;
 
-            const data = line.slice(6).trim()
+            const data = line.slice(6).trim();
 
             // Skip empty data after extraction
-            if (!data) continue
+            if (!data) continue;
 
             // Detect HTML responses (error indicators)
-            if (data.startsWith('<') || data.startsWith('<!DOCTYPE')) {
-              console.error('❌ CLIENT: Received HTML instead of JSON:', data.substring(0, 200))
-              continue
+            if (data.startsWith("<") || data.startsWith("<!DOCTYPE")) {
+              console.error(
+                "❌ CLIENT: Received HTML instead of JSON:",
+                data.substring(0, 200),
+              );
+              continue;
             }
 
             // Log raw data for trace.summary events
-            if (data.includes('trace.summary')) {
-              devLog('🔍 RAW TRACE.SUMMARY LINE:', data.substring(0, 200))
+            if (data.includes("trace.summary")) {
+              devLog("🔍 RAW TRACE.SUMMARY LINE:", data.substring(0, 200));
             }
 
-            if (data === '[DONE]') {
-              devLog('Stream completed')
-              continue
+            if (data === "[DONE]") {
+              devLog("Stream completed");
+              continue;
             }
 
             try {
-              const event = JSON.parse(data)
-              devLog('📨 Received event:', event.type)
+              const event = JSON.parse(data);
+              devLog("📨 Received event:", event.type);
 
               // Log trace.summary events in detail
-              if (event.type === 'trace.summary') {
-                devLog('🎯 TRACE SUMMARY EVENT RECEIVED:', event)
+              if (event.type === "trace.summary") {
+                devLog("🎯 TRACE SUMMARY EVENT RECEIVED:", event);
               }
 
               // Handle text deltas
-              if (event.type === 'response.output_text.delta') {
-                streamedContent += event.delta
+              if (event.type === "response.output_text.delta") {
+                streamedContent += event.delta;
 
                 // Validate stream is still for current chat
                 if (activeStreamChatIdRef.current !== streamChatId) {
-                  devLog('⚠️ Ignoring text delta from old stream (chat switched)')
-                  continue
+                  devLog(
+                    "⚠️ Ignoring text delta from old stream (chat switched)",
+                  );
+                  continue;
                 }
 
                 // Create assistant message on first delta
                 if (!assistantMessageCreated) {
-                  assistantMessageCreated = true
+                  assistantMessageCreated = true;
                   const assistantMessage: Message = {
                     id: assistantMessageId,
-                    role: 'assistant',
+                    role: "assistant",
                     content: streamedContent,
-                    timestamp: new Date()
-                  }
-                  setMessages(prev => [...prev, assistantMessage])
-                  devLog('✨ Created assistant message on first stream')
-                  lastUpdateTime = Date.now()
+                    timestamp: new Date(),
+                  };
+                  setMessages((prev) => [...prev, assistantMessage]);
+                  devLog("✨ Created assistant message on first stream");
+                  lastUpdateTime = Date.now();
                 } else {
                   // Throttle updates: only update UI every UPDATE_INTERVAL ms
-                  const now = Date.now()
+                  const now = Date.now();
                   if (now - lastUpdateTime >= UPDATE_INTERVAL) {
-                    setMessages(prev => prev.map(msg =>
-                      msg.id === assistantMessageId
-                        ? { ...msg, content: streamedContent }
-                        : msg
-                    ))
-                    lastUpdateTime = now
+                    setMessages((prev) =>
+                      prev.map((msg) =>
+                        msg.id === assistantMessageId
+                          ? { ...msg, content: streamedContent }
+                          : msg,
+                      ),
+                    );
+                    lastUpdateTime = now;
                   }
                 }
               }
 
               // Handle trace ID
               if (event.id && !traceId) {
-                traceId = event.id
+                traceId = event.id;
               }
 
               // Handle completed items (for final text and function calls)
-              if (event.type === 'response.output_item.done') {
-                const item = event.item
+              if (event.type === "response.output_item.done") {
+                const item = event.item;
 
                 // Handle function call start
-                if (item?.type === 'function_call') {
-                  devLog('🔧 Function call started:', item.name)
+                if (item?.type === "function_call") {
+                  devLog("🔧 Function call started:", item.name);
                   try {
-                    const args = item.arguments ? (typeof item.arguments === 'string' ? JSON.parse(item.arguments) : item.arguments) : {}
-                    setActiveFunctionCalls(prev => [
+                    const args = item.arguments
+                      ? typeof item.arguments === "string"
+                        ? JSON.parse(item.arguments)
+                        : item.arguments
+                      : {};
+
+                    // Add to local collected list (for saving to backend)
+                    collectedFunctionCalls.push({
+                      call_id: item.call_id,
+                      name: item.name,
+                      arguments: args,
+                    });
+
+                    // Also update state (for real-time notifications UI)
+                    setActiveFunctionCalls((prev) => [
                       ...prev,
                       {
                         call_id: item.call_id,
                         name: item.name,
                         arguments: args,
-                        status: 'calling'
-                      }
-                    ])
+                        status: "calling",
+                      },
+                    ]);
                   } catch (argParseError) {
-                    console.error('❌ CLIENT: Failed to parse function call arguments:', argParseError)
-                    setActiveFunctionCalls(prev => [
+                    console.error(
+                      "❌ CLIENT: Failed to parse function call arguments:",
+                      argParseError,
+                    );
+
+                    // Add to local collected list even if parsing failed
+                    collectedFunctionCalls.push({
+                      call_id: item.call_id,
+                      name: item.name,
+                      arguments: item.arguments || {},
+                    });
+
+                    setActiveFunctionCalls((prev) => [
                       ...prev,
                       {
                         call_id: item.call_id,
                         name: item.name,
                         arguments: item.arguments || {},
-                        status: 'calling'
-                      }
-                    ])
+                        status: "calling",
+                      },
+                    ]);
                   }
                 }
 
                 // Handle function call output
-                if (item?.type === 'function_call_output') {
-                  devLog('✅ Function call completed:', item.call_id)
+                if (item?.type === "function_call_output") {
+                  devLog("✅ Function call completed:", item.call_id);
                   try {
-                    const output = item.output ? (typeof item.output === 'string' ? JSON.parse(item.output) : item.output) : {}
-                    setActiveFunctionCalls(prev => prev.map(fc =>
-                      fc.call_id === item.call_id
-                        ? {
-                            ...fc,
-                            output: output,
-                            status: 'completed' as const
-                          }
-                        : fc
-                    ))
+                    const output = item.output
+                      ? typeof item.output === "string"
+                        ? JSON.parse(item.output)
+                        : item.output
+                      : {};
+
+                    // Update local collected list with output
+                    const fcIndex = collectedFunctionCalls.findIndex(
+                      (fc) => fc.call_id === item.call_id,
+                    );
+                    if (fcIndex !== -1) {
+                      collectedFunctionCalls[fcIndex].output = output;
+                    }
+
+                    // Also update state (for real-time notifications UI)
+                    setActiveFunctionCalls((prev) =>
+                      prev.map((fc) =>
+                        fc.call_id === item.call_id
+                          ? {
+                              ...fc,
+                              output: output,
+                              status: "completed" as const,
+                            }
+                          : fc,
+                      ),
+                    );
                   } catch (outputParseError) {
-                    console.error('❌ CLIENT: Failed to parse function call output:', outputParseError)
-                    setActiveFunctionCalls(prev => prev.map(fc =>
-                      fc.call_id === item.call_id
-                        ? {
-                            ...fc,
-                            output: item.output || {},
-                            status: 'completed' as const
-                          }
-                        : fc
-                    ))
+                    console.error(
+                      "❌ CLIENT: Failed to parse function call output:",
+                      outputParseError,
+                    );
+
+                    // Update local collected list even if parsing failed
+                    const fcIndex = collectedFunctionCalls.findIndex(
+                      (fc) => fc.call_id === item.call_id,
+                    );
+                    if (fcIndex !== -1) {
+                      collectedFunctionCalls[fcIndex].output =
+                        item.output || {};
+                    }
+
+                    setActiveFunctionCalls((prev) =>
+                      prev.map((fc) =>
+                        fc.call_id === item.call_id
+                          ? {
+                              ...fc,
+                              output: item.output || {},
+                              status: "completed" as const,
+                            }
+                          : fc,
+                      ),
+                    );
                   }
                 }
 
                 // Update final text if available
-                if (item?.type === 'message' && item.content) {
-                  const textContent = item.content.find((c: any) => c.type === 'output_text')
+                if (item?.type === "message" && item.content) {
+                  const textContent = item.content.find(
+                    (c: any) => c.type === "output_text",
+                  );
                   if (textContent?.text) {
-                    streamedContent = textContent.text
+                    streamedContent = textContent.text;
 
                     // Validate stream is still for current chat
                     if (activeStreamChatIdRef.current !== streamChatId) {
-                      devLog('⚠️ Ignoring final text from old stream (chat switched)')
-                      continue
+                      devLog(
+                        "⚠️ Ignoring final text from old stream (chat switched)",
+                      );
+                      continue;
                     }
 
                     // Ensure assistant message exists
                     if (!assistantMessageCreated) {
-                      assistantMessageCreated = true
+                      assistantMessageCreated = true;
                       const assistantMessage: Message = {
                         id: assistantMessageId,
-                        role: 'assistant',
+                        role: "assistant",
                         content: streamedContent,
-                        timestamp: new Date()
-                      }
-                      setMessages(prev => [...prev, assistantMessage])
-                      devLog('✨ Created assistant message from complete text')
+                        timestamp: new Date(),
+                      };
+                      setMessages((prev) => [...prev, assistantMessage]);
+                      devLog("✨ Created assistant message from complete text");
                     } else {
-                      setMessages(prev => prev.map(msg =>
-                        msg.id === assistantMessageId
-                          ? { ...msg, content: streamedContent }
-                          : msg
-                      ))
+                      setMessages((prev) =>
+                        prev.map((msg) =>
+                          msg.id === assistantMessageId
+                            ? { ...msg, content: streamedContent }
+                            : msg,
+                        ),
+                      );
                     }
                   }
                 }
               }
 
               // Handle trace summary
-              if (event.type === 'trace.summary') {
+              if (event.type === "trace.summary") {
                 try {
                   // Deep clone to avoid reference sharing between messages
-                  traceSummary = JSON.parse(JSON.stringify(event.traceSummary))
+                  traceSummary = JSON.parse(JSON.stringify(event.traceSummary));
                 } catch (cloneError) {
-                  console.error('❌ CLIENT: Failed to clone trace summary:', cloneError)
-                  traceSummary = event.traceSummary
+                  console.error(
+                    "❌ CLIENT: Failed to clone trace summary:",
+                    cloneError,
+                  );
+                  traceSummary = event.traceSummary;
                 }
 
-                devLog('📊 Received trace summary for message:', assistantMessageId)
-                devLog('   Trace ID:', traceSummary?.trace_id)
-                devLog('   Function calls:', traceSummary?.function_calls?.length || 0)
+                devLog(
+                  "📊 Received trace summary for message:",
+                  assistantMessageId,
+                );
+                devLog("   Trace ID:", traceSummary?.trace_id);
+                devLog(
+                  "   Function calls in summary:",
+                  traceSummary?.function_calls?.length || 0,
+                );
+                devLog(
+                  "   Collected function calls:",
+                  collectedFunctionCalls.length,
+                );
+
+                // IMPORTANT: Merge our collected function calls into trace summary
+                // Databricks may not send detailed function_calls in trace.summary,
+                // but we collected them during streaming for notifications
+                if (traceSummary && collectedFunctionCalls.length > 0) {
+                  // Map our collected function calls to the expected format
+                  traceSummary.function_calls = collectedFunctionCalls.map(
+                    (fc) => ({
+                      call_id: fc.call_id,
+                      name: fc.name,
+                      arguments: fc.arguments || {},
+                      output: fc.output || {},
+                    }),
+                  );
+                  devLog(
+                    "✅ Merged collected function calls into trace summary:",
+                    traceSummary.function_calls.length,
+                  );
+                }
 
                 // Validate stream is still for current chat
                 if (activeStreamChatIdRef.current !== streamChatId) {
-                  devLog('⚠️ Ignoring trace summary from old stream (chat switched)')
-                  continue
+                  devLog(
+                    "⚠️ Ignoring trace summary from old stream (chat switched)",
+                  );
+                  continue;
                 }
 
                 // Ensure assistant message exists before updating trace
                 if (!assistantMessageCreated) {
-                  assistantMessageCreated = true
+                  assistantMessageCreated = true;
                   const assistantMessage: Message = {
                     id: assistantMessageId,
-                    role: 'assistant',
+                    role: "assistant",
                     content: streamedContent,
                     timestamp: new Date(),
                     traceId: traceSummary?.trace_id || traceId,
-                    traceSummary: traceSummary || undefined
-                  }
-                  setMessages(prev => [...prev, assistantMessage])
-                  devLog('✨ Created assistant message with trace')
+                    traceSummary: traceSummary || undefined,
+                  };
+                  setMessages((prev) => [...prev, assistantMessage]);
+                  devLog("✨ Created assistant message with trace");
                 } else {
                   // Update ONLY this specific message with trace data
-                  setMessages(prev => prev.map(msg =>
-                    msg.id === assistantMessageId
-                      ? {
-                          ...msg,
-                          traceId: traceSummary?.trace_id || traceId,
-                          traceSummary: traceSummary || undefined  // Use the cloned object
-                        }
-                      : msg
-                  ))
+                  setMessages((prev) =>
+                    prev.map((msg) =>
+                      msg.id === assistantMessageId
+                        ? {
+                            ...msg,
+                            traceId: traceSummary?.trace_id || traceId,
+                            traceSummary: traceSummary || undefined, // Use the cloned object
+                          }
+                        : msg,
+                    ),
+                  );
                 }
               }
             } catch (parseError: any) {
               // Enhanced error logging for debugging
-              const dataPreview = data.length > 200 ? data.substring(0, 200) + '...' : data
+              const dataPreview =
+                data.length > 200 ? data.substring(0, 200) + "..." : data;
 
-              if (data.includes('{') || data.includes('[')) {
+              if (data.includes("{") || data.includes("[")) {
                 // Looks like JSON but failed to parse
-                console.error('❌ CLIENT: JSON parse error:', parseError.message)
-                console.error('   Data preview:', dataPreview)
-                console.error('   Full data length:', data.length)
+                console.error(
+                  "❌ CLIENT: JSON parse error:",
+                  parseError.message,
+                );
+                console.error("   Data preview:", dataPreview);
+                console.error("   Full data length:", data.length);
               } else {
                 // Doesn't look like JSON
-                devLog('⚠️  CLIENT: Skipping non-JSON line:', dataPreview)
+                devLog("⚠️  CLIENT: Skipping non-JSON line:", dataPreview);
               }
             }
           }
         }
 
         // Final update with all collected data (only if needed)
-        devLog('✅ Stream finished for message:', assistantMessageId)
-        devLog('   Final content length:', streamedContent.length)
-        devLog('   Trace summary:', traceSummary ? 'attached' : 'none')
+        devLog("✅ Stream finished for message:", assistantMessageId);
+        devLog("   Final content length:", streamedContent.length);
+        devLog("   Trace summary:", traceSummary ? "attached" : "none");
+        devLog("   Collected function calls:", collectedFunctionCalls.length);
+
+        // If we have function calls but no trace summary, create a minimal one
+        if (!traceSummary && collectedFunctionCalls.length > 0) {
+          traceSummary = {
+            trace_id: traceId || "",
+            duration_ms: 0,
+            status: "completed",
+            tools_called: [],
+            retrieval_calls: [],
+            llm_calls: [],
+            total_tokens: 0,
+            spans_count: 0,
+            function_calls: collectedFunctionCalls.map((fc) => ({
+              call_id: fc.call_id,
+              name: fc.name,
+              arguments: fc.arguments || {},
+              output: fc.output || {},
+            })),
+          };
+          devLog("✅ Created trace summary from collected function calls");
+        }
 
         // Validate stream is still for current chat before final update
         if (activeStreamChatIdRef.current !== streamChatId) {
-          devLog('⚠️ Stream completed but chat already switched - skipping final update')
+          devLog(
+            "⚠️ Stream completed but chat already switched - skipping final update",
+          );
         } else {
           // Ensure assistant message was created (in case no events triggered creation)
           if (!assistantMessageCreated && streamedContent) {
-            assistantMessageCreated = true
+            assistantMessageCreated = true;
             const assistantMessage: Message = {
               id: assistantMessageId,
-              role: 'assistant',
+              role: "assistant",
               content: streamedContent,
               timestamp: new Date(),
               traceId: traceId,
-              traceSummary: traceSummary ? JSON.parse(JSON.stringify(traceSummary)) : undefined
-            }
-            setMessages(prev => [...prev, assistantMessage])
-            devLog('✨ Created assistant message at stream end')
+              traceSummary: traceSummary
+                ? JSON.parse(JSON.stringify(traceSummary))
+                : undefined,
+            };
+            setMessages((prev) => [...prev, assistantMessage]);
+            devLog("✨ Created assistant message at stream end");
           } else if (assistantMessageCreated) {
             // Update existing message with final data
-            setMessages(prev => prev.map(msg => {
-              if (msg.id !== assistantMessageId) {
-                return msg  // Don't modify other messages
-              }
+            setMessages((prev) =>
+              prev.map((msg) => {
+                if (msg.id !== assistantMessageId) {
+                  return msg; // Don't modify other messages
+                }
 
-              // Deep clone traceSummary if it exists to ensure no reference sharing
-              const finalTraceSummary = traceSummary ? JSON.parse(JSON.stringify(traceSummary)) : msg.traceSummary
+                // Deep clone traceSummary if it exists to ensure no reference sharing
+                const finalTraceSummary = traceSummary
+                  ? JSON.parse(JSON.stringify(traceSummary))
+                  : msg.traceSummary;
 
-              return {
-                ...msg,
-                content: streamedContent || msg.content,
-                traceId: traceId || msg.traceId,
-                traceSummary: finalTraceSummary
-              }
-            }))
+                return {
+                  ...msg,
+                  content: streamedContent || msg.content,
+                  traceId: traceId || msg.traceId,
+                  traceSummary: finalTraceSummary,
+                };
+              }),
+            );
           }
         }
-
       } finally {
         reader.releaseLock();
       }
@@ -700,69 +847,20 @@ export function ChatView({
   };
 
   const handleTrace = (messageId: string) => {
-    console.group("🔍 TRACE VIEWER DEBUG");
-    devLog("=".repeat(80));
-    devLog("Clicked message ID:", messageId);
-    devLog("Total messages in state:", messages.length);
-
-    // Log ALL messages first to see what's stored
-    devLog("\n📋 ALL MESSAGES IN STATE:");
-    messages.forEach((msg, idx) => {
-      devLog(`\nMessage [${idx}]:`);
-      devLog("  ID:", msg.id);
-      devLog("  Role:", msg.role);
-      devLog("  Content:", msg.content);
-      devLog("  TraceId:", msg.traceId);
-      devLog("  Timestamp:", msg.timestamp);
-      devLog("  Has TraceSummary:", !!msg.traceSummary);
-      if (msg.traceSummary) {
-        devLog("  TraceSummary:", {
-          trace_id: msg.traceSummary.trace_id,
-          function_calls_count: msg.traceSummary.function_calls?.length || 0,
-        });
-        if (msg.traceSummary.function_calls) {
-          msg.traceSummary.function_calls.forEach((fc, fcIdx) => {
-            devLog(`    Function Call [${fcIdx}]:`, {
-              name: fc.name,
-              call_id: fc.call_id,
-              arguments: fc.arguments,
-              output_preview: fc.output
-                ? JSON.stringify(fc.output).substring(0, 100)
-                : "N/A",
-            });
-          });
-        }
-      }
-    });
-
     // Find the specific message by its unique ID
-    const messageIndex = messages.findIndex((m) => m.id === messageId);
-    const message = messages[messageIndex];
+    const message = messages.find((m) => m.id === messageId);
 
     if (!message) {
       console.error("❌ Message not found:", messageId);
-      console.groupEnd();
       return;
     }
 
-    devLog("\n✅ SELECTED MESSAGE:");
-    devLog({
-      index: messageIndex,
-      id: message.id,
-      role: message.role,
-      content: message.content,
-      traceId: message.traceId,
-      function_calls: message.traceSummary?.function_calls,
-    });
-
     // Find the user message that came before this assistant message
+    const messageIndex = messages.findIndex((m) => m.id === messageId);
     let userMessage = "";
     for (let i = messageIndex - 1; i >= 0; i--) {
       if (messages[i].role === "user") {
         userMessage = messages[i].content;
-        devLog("\n📨 Found corresponding user message:");
-        devLog("   Content:", userMessage);
-        devLog("   Index:", i);
         break;
       }
     }
@@ -770,26 +868,6 @@ export function ChatView({
     const traceId = message.traceId || "";
     const functionCalls = message.traceSummary?.function_calls;
     const assistantResponse = message.content;
-
-    devLog("\n🔨 BUILDING TRACE WITH:");
-    devLog("   User Message:", userMessage);
-    devLog("   Assistant Response:", assistantResponse.substring(0, 100));
-    devLog("   Function Calls:", functionCalls?.length || 0);
-
-    if (functionCalls && functionCalls.length > 0) {
-      devLog("\n   Function Call Details:");
-      functionCalls.forEach((fc, idx) => {
-        devLog(`   [${idx}]`, {
-          name: fc.name,
-          call_id: fc.call_id,
-          arguments: fc.arguments,
-          output: fc.output,
-        });
-      });
-    }
-
-    devLog("=".repeat(80));
-    console.groupEnd();
 
     // Deep clone to ensure no reference issues in modal
     const clonedFunctionCalls = functionCalls

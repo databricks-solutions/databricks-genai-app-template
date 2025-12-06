@@ -10,7 +10,7 @@
 }
 
 .texture-overlay::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -21,8 +21,20 @@
 
   /* Crosshatch grain pattern */
   background-image:
-    repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(27, 49, 57, 0.03) 2px, rgba(27, 49, 57, 0.03) 4px),
-    repeating-linear-gradient(-45deg, transparent, transparent 2px, rgba(27, 49, 57, 0.02) 2px, rgba(27, 49, 57, 0.02) 4px);
+    repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 2px,
+      rgba(27, 49, 57, 0.03) 2px,
+      rgba(27, 49, 57, 0.03) 4px
+    ),
+    repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 2px,
+      rgba(27, 49, 57, 0.02) 2px,
+      rgba(27, 49, 57, 0.02) 4px
+    );
 
   /* SVG noise filter for authentic grain */
   filter: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='turbulence' baseFrequency='0.9' numOctaves='4' /%3E%3C/filter%3E%3C/svg%3E#noiseFilter");
@@ -31,7 +43,18 @@
 /* Dark mode - lighter grain */
 .dark .texture-overlay::before {
   background-image:
-    repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(249, 247, 244, 0.02) 2px, rgba(249, 247, 244, 0.02) 4px),
-    repeating-linear-gradient(-45deg, transparent, transparent 2px, rgba(249, 247, 244, 0.015) 2px, rgba(249, 247, 244, 0.015) 4px);
+    repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 2px,
+      rgba(249, 247, 244, 0.02) 2px,
+      rgba(249, 247, 244, 0.02) 4px
+    ),
+    repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 2px,
+      rgba(249, 247, 244, 0.015) 2px,
+      rgba(249, 247, 244, 0.015) 4px
+    );
 }
-

@@ -1,43 +1,44 @@
-"use client"
+"use client";
 
-import React, { useState, useEffect } from 'react'
-import Image from 'next/image'
-import { ChevronDown, ExternalLink } from 'lucide-react'
-import { Tool } from '@/lib/types'
-import { SpatialNetworkBackground } from '@/components/background/SpatialNetworkBackground'
-import { useThemeContext } from '@/contexts/ThemeContext'
-import { useAgents } from '@/hooks/useAgents'
+import React, { useState, useEffect } from "react";
+import Image from "next/image";
+import { ChevronDown, ExternalLink } from "lucide-react";
+import { Tool } from "@/lib/types";
+import { SpatialNetworkBackground } from "@/components/background/SpatialNetworkBackground";
+import { useThemeContext } from "@/contexts/ThemeContext";
+import { useAgents } from "@/hooks/useAgents";
 
 export function ToolsView() {
-  const { colors, animatedBackground } = useThemeContext()
-  const { agents } = useAgents()
-  const [selectedAgentId, setSelectedAgentId] = useState<string>('')
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const { colors, animatedBackground } = useThemeContext();
+  const { agents } = useAgents();
+  const [selectedAgentId, setSelectedAgentId] = useState<string>("");
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   // Set default agent when agents are loaded
   useEffect(() => {
     if (agents.length > 0 && !selectedAgentId) {
-      setSelectedAgentId(agents[0].id)
+      setSelectedAgentId(agents[0].id);
     }
-  }, [agents, selectedAgentId])
+  }, [agents, selectedAgentId]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as HTMLElement
-      if (!target.closest('.agent-selector-container')) {
-        setIsDropdownOpen(false)
+      const target = event.target as HTMLElement;
+      if (!target.closest(".agent-selector-container")) {
+        setIsDropdownOpen(false);
       }
-    }
+    };
 
     if (isDropdownOpen) {
-      document.addEventListener('mousedown', handleClickOutside)
-      return () => document.removeEventListener('mousedown', handleClickOutside)
+      document.addEventListener("mousedown", handleClickOutside);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutside);
     }
-  }, [isDropdownOpen])
+  }, [isDropdownOpen]);
 
-  const selectedAgent = agents.find(a => a.id === selectedAgentId)
-  const tools = selectedAgent?.tools || []
+  const selectedAgent = agents.find((a) => a.id === selectedAgentId);
+  const tools = selectedAgent?.tools || [];
 
   return (
     <div className="relative w-full h-full bg-[var(--color-background-1)] dark:bg-[var(--color-background-1)]">
@@ -73,9 +74,11 @@ export function ToolsView() {
                   Agent:
                 </span>
                 <span className="text-base font-semibold text-[var(--color-text-primary)]">
-                  {selectedAgent?.display_name || 'Select Agent'}
+                  {selectedAgent?.display_name || "Select Agent"}
                 </span>
-                <ChevronDown className={`h-5 w-5 text-[var(--color-text-primary)] transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown
+                  className={`h-5 w-5 text-[var(--color-text-primary)] transition-transform ${isDropdownOpen ? "rotate-180" : ""}`}
+                />
               </button>
 
               {/* Dropdown Menu */}
@@ -85,11 +88,13 @@ export function ToolsView() {
                     <button
                       key={agent.id}
                       onClick={() => {
-                        setSelectedAgentId(agent.id)
-                        setIsDropdownOpen(false)
+                        setSelectedAgentId(agent.id);
+                        setIsDropdownOpen(false);
                       }}
                       className={`w-full text-left px-4 py-3 hover:bg-[var(--color-accent-primary)]/5 transition-colors ${
-                        selectedAgentId === agent.id ? 'bg-[var(--color-accent-primary)]/10' : ''
+                        selectedAgentId === agent.id
+                          ? "bg-[var(--color-accent-primary)]/10"
+                          : ""
                       }`}
                     >
                       <div className="font-semibold text-sm text-[var(--color-text-heading)]">
@@ -122,22 +127,23 @@ export function ToolsView() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 interface ToolCardProps {
-  tool: Tool
+  tool: Tool;
 }
 
 function ToolCard({ tool }: ToolCardProps) {
   // Use long_description if available, otherwise fall back to display_description
-  const description = tool.long_description || tool.display_description
+  const description = tool.long_description || tool.display_description;
 
   // Truncate description if too long (approximately 180 characters for ~4 lines)
-  const maxLength = 180
-  const truncatedDescription = description.length > maxLength
-    ? description.slice(0, maxLength).trim() + '...'
-    : description
+  const maxLength = 180;
+  const truncatedDescription =
+    description.length > maxLength
+      ? description.slice(0, maxLength).trim() + "..."
+      : description;
 
   return (
     <div className="bg-[var(--color-white)] dark:bg-[var(--color-primary-navy)] rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden group min-h-[320px] flex flex-col">
@@ -203,5 +209,5 @@ function ToolCard({ tool }: ToolCardProps) {
         </div>
       </div>
     </div>
-  )
+  );
 }

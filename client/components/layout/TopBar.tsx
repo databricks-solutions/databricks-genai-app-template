@@ -1,37 +1,41 @@
-"use client"
+"use client";
 
-import React, { useEffect, useState } from 'react'
-import Image from 'next/image'
-import { Edit, User } from 'lucide-react'
-import { useThemeContext } from '@/contexts/ThemeContext'
-import { getAppConfig, type AppBranding } from '@/lib/config'
+import React, { useEffect, useState } from "react";
+import Image from "next/image";
+import { Edit, User } from "lucide-react";
+import { useThemeContext } from "@/contexts/ThemeContext";
+import { getAppConfig, type AppBranding } from "@/lib/config";
 
 interface TopBarProps {
-  activeTab: 'chat' | 'dashboard' | 'tools' | 'about'
-  onTabChange: (tab: 'chat' | 'dashboard' | 'tools' | 'about') => void
-  onEditModeToggle: () => void
+  activeTab: "chat" | "dashboard" | "tools" | "about";
+  onTabChange: (tab: "chat" | "dashboard" | "tools" | "about") => void;
+  onEditModeToggle: () => void;
 }
 
-export function TopBar({ activeTab, onTabChange, onEditModeToggle }: TopBarProps) {
-  const { } = useThemeContext()
+export function TopBar({
+  activeTab,
+  onTabChange,
+  onEditModeToggle,
+}: TopBarProps) {
+  const {} = useThemeContext();
   const [branding, setBranding] = useState<AppBranding>({
-    tabTitle: 'AI Assistant',
-    appName: 'AI Assistant',
-    companyName: '',
-    description: '',
-    logoPath: '/logos/databricks-symbol-color.svg'
-  })
+    tabTitle: "AI Assistant",
+    appName: "AI Assistant",
+    companyName: "",
+    description: "",
+    logoPath: "/logos/databricks-symbol-color.svg",
+  });
 
   useEffect(() => {
-    getAppConfig().then(config => setBranding(config.branding))
-  }, [])
+    getAppConfig().then((config) => setBranding(config.branding));
+  }, []);
 
   const tabs = [
-    { id: 'dashboard' as const, label: 'Overview' },
-    { id: 'chat' as const, label: 'Chat' },
-    { id: 'tools' as const, label: 'Tools' },
-    { id: 'about' as const, label: 'About' }
-  ]
+    { id: "dashboard" as const, label: "Overview" },
+    { id: "chat" as const, label: "Chat" },
+    { id: "tools" as const, label: "Tools" },
+    { id: "about" as const, label: "About" },
+  ];
 
   return (
     <header className="sticky top-0 z-30 w-full h-[var(--header-height)] bg-[var(--color-background-2)] backdrop-blur-lg border-b border-[var(--color-border)]">
@@ -66,9 +70,10 @@ export function TopBar({ activeTab, onTabChange, onEditModeToggle }: TopBarProps
                 onClick={() => onTabChange(tab.id)}
                 className={`
                   relative px-4 py-2 text-sm font-medium transition-colors duration-300
-                  ${activeTab === tab.id
-                    ? 'text-[var(--color-foreground)]'
-                    : 'text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]'
+                  ${
+                    activeTab === tab.id
+                      ? "text-[var(--color-foreground)]"
+                      : "text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]"
                   }
                 `}
               >
@@ -77,7 +82,7 @@ export function TopBar({ activeTab, onTabChange, onEditModeToggle }: TopBarProps
                   <span
                     className="absolute bottom-1.5 left-4 right-4 h-0.5 bg-[var(--color-accent-primary)] rounded-full"
                     style={{
-                      animation: 'slideIn 0.3s ease-out'
+                      animation: "slideIn 0.3s ease-out",
                     }}
                   />
                 )}
@@ -87,25 +92,25 @@ export function TopBar({ activeTab, onTabChange, onEditModeToggle }: TopBarProps
 
           {/* Icons */}
           <div className="flex items-center gap-2">
-          {/* Edit Mode Toggle */}
-          <button
-            onClick={onEditModeToggle}
-            className="group h-9 w-9 rounded-full hover:bg-[var(--color-icon-hover)]/10 transition-all duration-200 flex items-center justify-center"
-            title="Customize theme"
-          >
-            <Edit className="h-4 w-4 text-[var(--color-icon-inactive)] group-hover:text-[var(--color-icon-active)] transition-colors" />
-          </button>
+            {/* Edit Mode Toggle */}
+            <button
+              onClick={onEditModeToggle}
+              className="group h-9 w-9 rounded-full hover:bg-[var(--color-icon-hover)]/10 transition-all duration-200 flex items-center justify-center"
+              title="Customize theme"
+            >
+              <Edit className="h-4 w-4 text-[var(--color-icon-inactive)] group-hover:text-[var(--color-icon-active)] transition-colors" />
+            </button>
 
-          {/* User Avatar */}
-          <button
-            className="group h-9 w-9 rounded-full hover:bg-[var(--color-icon-hover)]/10 transition-all duration-200 flex items-center justify-center"
-            title="User profile"
-          >
-            <User className="h-4 w-4 text-[var(--color-icon-inactive)] group-hover:text-[var(--color-icon-active)] transition-colors" />
-          </button>
+            {/* User Avatar */}
+            <button
+              className="group h-9 w-9 rounded-full hover:bg-[var(--color-icon-hover)]/10 transition-all duration-200 flex items-center justify-center"
+              title="User profile"
+            >
+              <User className="h-4 w-4 text-[var(--color-icon-inactive)] group-hover:text-[var(--color-icon-active)] transition-colors" />
+            </button>
           </div>
         </div>
       </div>
     </header>
-  )
+  );
 }

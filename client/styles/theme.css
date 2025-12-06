@@ -2,43 +2,45 @@
 
 :root {
   /* Core Colors - Placeholder defaults (overridden by ThemeContext) */
-  --color-primary: #003D82;
-  --color-primary-hover: #1E5B9E;
-  --color-primary-active: #002A5C;
-  --color-secondary: #D4E7F4;
-  --color-secondary-hover: #C0DBF0;
-  --color-secondary-active: #A8CBDE;
-  --color-background: #F0F7FC;
-  --color-foreground: #001B3D;
-  --color-accent: #003D82;
-  --color-accent-hover: #4A90E2;
-  --color-muted: #D4E7F4;
-  --color-muted-foreground: #5B8DB8;
+  --color-primary: #003d82;
+  --color-primary-hover: #1e5b9e;
+  --color-primary-active: #002a5c;
+  --color-secondary: #d4e7f4;
+  --color-secondary-hover: #c0dbf0;
+  --color-secondary-active: #a8cbde;
+  --color-background: #f0f7fc;
+  --color-foreground: #001b3d;
+  --color-accent: #003d82;
+  --color-accent-hover: #4a90e2;
+  --color-muted: #d4e7f4;
+  --color-muted-foreground: #5b8db8;
   --color-border: rgba(168, 203, 222, 0.7);
-  --color-input: #F0F7FC;
-  --color-ring: #003D82;
+  --color-input: #f0f7fc;
+  --color-ring: #003d82;
 
   /* Status Colors - Placeholder defaults (overridden by ThemeContext) */
-  --color-success: #0B7F5B;
-  --color-success-background: #D1FAE5;
-  --color-warning: #D97706;
-  --color-warning-background: #FEF3C7;
-  --color-error: #C81E1E;
-  --color-error-background: #FEE2E2;
-  --color-info: #1E5B9E;
-  --color-info-background: #DBEAFE;
+  --color-success: #0b7f5b;
+  --color-success-background: #d1fae5;
+  --color-warning: #d97706;
+  --color-warning-background: #fef3c7;
+  --color-error: #c81e1e;
+  --color-error-background: #fee2e2;
+  --color-info: #1e5b9e;
+  --color-info-background: #dbeafe;
 
   /* Chat Colors - Placeholder defaults (overridden by ThemeContext) */
-  --color-chat-user: #003D82;
-  --color-chat-user-text: #FFFFFF;
-  --color-chat-assistant: #E8F4FB;
-  --color-chat-assistant-text: #0A3D62;
-  --color-chat-timestamp: #5B8DB8;
+  --color-chat-user: #003d82;
+  --color-chat-user-text: #ffffff;
+  --color-chat-assistant: #e8f4fb;
+  --color-chat-assistant-text: #0a3d62;
+  --color-chat-timestamp: #5b8db8;
 
   /* Typography - Placeholder defaults (overridden by ThemeContext) */
-  --font-family: "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-family-accent: "Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-family-mono: 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
+  --font-family:
+    "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-family-accent:
+    "Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-family-mono: "SF Mono", "Monaco", "Cascadia Code", monospace;
   --font-size-base: 16px;
   --font-size-sm: 14px;
   --font-size-xs: 12px;
@@ -54,7 +56,7 @@
   --line-height-base: 1.6;
   --line-height-relaxed: 1.7;
   --letter-spacing: -0.01em;
-  
+
   /* Spacing - Used by components (not overridden) */
   --spacing-unit: 0.25rem;
   --spacing-xs: calc(var(--spacing-unit) * 1); /* 4px */
@@ -73,13 +75,16 @@
   --border-radius-xl: 24px;
   --border-radius-full: 9999px;
   --border-width: 1px;
-  
+
   /* Shadows - Used by components (not overridden) */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --shadow-md:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   --shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
 
@@ -108,44 +113,47 @@
 
 /* Dark mode overrides - Placeholder defaults (overridden by ThemeContext) */
 [data-theme="dark"] {
-  --color-primary: #E0E7FF;
-  --color-primary-hover: #C7D2FE;
-  --color-primary-active: #FFFFFF;
-  --color-secondary: #1E293B;
+  --color-primary: #e0e7ff;
+  --color-primary-hover: #c7d2fe;
+  --color-primary-active: #ffffff;
+  --color-secondary: #1e293b;
   --color-secondary-hover: #334155;
-  --color-secondary-active: #0F172A;
+  --color-secondary-active: #0f172a;
   --color-background: #020617;
-  --color-foreground: #F1F5F9;
-  --color-accent: #3B82F6;
-  --color-accent-hover: #8B5CF6;
-  --color-muted: #1E293B;
-  --color-muted-foreground: #94A3B8;
+  --color-foreground: #f1f5f9;
+  --color-accent: #3b82f6;
+  --color-accent-hover: #8b5cf6;
+  --color-muted: #1e293b;
+  --color-muted-foreground: #94a3b8;
   --color-border: rgba(148, 163, 184, 0.2);
-  --color-input: #1E293B;
-  --color-ring: #3B82F6;
+  --color-input: #1e293b;
+  --color-ring: #3b82f6;
 
   /* Status Colors - Placeholder defaults (overridden by ThemeContext) */
-  --color-success: #10B981;
-  --color-success-background: #064E3B;
-  --color-warning: #F59E0B;
-  --color-warning-background: #78350F;
-  --color-error: #EF4444;
-  --color-error-background: #7F1D1D;
-  --color-info: #3B82F6;
-  --color-info-background: #1E3A8A;
+  --color-success: #10b981;
+  --color-success-background: #064e3b;
+  --color-warning: #f59e0b;
+  --color-warning-background: #78350f;
+  --color-error: #ef4444;
+  --color-error-background: #7f1d1d;
+  --color-info: #3b82f6;
+  --color-info-background: #1e3a8a;
 
   /* Chat Colors - Placeholder defaults (overridden by ThemeContext) */
-  --color-chat-user: #3B82F6;
-  --color-chat-user-text: #FFFFFF;
-  --color-chat-assistant: #1E293B;
-  --color-chat-assistant-text: #E0E7FF;
+  --color-chat-user: #3b82f6;
+  --color-chat-user-text: #ffffff;
+  --color-chat-assistant: #1e293b;
+  --color-chat-assistant-text: #e0e7ff;
 
   /* Shadows - Dark mode adjustments (used by components) */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
   --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.4), 0 1px 2px 0 rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.6), 0 10px 10px -5px rgba(0, 0, 0, 0.4);
+  --shadow-md:
+    0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+  --shadow-lg:
+    0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+  --shadow-xl:
+    0 20px 25px -5px rgba(0, 0, 0, 0.6), 0 10px 10px -5px rgba(0, 0, 0, 0.4);
   --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
 }
 
@@ -236,4 +244,3 @@
   background-color: var(--color-accent);
   color: white;
 }
-

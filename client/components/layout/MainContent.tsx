@@ -1,25 +1,33 @@
-"use client"
+"use client";
 
-import React from 'react'
-import { ChatView } from '@/components/chat/ChatView'
-import { DashboardView } from '@/components/dashboard/DashboardView'
-import { ToolsView } from '@/components/tools/ToolsView'
-import { AboutView } from '@/components/about/AboutView'
-import { SpatialNetworkBackground } from '@/components/background/SpatialNetworkBackground'
-import { useThemeContext } from '@/contexts/ThemeContext'
+import React from "react";
+import { ChatView } from "@/components/chat/ChatView";
+import { DashboardView } from "@/components/dashboard/DashboardView";
+import { ToolsView } from "@/components/tools/ToolsView";
+import { AboutView } from "@/components/about/AboutView";
+import { SpatialNetworkBackground } from "@/components/background/SpatialNetworkBackground";
+import { useThemeContext } from "@/contexts/ThemeContext";
 
 interface MainContentProps {
-  activeTab: 'chat' | 'dashboard' | 'tools' | 'about'
-  currentChatId?: string
-  onChatIdChange?: (chatId: string) => void
-  selectedAgentId?: string
-  onAgentChange?: (agentId: string) => void
-  initialChatMessage?: string
-  onStreamingChange?: (isStreaming: boolean) => void
+  activeTab: "chat" | "dashboard" | "tools" | "about";
+  currentChatId?: string;
+  onChatIdChange?: (chatId: string) => void;
+  selectedAgentId?: string;
+  onAgentChange?: (agentId: string) => void;
+  initialChatMessage?: string;
+  onStreamingChange?: (isStreaming: boolean) => void;
 }
 
-export function MainContent({ activeTab, currentChatId, onChatIdChange, selectedAgentId, onAgentChange, initialChatMessage, onStreamingChange }: MainContentProps) {
-  const { colors, animatedBackground } = useThemeContext()
+export function MainContent({
+  activeTab,
+  currentChatId,
+  onChatIdChange,
+  selectedAgentId,
+  onAgentChange,
+  initialChatMessage,
+  onStreamingChange,
+}: MainContentProps) {
+  const { colors, animatedBackground } = useThemeContext();
 
   return (
     <main className="flex-1 flex flex-col h-full relative bg-[var(--color-background-1)] overflow-hidden">
@@ -41,7 +49,9 @@ export function MainContent({ activeTab, currentChatId, onChatIdChange, selected
       {/* Main Content - positioned above background */}
       <div className="relative flex-1 flex flex-col min-h-0">
         {/* Keep ChatView mounted but hide when not active to preserve state */}
-        <div className={`flex-1 flex flex-col min-h-0 ${activeTab === 'chat' ? '' : 'hidden'}`}>
+        <div
+          className={`flex-1 flex flex-col min-h-0 ${activeTab === "chat" ? "" : "hidden"}`}
+        >
           <ChatView
             chatId={currentChatId}
             onChatIdChange={onChatIdChange}
@@ -51,10 +61,10 @@ export function MainContent({ activeTab, currentChatId, onChatIdChange, selected
             onStreamingChange={onStreamingChange}
           />
         </div>
-        {activeTab === 'dashboard' && <DashboardView />}
-        {activeTab === 'tools' && <ToolsView />}
-        {activeTab === 'about' && <AboutView />}
+        {activeTab === "dashboard" && <DashboardView />}
+        {activeTab === "tools" && <ToolsView />}
+        {activeTab === "about" && <AboutView />}
       </div>
     </main>
-  )
+  );
 }
