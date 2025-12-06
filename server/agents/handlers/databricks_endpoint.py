@@ -99,6 +99,17 @@ class DatabricksEndpointHandler(BaseDeploymentHandler):
     Yields:
       Server-Sent Events (SSE) formatted strings with JSON data
     """
+    # Generate unique client request ID for trace linking
+    # This allows us to map frontend requests to MLflow traces for feedback
+    import uuid
+
+    client_request_id = f'req-{uuid.uuid4().hex[:16]}'
+    logger.info(f'Generated client_request_id: {client_request_id}')
+
+    # Emit client_request_id as first event for frontend to capture
+    trace_event = {'type': 'trace.client_request_id', 'client_request_id': client_request_id}
+    yield f'data: {json.dumps(trace_event)}\n\n'
+
     # Get Databricks credentials
     host, token = get_databricks_credentials()
 
@@ -114,6 +125,9 @@ class DatabricksEndpointHandler(BaseDeploymentHandler):
     }
 
     logger.info(f'Calling Databricks endpoint (streaming): {self.endpoint_name}')
+
+    # Track whether we've tagged the MLflow trace yet
+    mlflow_trace_tagged = False
 
     # Use async httpx client for proper async streaming
     async with httpx.AsyncClient(timeout=300.0) as client:
@@ -151,6 +165,19 @@ class DatabricksEndpointHandler(BaseDeploymentHandler):
             # Extract trace ID if available for logging
             if event.get('id'):
               logger.debug(f'Trace ID in stream: {event["id"]}')
+
+              # Tag MLflow trace with client_request_id (once per stream)
+              if not mlflow_trace_tagged:
+                try:
+                  import mlflow
+
+                  mlflow.update_current_trace(client_request_id=client_request_id)
+                  logger.info(f'Tagged MLflow trace with client_request_id: {client_request_id}')
+                  mlflow_trace_tagged = True
+                except Exception as e:
+                  logger.warning(f'Failed to tag MLflow trace: {e}')
+                  # Don't fail the stream if tagging fails
+                  mlflow_trace_tagged = True  # Don't retry
 
             # Forward the event to the client
             yield f'data: {json_str}\n\n'

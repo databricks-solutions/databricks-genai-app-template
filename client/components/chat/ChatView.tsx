@@ -433,7 +433,16 @@ export function ChatView({
                 }
               }
 
-              // Handle trace ID
+              // Handle client_request_id from backend (for MLflow trace linking)
+              if (event.type === "trace.client_request_id") {
+                traceId = event.client_request_id;
+                devLog(
+                  "📋 Received client_request_id for trace:",
+                  traceId,
+                );
+              }
+
+              // Handle trace ID (legacy - keeping for backward compatibility)
               if (event.id && !traceId) {
                 traceId = event.id;
               }
