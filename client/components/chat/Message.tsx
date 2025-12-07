@@ -18,10 +18,7 @@ import { formatDistanceToNow } from "date-fns";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import {
-  oneDark,
-  oneLight,
-} from "react-syntax-highlighter/dist/cjs/styles/prism";
+import { oneDark } from "react-syntax-highlighter/dist/cjs/styles/prism";
 import { Button } from "@/components/ui/button";
 import { useThemeContext } from "@/contexts/ThemeContext";
 
@@ -34,7 +31,6 @@ interface MessageProps {
 // Internal CodeBlock helper - renders syntax-highlighted code with copy button (not exported)
 function CodeBlock({ language, value }: { language: string; value: string }) {
   const [copied, setCopied] = React.useState(false);
-  const { theme } = useThemeContext();
 
   const handleCopy = () => {
     navigator.clipboard.writeText(value);
@@ -65,17 +61,14 @@ function CodeBlock({ language, value }: { language: string; value: string }) {
       </div>
       <SyntaxHighlighter
         language={language || "text"}
-        style={theme === "dark" ? oneDark : oneLight}
+        style={oneDark}
         customStyle={{
           margin: 0,
           borderRadius: "0.75rem",
           fontSize: "0.875rem",
           lineHeight: "1.6",
           padding: "1rem",
-          background:
-            theme === "dark"
-              ? "rgba(15, 23, 42, 0.8)"
-              : "rgba(241, 245, 249, 0.8)",
+          background: "rgba(15, 23, 42, 0.8)",
         }}
         showLineNumbers={value.split("\n").length > 3}
         wrapLines={true}

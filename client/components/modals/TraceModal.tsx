@@ -24,7 +24,7 @@ interface FunctionCall {
   call_id: string;
   name: string;
   arguments: any;
-  output: any;
+  output?: any;
 }
 
 interface TraceModalProps {
