@@ -58,7 +58,7 @@ uv run python scripts/generate_server_requirements.py
 
 # Build Next.js frontend
 echo "🎨 Building Next.js frontend..."
-cd client && BROWSER=none npm run build && cd ..
+(cd client && BROWSER=none npm run build)
 
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"

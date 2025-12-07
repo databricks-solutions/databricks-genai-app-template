@@ -217,7 +217,7 @@ export function ChatView({
     let traceId = "";
     let traceSummary: TraceSummary | null = null;
     // Track function calls locally during streaming (not state - state updates are async!)
-    let collectedFunctionCalls: Array<{
+    const collectedFunctionCalls: Array<{
       call_id: string;
       name: string;
       arguments?: any;
