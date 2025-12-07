@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import Image from "next/image";
+import { toast } from "sonner";
 import { useAgents } from "@/hooks/useAgents";
 
 interface Chat {
@@ -147,6 +148,7 @@ export function Sidebar({
       setChats(chats);
     } catch (error) {
       console.error("Failed to fetch chat history:", error);
+      toast.error("Failed to load chat history");
     }
   };
 
@@ -161,6 +163,7 @@ export function Sidebar({
       }
     } catch (error) {
       console.error("Failed to delete chat:", error);
+      toast.error("Failed to delete chat");
     }
   };
 
@@ -190,6 +193,7 @@ export function Sidebar({
       setEditingChat(null);
     } catch (error) {
       console.error("Failed to rename chat:", error);
+      toast.error("Failed to rename chat");
     }
   };
 

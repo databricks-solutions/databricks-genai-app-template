@@ -1,61 +1,31 @@
-/* Default Theme Variables - Placeholder values overridden by ThemeContext at runtime */
+/**
+ * DESIGN TOKENS - Static values not affected by theme changes
+ *
+ * This file contains:
+ * - Spacing, borders, shadows (design system constants)
+ * - Z-indexes, transitions, layout dimensions
+ * - Keyframe animations
+ *
+ * COLOR VARIABLES are set by ThemeContext at runtime from lib/themes.ts
+ * The minimal color fallbacks below are only used during initial load.
+ */
 
 :root {
-  /* Core Colors - Placeholder defaults (overridden by ThemeContext) */
-  --color-primary: #003d82;
-  --color-primary-hover: #1e5b9e;
-  --color-primary-active: #002a5c;
-  --color-secondary: #d4e7f4;
-  --color-secondary-hover: #c0dbf0;
-  --color-secondary-active: #a8cbde;
-  --color-background: #f0f7fc;
-  --color-foreground: #001b3d;
-  --color-accent: #003d82;
-  --color-accent-hover: #4a90e2;
-  --color-muted: #d4e7f4;
-  --color-muted-foreground: #5b8db8;
-  --color-border: rgba(168, 203, 222, 0.7);
-  --color-input: #f0f7fc;
-  --color-ring: #003d82;
+  /* Minimal color fallbacks - match themes.ts default-dark (isDefault: true) */
+  /* These are overridden immediately by ThemeContext on app load */
+  --color-text-heading: #ffffff;
+  --color-text-primary: #e5e5e5;
+  --color-text-muted: #b3b3b3;
+  --color-accent-primary: #4c809a;
+  --color-bg-primary: #141414;
+  --color-bg-secondary: #111922;
+  --color-border: #333333;
 
-  /* Status Colors - Placeholder defaults (overridden by ThemeContext) */
-  --color-success: #0b7f5b;
-  --color-success-background: #d1fae5;
-  --color-warning: #d97706;
-  --color-warning-background: #fef3c7;
-  --color-error: #c81e1e;
-  --color-error-background: #fee2e2;
-  --color-info: #1e5b9e;
-  --color-info-background: #dbeafe;
-
-  /* Chat Colors - Placeholder defaults (overridden by ThemeContext) */
-  --color-chat-user: #003d82;
-  --color-chat-user-text: #ffffff;
-  --color-chat-assistant: #e8f4fb;
-  --color-chat-assistant-text: #0a3d62;
-  --color-chat-timestamp: #5b8db8;
-
-  /* Typography - Placeholder defaults (overridden by ThemeContext) */
-  --font-family:
-    "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-family-accent:
-    "Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-family-mono: "SF Mono", "Monaco", "Cascadia Code", monospace;
-  --font-size-base: 16px;
-  --font-size-sm: 14px;
-  --font-size-xs: 12px;
-  --font-size-lg: 18px;
-  --font-size-xl: 20px;
-  --font-size-2xl: 24px;
-  --font-size-3xl: 30px;
-  --font-size-4xl: 36px;
-  --font-weight-normal: 400;
-  --font-weight-medium: 500;
-  --font-weight-semibold: 600;
-  --font-weight-bold: 700;
-  --line-height-base: 1.6;
-  --line-height-relaxed: 1.7;
-  --letter-spacing: -0.01em;
+  /* Status colors - semantic meaning */
+  --color-success: #46d369;
+  --color-error: #e50914;
+  --color-info: #64b5f6;
+  --color-warning: #f5a623;
 
   /* Spacing - Used by components (not overridden) */
   --spacing-unit: 0.25rem;
@@ -111,53 +81,7 @@
   --animation-scale-in: scaleIn 0.3s ease-out;
 }
 
-/* Dark mode overrides - Placeholder defaults (overridden by ThemeContext) */
-[data-theme="dark"] {
-  --color-primary: #e0e7ff;
-  --color-primary-hover: #c7d2fe;
-  --color-primary-active: #ffffff;
-  --color-secondary: #1e293b;
-  --color-secondary-hover: #334155;
-  --color-secondary-active: #0f172a;
-  --color-background: #020617;
-  --color-foreground: #f1f5f9;
-  --color-accent: #3b82f6;
-  --color-accent-hover: #8b5cf6;
-  --color-muted: #1e293b;
-  --color-muted-foreground: #94a3b8;
-  --color-border: rgba(148, 163, 184, 0.2);
-  --color-input: #1e293b;
-  --color-ring: #3b82f6;
-
-  /* Status Colors - Placeholder defaults (overridden by ThemeContext) */
-  --color-success: #10b981;
-  --color-success-background: #064e3b;
-  --color-warning: #f59e0b;
-  --color-warning-background: #78350f;
-  --color-error: #ef4444;
-  --color-error-background: #7f1d1d;
-  --color-info: #3b82f6;
-  --color-info-background: #1e3a8a;
-
-  /* Chat Colors - Placeholder defaults (overridden by ThemeContext) */
-  --color-chat-user: #3b82f6;
-  --color-chat-user-text: #ffffff;
-  --color-chat-assistant: #1e293b;
-  --color-chat-assistant-text: #e0e7ff;
-
-  /* Shadows - Dark mode adjustments (used by components) */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
-  --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.4), 0 1px 2px 0 rgba(0, 0, 0, 0.3);
-  --shadow-md:
-    0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
-  --shadow-lg:
-    0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
-  --shadow-xl:
-    0 20px 25px -5px rgba(0, 0, 0, 0.6), 0 10px 10px -5px rgba(0, 0, 0, 0.4);
-  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
-}
-
-/* Animations */
+/* Keyframe Animations */
 @keyframes slideIn {
   from {
     transform: translateX(-100%);
@@ -189,34 +113,7 @@
   }
 }
 
-/* Custom scrollbar styling */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: var(--color-muted-foreground) transparent;
-}
-
-*::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-*::-webkit-scrollbar-track {
-  background: transparent;
-  border-radius: var(--border-radius);
-}
-
-*::-webkit-scrollbar-thumb {
-  background-color: var(--color-muted-foreground);
-  border-radius: var(--border-radius);
-  border: 2px solid transparent;
-  background-clip: content-box;
-}
-
-*::-webkit-scrollbar-thumb:hover {
-  background-color: var(--color-foreground);
-}
-
-/* Utility classes */
+/* Utility Classes */
 .transition-base {
   transition: all var(--transition-base);
 }

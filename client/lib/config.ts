@@ -26,7 +26,7 @@ export interface AppConfig {
   dashboard: DashboardConfig;
 }
 
-// In-memory cache to avoid repeated API calls
+// Singleton cache - persists for entire app lifetime to avoid repeated API calls
 let cachedAppConfig: AppConfig | null = null;
 let configLoadingPromise: Promise<AppConfig> | null = null;
 
@@ -130,16 +130,3 @@ export function isRunningInDatabricksApps(): boolean {
   }
   return !isRunningLocally();
 }
-
-// Legacy export for backward compatibility
-// NOTE: This is now async and must be awaited!
-export const appConfig = {
-  async branding() {
-    const config = await getAppConfig();
-    return config.branding;
-  },
-  async dashboard() {
-    const config = await getAppConfig();
-    return config.dashboard;
-  },
-};

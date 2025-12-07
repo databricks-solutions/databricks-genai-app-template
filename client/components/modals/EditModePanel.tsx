@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useThemeContext } from "@/contexts/ThemeContext";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import { PREDEFINED_THEMES } from "@/lib/themes";
 
 // Dev-only logger
@@ -184,7 +185,7 @@ export function EditModePanel({ isOpen, onClose }: EditModePanelProps) {
       setThemeName("");
       setThemeDescription("");
       // Show success feedback
-      alert("Theme saved successfully!");
+      toast.success("Theme saved successfully!");
     }
   };
 

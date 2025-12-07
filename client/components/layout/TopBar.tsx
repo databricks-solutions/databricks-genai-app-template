@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { Edit, User } from "lucide-react";
-import { useThemeContext } from "@/contexts/ThemeContext";
 import { getAppConfig, type AppBranding } from "@/lib/config";
 
 interface TopBarProps {
@@ -17,7 +16,6 @@ export function TopBar({
   onTabChange,
   onEditModeToggle,
 }: TopBarProps) {
-  const {} = useThemeContext();
   const [branding, setBranding] = useState<AppBranding>({
     tabTitle: "AI Assistant",
     appName: "AI Assistant",

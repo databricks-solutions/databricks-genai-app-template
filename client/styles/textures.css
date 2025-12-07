@@ -1,8 +1,9 @@
 /**
- * Texture Overlay
+ * Subtle Grain Texture Overlay
  *
- * Subtle grain texture applied to body element for visual warmth.
- * Creates a barely visible (2.5% opacity) film grain effect.
+ * Applied to <body> via .texture-overlay class (see app/layout.tsx)
+ * Creates a barely visible film grain effect for visual warmth.
+ * Theme-agnostic - uses blend mode instead of hardcoded colors.
  */
 
 .texture-overlay {
@@ -12,49 +13,14 @@
 .texture-overlay::before {
   content: "";
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0.025; /* Very subtle - 2.5% visible */
-  pointer-events: none; /* Doesn't block interactions */
+  inset: 0;
+  opacity: 0.03;
+  pointer-events: none;
 
-  /* Crosshatch grain pattern */
-  background-image:
-    repeating-linear-gradient(
-      45deg,
-      transparent,
-      transparent 2px,
-      rgba(27, 49, 57, 0.03) 2px,
-      rgba(27, 49, 57, 0.03) 4px
-    ),
-    repeating-linear-gradient(
-      -45deg,
-      transparent,
-      transparent 2px,
-      rgba(27, 49, 57, 0.02) 2px,
-      rgba(27, 49, 57, 0.02) 4px
-    );
+  /* Pure SVG noise - theme-agnostic */
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
 
-  /* SVG noise filter for authentic grain */
-  filter: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='turbulence' baseFrequency='0.9' numOctaves='4' /%3E%3C/filter%3E%3C/svg%3E#noiseFilter");
-}
-
-/* Dark mode - lighter grain */
-.dark .texture-overlay::before {
-  background-image:
-    repeating-linear-gradient(
-      45deg,
-      transparent,
-      transparent 2px,
-      rgba(249, 247, 244, 0.02) 2px,
-      rgba(249, 247, 244, 0.02) 4px
-    ),
-    repeating-linear-gradient(
-      -45deg,
-      transparent,
-      transparent 2px,
-      rgba(249, 247, 244, 0.015) 2px,
-      rgba(249, 247, 244, 0.015) 4px
-    );
+  /* Blend with theme colors automatically */
+  mix-blend-mode: overlay;
+  background-size: 200px 200px; /* Tile for better performance */
 }

@@ -31,7 +31,7 @@ interface MessageProps {
   onViewTrace: (messageId: string) => void;
 }
 
-// Code block component with copy functionality
+// Internal CodeBlock helper - renders syntax-highlighted code with copy button (not exported)
 function CodeBlock({ language, value }: { language: string; value: string }) {
   const [copied, setCopied] = React.useState(false);
   const { theme } = useThemeContext();
