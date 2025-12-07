@@ -201,17 +201,17 @@ export function Sidebar({
     <>
       {/* Header */}
       <div
-        className={`${isCollapsed ? "p-2" : "p-4"} border-b border-[var(--color-primary-navy)]/10 dark:border-[var(--color-white)]/5 backdrop-blur-sm transition-all duration-300`}
+        className={`${isCollapsed ? "p-2" : "p-4"} border-b border-[var(--color-primary-navy)]/10 backdrop-blur-sm transition-all duration-300`}
       >
         <button
           onClick={onNewChat}
-          className={`flex items-center w-full hover:bg-[var(--color-primary-navy)]/[0.06] dark:hover:bg-[var(--color-primary-navy)]/40 rounded-xl transition-all duration-300 group ${isCollapsed ? "p-2 justify-center" : "p-3 gap-3"}`}
+          className={`flex items-center w-full hover:bg-[var(--color-primary-navy)]/[0.06] rounded-xl transition-all duration-300 group ${isCollapsed ? "p-2 justify-center" : "p-3 gap-3"}`}
         >
-          <div className="flex items-center justify-center rounded-xl bg-gradient-to-br from-[var(--color-primary-navy)] via-[var(--color-primary-navy)]/80 to-[var(--color-primary-navy)] dark:from-[var(--color-primary-navy)]/80 dark:via-[var(--color-primary-navy)]/60 dark:to-[var(--color-primary-navy)]/80 text-[var(--color-white)] transition-all duration-300 shadow-md group-hover:shadow-xl group-hover:scale-105 h-10 w-10 flex-shrink-0">
+          <div className="flex items-center justify-center rounded-xl bg-gradient-to-br from-[var(--color-primary-navy)] via-[var(--color-primary-navy)]/80 to-[var(--color-primary-navy)] text-[var(--color-white)] transition-all duration-300 shadow-md group-hover:shadow-xl group-hover:scale-105 h-10 w-10 flex-shrink-0">
             <Plus className="h-5 w-5" strokeWidth={2.5} />
           </div>
           {!isCollapsed && (
-            <span className="text-[var(--color-primary-navy)] dark:text-[var(--color-white)] font-semibold text-[15px] transition-opacity duration-300">
+            <span className="text-[var(--color-primary-navy)] font-semibold text-[15px] transition-opacity duration-300">
               New Chat
             </span>
           )}
@@ -222,7 +222,7 @@ export function Sidebar({
       {!isCollapsed && (
         <div className="flex-1 overflow-y-auto overflow-x-hidden p-3">
           {chats.length === 0 ? (
-            <div className="text-center py-12 text-[var(--color-primary-navy)]/50 dark:text-[var(--color-white)]/40">
+            <div className="text-center py-12 text-[var(--color-primary-navy)]/50">
               <MessageSquare className="h-12 w-12 mx-auto mb-3 opacity-40" />
               <p className="text-sm font-medium">No chat history yet</p>
               <p className="text-xs mt-1 opacity-70">
@@ -241,8 +241,8 @@ export function Sidebar({
                     group relative p-3.5 rounded-xl cursor-pointer transition-all duration-200
                     ${
                       currentChatId === chat.id
-                        ? "bg-gradient-to-br from-[var(--color-primary-navy)] via-[var(--color-primary-navy)]/90 to-[var(--color-primary-navy)] dark:from-[var(--color-primary-navy)]/80 dark:via-[var(--color-primary-navy)]/60 dark:to-[var(--color-primary-navy)]/80 text-[var(--color-white)] shadow-md border border-[var(--color-primary-navy)]/10"
-                        : "bg-[var(--color-white)]/40 dark:bg-[var(--color-primary-navy)]/10 hover:bg-[var(--color-white)]/70 dark:hover:bg-[var(--color-primary-navy)]/25 text-[var(--color-foreground)] border border-transparent hover:border-[var(--color-primary-navy)]/15 dark:hover:border-[var(--color-white)]/10 hover:shadow-sm"
+                        ? "bg-gradient-to-br from-[var(--color-primary-navy)] via-[var(--color-primary-navy)]/90 to-[var(--color-primary-navy)] text-[var(--color-white)] shadow-md border border-[var(--color-primary-navy)]/10"
+                        : "bg-[var(--color-white)]/40 hover:bg-[var(--color-white)]/70 text-[var(--color-foreground)] border border-transparent hover:border-[var(--color-primary-navy)]/15 hover:shadow-sm"
                     }
                   `}
                 >
@@ -266,7 +266,7 @@ export function Sidebar({
                         className={`font-semibold text-sm truncate pr-12 leading-tight ${
                           currentChatId === chat.id
                             ? "text-[var(--color-white)]"
-                            : "text-[var(--color-primary-navy)] dark:text-[var(--color-white)]"
+                            : "text-[var(--color-primary-navy)]"
                         }`}
                       >
                         {chat.title}
@@ -275,7 +275,7 @@ export function Sidebar({
                         className={`text-xs mt-2 truncate leading-relaxed ${
                           currentChatId === chat.id
                             ? "text-[var(--color-white)]/85"
-                            : "text-[var(--color-primary-navy)]/60 dark:text-[var(--color-white)]/60"
+                            : "text-[var(--color-primary-navy)]/60"
                         }`}
                       >
                         {chat.preview}
@@ -284,7 +284,7 @@ export function Sidebar({
                         className={`text-[11px] mt-1.5 ${
                           currentChatId === chat.id
                             ? "text-[var(--color-white)]/70"
-                            : "text-[var(--color-primary-navy)]/50 dark:text-[var(--color-white)]/50"
+                            : "text-[var(--color-primary-navy)]/50"
                         }`}
                       >
                         {formatDistanceToNow(chat.timestamp, {
@@ -307,7 +307,7 @@ export function Sidebar({
                             className={`h-3.5 w-3.5 transition-colors ${
                               currentChatId === chat.id
                                 ? "text-[var(--color-white)]/70 hover:text-[var(--color-white)]"
-                                : "text-[var(--color-primary-navy)]/60 dark:text-[var(--color-white)]/60 hover:text-[var(--color-primary-navy)] dark:hover:text-[var(--color-white)]"
+                                : "text-[var(--color-primary-navy)]/60 hover:text-[var(--color-primary-navy)]"
                             }`}
                           />
                         </button>
@@ -320,7 +320,7 @@ export function Sidebar({
                             className={`h-3.5 w-3.5 transition-colors ${
                               currentChatId === chat.id
                                 ? "text-[var(--color-white)]/70 hover:text-[var(--color-white)]"
-                                : "text-[var(--color-primary-navy)]/60 dark:text-[var(--color-white)]/60 hover:text-[var(--color-error)]"
+                                : "text-[var(--color-primary-navy)]/60 hover:text-[var(--color-error)]"
                             }`}
                           />
                         </button>
@@ -335,7 +335,7 @@ export function Sidebar({
 
       {/* Tools Section at Bottom */}
       <div
-        className={`mt-auto border-t border-[var(--color-primary-navy)]/10 dark:border-[var(--color-white)]/5 backdrop-blur-sm overflow-visible ${isCollapsed ? "p-2" : "p-3"}`}
+        className={`mt-auto border-t border-[var(--color-primary-navy)]/10 backdrop-blur-sm overflow-visible ${isCollapsed ? "p-2" : "p-3"}`}
       >
         {!isCollapsed ? (
           <div className="space-y-2">
@@ -343,16 +343,16 @@ export function Sidebar({
             <div className="relative tools-dropdown-container">
               <button
                 onClick={() => setIsToolsOpen(!isToolsOpen)}
-                className="flex items-center justify-between w-full p-2.5 rounded-xl hover:bg-[var(--color-primary-navy)]/[0.06] dark:hover:bg-[var(--color-primary-navy)]/40 transition-all duration-200 group border border-transparent hover:border-[var(--color-primary-navy)]/10 dark:hover:border-[var(--color-white)]/10"
+                className="flex items-center justify-between w-full p-2.5 rounded-xl hover:bg-[var(--color-primary-navy)]/[0.06] transition-all duration-200 group border border-transparent hover:border-[var(--color-primary-navy)]/10"
               >
                 <div className="flex items-center gap-2.5">
-                  <Settings className="h-4 w-4 text-[var(--color-primary-navy)]/60 dark:text-[var(--color-white)]/60 group-hover:text-[var(--color-primary-navy)] dark:group-hover:text-[var(--color-white)] transition-colors" />
-                  <span className="text-sm font-semibold text-[var(--color-primary-navy)] dark:text-[var(--color-white)]">
+                  <Settings className="h-4 w-4 text-[var(--color-primary-navy)]/60 group-hover:text-[var(--color-primary-navy)] transition-colors" />
+                  <span className="text-sm font-semibold text-[var(--color-primary-navy)]">
                     Tools
                   </span>
                 </div>
                 <ChevronDown
-                  className={`h-4 w-4 text-[var(--color-primary-navy)]/60 dark:text-[var(--color-white)]/60 transition-all group-hover:text-[var(--color-primary-navy)] dark:group-hover:text-[var(--color-white)] ${isToolsOpen ? "rotate-180" : ""}`}
+                  className={`h-4 w-4 text-[var(--color-primary-navy)]/60 transition-all group-hover:text-[var(--color-primary-navy)] ${isToolsOpen ? "rotate-180" : ""}`}
                 />
               </button>
 
@@ -402,10 +402,10 @@ export function Sidebar({
                   window.open(agent.mlflow_traces_url, "_blank");
                 }
               }}
-              className="flex items-center gap-2.5 w-full p-2.5 rounded-xl hover:bg-[var(--color-primary-navy)]/[0.06] dark:hover:bg-[var(--color-primary-navy)]/40 transition-all duration-200 group border border-transparent hover:border-[var(--color-primary-navy)]/10 dark:hover:border-[var(--color-white)]/10"
+              className="flex items-center gap-2.5 w-full p-2.5 rounded-xl hover:bg-[var(--color-primary-navy)]/[0.06] transition-all duration-200 group border border-transparent hover:border-[var(--color-primary-navy)]/10"
             >
-              <FlaskConical className="h-4 w-4 text-[var(--color-primary-navy)]/60 dark:text-[var(--color-white)]/60 group-hover:text-[var(--color-primary-navy)] dark:group-hover:text-[var(--color-white)] transition-colors" />
-              <span className="text-sm font-semibold text-[var(--color-primary-navy)] dark:text-[var(--color-white)]">
+              <FlaskConical className="h-4 w-4 text-[var(--color-primary-navy)]/60 group-hover:text-[var(--color-primary-navy)] transition-colors" />
+              <span className="text-sm font-semibold text-[var(--color-primary-navy)]">
                 MLFlow Monitoring
               </span>
             </button>
@@ -481,7 +481,7 @@ export function Sidebar({
         <aside
           className={`
             fixed left-0 top-0 h-full w-[var(--sidebar-width)]
-            bg-[var(--color-background-2)] dark:bg-gradient-to-br dark:from-[var(--color-background-1)] dark:via-[var(--color-primary-navy)]/20 dark:to-[var(--color-background-1)] border-r border-[var(--color-primary-navy)]/15 dark:border-[var(--color-white)]/10
+            bg-[var(--color-background-2)] border-r border-[var(--color-primary-navy)]/15
             transform transition-transform duration-300 z-40
             ${isOpen ? "translate-x-0" : "-translate-x-full"}
             lg:hidden
@@ -498,7 +498,7 @@ export function Sidebar({
       <aside
         style={{ overflowY: "auto", overflowX: "clip" }}
         className={`
-          hidden lg:flex flex-col bg-[var(--color-background-2)] dark:bg-gradient-to-br dark:from-[var(--color-background-1)] dark:via-[var(--color-primary-navy)]/20 dark:to-[var(--color-background-1)] border-r border-[var(--color-primary-navy)]/15 dark:border-[var(--color-white)]/10 h-full relative transition-all duration-300 flex-shrink-0
+          hidden lg:flex flex-col bg-[var(--color-background-2)] border-r border-[var(--color-primary-navy)]/15 h-full relative transition-all duration-300 flex-shrink-0
           ${isCollapsed ? "w-20" : "w-[var(--sidebar-width)]"}
         `}
       >
@@ -513,14 +513,14 @@ export function Sidebar({
         createPortal(
           <div
             ref={toolsDropdownRef}
-            className="fixed w-72 bg-[var(--color-white)] dark:bg-[var(--color-primary-navy)] rounded-lg shadow-2xl border border-[var(--color-primary-navy)]/20 dark:border-[var(--color-white)]/20 max-h-80 overflow-y-auto z-[9999]"
+            className="fixed w-72 bg-[var(--color-white)] rounded-lg shadow-2xl border border-[var(--color-primary-navy)]/20 max-h-80 overflow-y-auto z-[9999]"
             style={{
               bottom: `${toolsDropdownPosition.bottom}px`,
               left: `${toolsDropdownPosition.left}px`,
             }}
           >
-            <div className="px-4 py-2 border-b border-[var(--color-primary-navy)]/20 dark:border-[var(--color-white)]/20">
-              <h3 className="font-medium text-sm text-[var(--color-primary-navy)] dark:text-[var(--color-white)]">
+            <div className="px-4 py-2 border-b border-[var(--color-primary-navy)]/20">
+              <h3 className="font-medium text-sm text-[var(--color-primary-navy)]">
                 Tools & Resources
               </h3>
             </div>
@@ -533,7 +533,7 @@ export function Sidebar({
                     href={tool.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-start gap-3 px-4 py-3 hover:bg-[var(--color-primary-navy)]/5 dark:hover:bg-[var(--color-white)]/5 transition-colors no-underline"
+                    className="flex items-start gap-3 px-4 py-3 hover:bg-[var(--color-primary-navy)]/5 transition-colors no-underline"
                   >
                     <div className="flex-shrink-0 mt-0.5">
                       <Image
@@ -545,10 +545,10 @@ export function Sidebar({
                       />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <span className="font-medium text-sm block text-[var(--color-primary-navy)] dark:text-[var(--color-white)]">
+                      <span className="font-medium text-sm block text-[var(--color-primary-navy)]">
                         {tool.display_name}
                       </span>
-                      <span className="text-xs text-[var(--color-primary-navy)]/60 dark:text-[var(--color-white)]/60 mt-1 block">
+                      <span className="text-xs text-[var(--color-primary-navy)]/60 mt-1 block">
                         {tool.type || "Tool"}
                       </span>
                     </div>

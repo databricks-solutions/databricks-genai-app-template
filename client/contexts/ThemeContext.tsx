@@ -7,7 +7,6 @@ import React, {
   useEffect,
   ReactNode,
 } from "react";
-import { useTheme as useNextTheme } from "next-themes";
 import {
   ThemeColors,
   Typography,
@@ -27,11 +26,6 @@ interface SavedTheme {
 }
 
 interface ThemeContextType {
-  // Theme mode
-  theme: string | undefined;
-  setTheme: (theme: string) => void;
-  toggleDarkMode: () => void;
-
   // Theme customization
   colors: ThemeColors;
   typography: Typography;
@@ -128,7 +122,6 @@ interface ThemeProviderProps {
 }
 
 export function CustomThemeProvider({ children }: ThemeProviderProps) {
-  const { theme, setTheme: setNextTheme, resolvedTheme } = useNextTheme();
   const [mounted, setMounted] = useState(false);
   const [colors, setColors] = useState<ThemeColors>(defaultColors);
   const [typography, setTypography] = useState<Typography>(defaultTypography);
@@ -335,10 +328,6 @@ export function CustomThemeProvider({ children }: ThemeProviderProps) {
     root.style.setProperty("--font-family", newTypography.secondaryFont); // Backward compatibility - body text
   };
 
-  const toggleDarkMode = () => {
-    setNextTheme(resolvedTheme === "dark" ? "light" : "dark");
-  };
-
   const updateColors = (newColors: Partial<ThemeColors>) => {
     const updatedColors = { ...colors, ...newColors };
     setColors(updatedColors);
@@ -441,9 +430,6 @@ export function CustomThemeProvider({ children }: ThemeProviderProps) {
   return (
     <ThemeContext.Provider
       value={{
-        theme: resolvedTheme,
-        setTheme: setNextTheme,
-        toggleDarkMode,
         colors,
         typography,
         animatedBackground,

@@ -81,7 +81,7 @@ export function AboutView() {
 
   if (!content) {
     return (
-      <div className="relative w-full h-full bg-[var(--color-background-1)] dark:bg-[var(--color-background-1)] flex items-center justify-center">
+      <div className="relative w-full h-full bg-[var(--color-background-1)] flex items-center justify-center">
         <SpatialNetworkBackground
           particleCount={animatedBackground.particleCount}
           connectionDistance={animatedBackground.connectionDistance}
@@ -101,7 +101,7 @@ export function AboutView() {
   }
 
   return (
-    <div className="relative w-full h-full overflow-hidden bg-[var(--color-background-1)] dark:bg-[var(--color-background-1)]">
+    <div className="relative w-full h-full overflow-hidden bg-[var(--color-background-1)]">
       {/* Three.js Spatial Network Background */}
       <SpatialNetworkBackground
         particleCount={animatedBackground.particleCount}

@@ -110,57 +110,7 @@ export const PREDEFINED_THEMES: PredefinedTheme[] = [
       lineOpacity: 0.8,
       particleSize: 5,
       lineWidth: 3.8,
-      animationSpeed: 1.8,
-    },
-  },
-  {
-    id: "monochrome",
-    name: "Monochrome",
-    description: "Just Do It - Pure black & white",
-    isDefault: false,
-    colors: {
-      // TEXT COLORS - Pure black, bold statements
-      textHeading: "#000000", // Pure black - maximum impact
-      textPrimary: "#000000", // Pure black - bold and clear
-      textMuted: "#000000", // Pure black - no compromise
-
-      // BRAND/ACCENT - Pure black, Nike boldness
-      accentPrimary: "#000000", // Pure black - iconic
-
-      // ANIMATED BACKGROUND - Pure black particles
-      animatedBgColor: "#000000", // Pure black - bold presence
-
-      // BACKGROUNDS - Pure white, clean power
-      bgPrimary: "#FFFFFF", // Pure white - maximum clarity
-      bgSecondary: "#FFFFFF", // Pure white - seamless
-
-      // UI ELEMENTS - Minimal gray only where absolutely needed
-      border: "#000000ff", // Light gray - subtle definition
-
-      // STATUS COLORS - Pure, bold signals
-      success: "#000000", // Black - consistent boldness
-      successHover: "#F0F0F0", // Light gray hover
-      error: "#000000", // Black - strong signal
-      errorHover: "#F0F0F0",
-      info: "#000000", // Black - unified
-      infoHover: "#F0F0F0",
-      warning: "#000000", // Black - clear
-      warningHover: "#F0F0F0",
-    },
-    typography: {
-      primaryFont:
-        '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-      secondaryFont:
-        '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-    },
-    animatedBackground: {
-      particleCount: 50, // Minimal - clean space
-      connectionDistance: 60, // Wide open spacing
-      particleOpacity: 0.6, // Barely visible - subtle energy
-      lineOpacity: 0.6, // Almost invisible - whisper
-      particleSize: 4, // Bold when visible
-      lineWidth: 1.5, // Strong lines when they appear
-      animationSpeed: 1, // Slow, powerful motion
+      animationSpeed: 1.2,
     },
   },
   {
@@ -210,9 +160,60 @@ export const PREDEFINED_THEMES: PredefinedTheme[] = [
       lineOpacity: 0.8,
       particleSize: 5,
       lineWidth: 3.8,
-      animationSpeed: 2.0,
+      animationSpeed: 1.0,
     },
   },
+  {
+    id: "monochrome",
+    name: "Monochrome",
+    description: "Just Do It - Pure black & white",
+    isDefault: false,
+    colors: {
+      // TEXT COLORS - Pure black, bold statements
+      textHeading: "#000000", // Pure black - maximum impact
+      textPrimary: "#000000", // Pure black - bold and clear
+      textMuted: "#000000", // Pure black - no compromise
+
+      // BRAND/ACCENT - Pure black, Nike boldness
+      accentPrimary: "#000000", // Pure black - iconic
+
+      // ANIMATED BACKGROUND - Pure black particles
+      animatedBgColor: "#000000", // Pure black - bold presence
+
+      // BACKGROUNDS - Pure white, clean power
+      bgPrimary: "#FFFFFF", // Pure white - maximum clarity
+      bgSecondary: "#FFFFFF", // Pure white - seamless
+
+      // UI ELEMENTS - Minimal gray only where absolutely needed
+      border: "#000000ff", // Light gray - subtle definition
+
+      // STATUS COLORS - Pure, bold signals
+      success: "#000000", // Black - consistent boldness
+      successHover: "#F0F0F0", // Light gray hover
+      error: "#000000", // Black - strong signal
+      errorHover: "#F0F0F0",
+      info: "#000000", // Black - unified
+      infoHover: "#F0F0F0",
+      warning: "#000000", // Black - clear
+      warningHover: "#F0F0F0",
+    },
+    typography: {
+      primaryFont:
+        '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+      secondaryFont:
+        '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+    },
+    animatedBackground: {
+      particleCount: 55, // Minimal - clean space
+      connectionDistance: 65, // Wide open spacing
+      particleOpacity: 0.6, // Barely visible - subtle energy
+      lineOpacity: 0.6, // Almost invisible - whisper
+      particleSize: 4, // Bold when visible
+      lineWidth: 2.5, // Strong lines when they appear
+      animationSpeed: 1, // Slow, powerful motion
+    },
+  },
+  
   {
     id: "deep-ocean",
     name: "Deep Ocean Dark",

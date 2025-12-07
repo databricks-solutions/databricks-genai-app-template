@@ -17,8 +17,6 @@
  * COLOR VARIABLES are NOT defined here - see ThemeContext + lib/themes.ts
  */
 
-@custom-variant dark (&:is(.dark *));
-
 /* Minimal Tailwind-compatible variables for @apply directives */
 @theme {
   --color-border: #333333;

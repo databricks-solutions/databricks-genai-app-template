@@ -41,7 +41,7 @@ export function ToolsView() {
   const tools = selectedAgent?.tools || [];
 
   return (
-    <div className="relative w-full h-full bg-[var(--color-background-1)] dark:bg-[var(--color-background-1)]">
+    <div className="relative w-full h-full bg-[var(--color-background-1)]">
       {/* Three.js Spatial Network Background */}
       <SpatialNetworkBackground
         particleCount={animatedBackground.particleCount}
@@ -68,7 +68,7 @@ export function ToolsView() {
             <div className="relative agent-selector-container inline-block">
               <button
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className="flex items-center gap-3 px-6 py-3 bg-[var(--color-white)] dark:bg-[var(--color-primary-navy)] rounded-xl border border-[var(--color-border)] hover:border-[var(--color-accent-primary)]/40 transition-all duration-200 shadow-md hover:shadow-lg"
+                className="flex items-center gap-3 px-6 py-3 bg-[var(--color-white)] rounded-xl border border-[var(--color-border)] hover:border-[var(--color-accent-primary)]/40 transition-all duration-200 shadow-md hover:shadow-lg"
               >
                 <span className="text-sm font-medium text-[var(--color-text-muted)]">
                   Agent:
@@ -83,7 +83,7 @@ export function ToolsView() {
 
               {/* Dropdown Menu */}
               {isDropdownOpen && agents.length > 0 && (
-                <div className="absolute top-full left-0 mt-2 w-80 bg-[var(--color-white)] dark:bg-[var(--color-primary-navy)] rounded-xl shadow-xl border border-[var(--color-border)] py-2 z-50">
+                <div className="absolute top-full left-0 mt-2 w-80 bg-[var(--color-white)] rounded-xl shadow-xl border border-[var(--color-border)] py-2 z-50">
                   {agents.map((agent) => (
                     <button
                       key={agent.id}
@@ -146,7 +146,7 @@ function ToolCard({ tool }: ToolCardProps) {
       : description;
 
   return (
-    <div className="bg-[var(--color-white)] dark:bg-[var(--color-primary-navy)] rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden group min-h-[320px] flex flex-col">
+    <div className="bg-[var(--color-white)] rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden group min-h-[320px] flex flex-col">
       {/* Colored Top Border */}
       <div className="h-1 bg-gradient-to-r from-[var(--color-accent-primary)] via-[var(--color-accent-primary)]/80 to-[var(--color-accent-primary)]" />
 
