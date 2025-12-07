@@ -4,7 +4,10 @@ const nextConfig: NextConfig = {
   // Enable React strict mode for better error detection
   reactStrictMode: true,
 
-  // Note: Static export is configured via build script (npm run build:export)
+  // Static export for production deployment
+  // This only affects `next build`, not `next dev`
+  output: 'export',
+
   // Dev mode uses rewrites to proxy API calls to FastAPI backend
   async rewrites() {
     const backendUrl = process.env.BACKEND_URL || 'http://localhost:8000'

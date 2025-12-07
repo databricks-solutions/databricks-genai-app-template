@@ -1,0 +1,53 @@
+# Databricks Sync Ignore
+# This file controls what gets excluded when syncing to Databricks workspace
+# Separate from .gitignore - this is deployment-specific
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+*.egg-info/
+*.egg-info
+dist/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage/
+.coverage.*
+
+# Node.js - Exclude source and build cache, but INCLUDE client/out/
+client/node_modules/
+client/.next/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/settings.json
+.idea/
+.DS_Store
+
+# Claude
+.claude/
+
+# Git
+.git/
+.gitignore
+
+# Databricks sync metadata
+.databricks/
+
+# Temporary files
+*.log
+*.tmp
+.helper_files/
+summary.md
+
+# Old backups
+client_old_backup/

@@ -56,9 +56,14 @@ echo ""
 echo "🐍 Generating requirements.txt from pyproject.toml..."
 uv run python scripts/generate_server_requirements.py
 
-# Build Next.js frontend
-echo "🎨 Building Next.js frontend..."
-(cd client && BROWSER=none npm run build)
+# Build frontend locally before deployment
+echo ""
+echo "⚛️  Building Next.js frontend..."
+cd client
+npm install
+npm run build
+cd ..
+echo "✅ Frontend build complete"
 
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -75,7 +80,9 @@ echo ""
 # Sync code to workspace
 echo "📤 Syncing code to workspace..."
 databricks sync . "$WORKSPACE_SOURCE_PATH" \
-  --exclude-from .gitignore \
+  --exclude-from .databricksignore \
+  --include "client/out/**" \
+  --full \
   --profile "$DATABRICKS_CONFIG_PROFILE"
 
 # Deploy app
