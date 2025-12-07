@@ -171,10 +171,7 @@ export function ChatView({
         timestamp: new Date(msg.timestamp),
         // Map backend snake_case to frontend camelCase
         traceId: msg.trace_id,
-        // Deep clone traceSummary to ensure no reference sharing
-        traceSummary: msg.trace_summary
-          ? JSON.parse(JSON.stringify(msg.trace_summary))
-          : undefined,
+        traceSummary: msg.trace_summary,
       }));
 
       devLog("📂 Loaded", loadedMessages.length, "messages from chat history");
@@ -607,16 +604,7 @@ export function ChatView({
 
               // Handle trace summary
               if (event.type === "trace.summary") {
-                try {
-                  // Deep clone to avoid reference sharing between messages
-                  traceSummary = JSON.parse(JSON.stringify(event.traceSummary));
-                } catch (cloneError) {
-                  console.error(
-                    "❌ CLIENT: Failed to clone trace summary:",
-                    cloneError,
-                  );
-                  traceSummary = event.traceSummary;
-                }
+                traceSummary = event.traceSummary;
 
                 devLog(
                   "📊 Received trace summary for message:",
@@ -750,9 +738,7 @@ export function ChatView({
               content: streamedContent,
               timestamp: new Date(),
               traceId: traceId,
-              traceSummary: traceSummary
-                ? JSON.parse(JSON.stringify(traceSummary))
-                : undefined,
+              traceSummary: traceSummary,
             };
             setMessages((prev) => [...prev, assistantMessage]);
             devLog("✨ Created assistant message at stream end");
@@ -764,16 +750,11 @@ export function ChatView({
                   return msg; // Don't modify other messages
                 }
 
-                // Deep clone traceSummary if it exists to ensure no reference sharing
-                const finalTraceSummary = traceSummary
-                  ? JSON.parse(JSON.stringify(traceSummary))
-                  : msg.traceSummary;
-
                 return {
                   ...msg,
                   content: streamedContent || msg.content,
                   traceId: traceId || msg.traceId,
-                  traceSummary: finalTraceSummary,
+                  traceSummary: traceSummary || msg.traceSummary,
                 };
               }),
             );
@@ -881,15 +862,10 @@ export function ChatView({
     const functionCalls = message.traceSummary?.function_calls;
     const assistantResponse = message.content;
 
-    // Deep clone to ensure no reference issues in modal
-    const clonedFunctionCalls = functionCalls
-      ? JSON.parse(JSON.stringify(functionCalls))
-      : undefined;
-
     setTraceModal({
       isOpen: true,
       traceId,
-      functionCalls: clonedFunctionCalls,
+      functionCalls: functionCalls,
       userMessage,
       assistantResponse,
     });
