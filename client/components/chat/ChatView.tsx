@@ -738,7 +738,7 @@ export function ChatView({
               content: streamedContent,
               timestamp: new Date(),
               traceId: traceId,
-              traceSummary: traceSummary,
+              traceSummary: traceSummary || undefined,
             };
             setMessages((prev) => [...prev, assistantMessage]);
             devLog("✨ Created assistant message at stream end");
