@@ -1,244 +1,383 @@
-# Project Memory
+# AI Assistant Guide - Databricks GenAI App Template
+
+This file helps AI assistants understand the project structure, patterns, and implementation details.
+
+## Project Overview
+
+A template for building production-ready AI agent applications with Databricks. Features:
+- **Handler Pattern**: Pluggable deployment types (databricks-endpoint current, local-agent/openai planned)
+- **Strategy Pattern**: Authentication strategies (HttpTokenAuth, WorkspaceClientAuth)
+- **MLflow Integration**: Tracing and feedback collection
+- **Next.js + FastAPI**: Static frontend export served by FastAPI backend
+- **In-memory storage**: Chat history (10 chat limit)
 
 ## Package Management
 
-- Use `uv` for Python package management instead of `pip` directly
-- This project uses uv for dependency management and virtual environment handling
-- When changing Python dependencies, always use `uv add` or `uv remove` commands instead of editing pyproject.toml directly
+**Python:**
+- Use `uv` for dependency management (NOT pip directly)
+- Commands: `uv add`, `uv remove`, `uv sync`
+- Virtual environment in `.venv/`
 
-## Frontend Setup
+**Frontend:**
+- Use `npm` for package management (NOT bun)
+- Commands: `npm install`, `npm run dev`, `npm run build`
+- Uses shadcn/ui components with TypeScript
+- Path alias: `@/` for imports (e.g., `import { Button } from "@/components/ui/button"`)
 
-- **Always use Bun for frontend operations** - faster than npm/yarn and eliminates dependency conflicts
-- Client uses shadcn/ui components with proper TypeScript configuration
-- Development: `bun start` or `bun dev` in the client directory
-- Build process: `bun run build` in the client directory
-- Package management: Use `bun add` and `bun remove` instead of npm
-- shadcn components can be added with: `npx shadcn@latest add <component-name>`
-- **TypeScript path aliases**: Use canonical `@/` imports (e.g., `import { Button } from "@/components/ui/button"`)
-- **Build system**: Vite and TypeScript are configured for "@/" alias support automatically
-
-## Development Server Management
-
-- Use "start server" command to run the development server using `./watch.sh` in a detached screen session
-- The dev server runs both the FastAPI backend (port 8000) and React frontend (Vite dev server) with hot reload
-- Server status can be checked with "server status" or "is server running" commands
-- Server can be stopped with "stop server" or "kill server" commands
-- Screen session is named "lha-dev" and can be accessed directly with `screen -r lha-dev`
-- When server is running, you can test changes immediately without manual restarts
-- The server automatically opens http://localhost:8000 when started
-
-## API Endpoint Testing Methodology
-
-When adding or testing endpoints, use this workflow:
-
-1. **Test the endpoint** with curl:
-   ```bash
-   curl -X POST http://localhost:8000/api/agent \
-     -H "Content-Type: application/json" \
-     -d '{"inputs": {"messages": [{"role": "user", "content": "What is Databricks?"}]}}'
-   ```
-2. **Check server logs** immediately after:
-   ```bash
-   screen -S lha-dev -X hardcopy /tmp/server_logs.txt && tail -30 /tmp/server_logs.txt
-   ```
-3. **Verify response** includes expected fields (response, trace_id for agent endpoint)
-4. **Confirm MLflow tracing** is working (trace_id should be present)
-
-## Hot Reload Development Workflow
-
-The development server supports real-time code changes:
-
-1. **Add debug prints** to server code (e.g., `print(f"🔥 ENDPOINT HIT: {data}")`)
-2. **uvicorn auto-reloads** the server when Python files change
-3. **Test immediately** with curl - no manual restart needed
-4. **Verify functionality** through response content and status codes
-5. **Clean up debug code** when done testing
-   Note: Screen capture may not always show real-time output clearly, but process monitoring and endpoint testing provide reliable verification.
-
-## Development Server Troubleshooting
-
-- **Profile errors in watch.sh**: The script handles optional DATABRICKS_CONFIG_PROFILE - if not set, uses default auth
-- **Screen output capture**: Use `ps aux | grep uvicorn` and direct endpoint testing rather than relying solely on screen hardcopy
-- **Port conflicts**: Check `lsof -i :8000` to verify server is listening correctly
-- **Process verification**: Multiple uvicorn processes are normal (parent/child from --reload mode)
-
-## Testing
-
-- When making changes to the agent code in `server/agents/databricks_assistant.py`, use `./test_agent.sh` (or `uv run python test_agent.py`) to test the agent directly without starting the full web application
-- This executes the actual databricks_assistant.py code and allows for faster iteration and debugging of agent behavior
-- The test script shows both the full JSON response and just the content for easier reading
-- For full UI testing, use the development server (see Development Server Management section)
-
-## Setup & Environment Configuration
-
-- **Three ways to configure the app:**
-  1. **Interactive setup**: Run `./setup.sh` to create/configure .env.local file
-  2. **Manual setup**: Copy `env.template` to `.env.local` and fill in values
-  3. **Environment variables**: The app automatically falls back to system environment variables if no .env.local file exists
-- **Required variables**: DATABRICKS_HOST, DATABRICKS_TOKEN, MLFLOW_EXPERIMENT_ID
-- **For deployment**: Also need DATABRICKS_APP_NAME and LHA_SOURCE_CODE_PATH
-- See `env.template` for complete documentation of all configuration options
-
-## Code Formatting
-
-- Use `./fix.sh` to format all code according to the project's style guidelines
-- This runs ruff formatting/linting for Python files and prettier for TypeScript/JavaScript files
-- Run this before committing code to ensure consistent formatting
-
-## Build System & Generated Files
-
-- **Never commit build artifacts**: `client/build/` contains Vite build output (ignored in .gitignore)
-- **API client is auto-generated**: `client/src/fastapi_client/` is generated from OpenAPI spec via `uv run python -m scripts.make_fastapi_client`
-- **Lock files**: `uv.lock` should be committed to ensure reproducible dependency versions across all developers
-- **Development workflow**: The `./watch.sh` script automatically regenerates the API client when backend changes
-- When adding new FastAPI endpoints, the TypeScript client updates automatically
-
-## Git Operations
-
-- Use `git pp` instead of `git push` for pushing changes
-
-## Deployment
-
-- When the user says "deploy", use `./deploy.sh` command
-- **Automated app.yaml configuration**: Deploy script automatically updates `app.yaml` with `MLFLOW_EXPERIMENT_ID` from `.env.local`
-- **Automated verification**: After running deploy.sh, programmatically check deployment success by:
-  1. Running `databricks apps list` to verify app appears
-  2. Scanning deploy.sh output for success/failure indicators
-  3. Checking app status and providing troubleshooting if needed
-  4. Reporting deployment status back to user with specific details
-- **Authentication in Production**: Databricks Apps use OAuth with `DATABRICKS_CLIENT_ID` and `DATABRICKS_CLIENT_SECRET` instead of token-based auth
-  - The code automatically detects and uses OAuth credentials when available
-  - Falls back to token-based auth for local development
-  - WorkspaceClient() handles auth chain automatically in production
-
-## Production Monitoring
-
-- **App URL Pattern**: After deployment, apps are accessible at `https://{app-name}-{deployment-id}.{region}.databricksapps.com`
-- **Key Monitoring Endpoints**:
-  1. **App Logs**: `{app-url}/logz` - Real-time application logs (requires browser authentication)
-  2. **Health Check**: `{app-url}/api/health` - Quick health status check
-  3. **MLflow Experiment**: Check the experiment ID in deployment output for agent traces
-- **Post-Deployment Verification**:
-  1. Test chat interface with "list catalogs" to verify LangChain agent
-  2. Check markdown rendering displays correctly
-  3. Verify thumbs up/down feedback functionality works
-  4. Monitor MLflow experiment for new traces with each agent interaction
-- **Monitoring Best Practices**:
-  - Always check deployment output for MLflow experiment ID
-  - Use `/api/tracing_experiment` endpoint to get experiment link
-  - Monitor logs during first few user interactions
-  - Check for any dependency warnings in deployment output
-
-## Host App Integration
-
-The app can be integrated into other React applications (e.g., `dbdemos-genai`) as a compiled standalone component with runtime configuration.
-
-### Integration Branch
-
-- **Branch**: `dbdemos_genai_integration` - dedicated branch for host app integration work
-- Contains all changes for runtime configuration and deployment script
-
-### Key Components
-
-1. **Runtime Configuration** (`client/src/config.ts`)
-
-   - Loads `app_config.json` at runtime
-   - Falls back to default config in development
-   - Allows host app to dynamically configure endpoints
-
-2. **Dynamic Endpoints** (`client/src/endpoints.ts`)
-
-   - Exports `getEndpoints()` function instead of static array
-   - Reads endpoints from loaded configuration
-   - Supports two endpoint types:
-     - `databricks-agent`: Agent endpoints using `input` field format
-     - `openai-chat`: OpenAI-compatible chat endpoints
-
-3. **Build Configuration** (`client/vite.config.ts`)
-
-   - Base path set to `./` for flexible deployment
-   - Code splitting for vendor libraries
-   - Sourcemaps enabled for production debugging
-
-4. **Deployment Script** (`scripts/prepare_for_host.sh`)
-   - Builds the React frontend
-   - Copies artifacts to specified output directory
-   - Creates `app_config.json.template`
-   - Generates integration guide
-
-### Usage
+## Quick Start
 
 ```bash
-# Build for host integration
-./scripts/prepare_for_host.sh /path/to/host-app/public/assistant-app
+# Setup (creates .env.local, installs deps)
+./scripts/setup.sh
 
-# Creates:
-# - Compiled app in specified directory
-# - app_config.json.template for endpoint configuration
-# - INTEGRATION_GUIDE.md with detailed instructions
+# Start dev servers (backend:8000, frontend:3000)
+./scripts/start_dev.sh
+
+# Format code (ruff + prettier)
+./scripts/fix.sh
+
+# Lint and type check
+./scripts/check.sh
+
+# Deploy to Databricks Apps
+./scripts/deploy.sh
 ```
 
-### Configuration Format
+## Configuration Locations
 
-The host app should provide `app_config.json` in the deployment directory:
+**IMPORTANT - Know where configs go:**
 
+`.env.local` (local development only, gitignored):
+```bash
+DATABRICKS_HOST=https://adb-123456789.azuredatabricks.net
+DATABRICKS_TOKEN=dapi...  # PAT token
+DATABRICKS_APP_NAME=my-app  # Optional, for deployment
+WORKSPACE_SOURCE_PATH=/Workspace/Users/...  # Optional, for deployment
+```
+
+`config/agents.json` (agent definitions):
 ```json
 {
-  "endpoints": [
-    {
-      "displayName": "Agent Name",
-      "endpointName": "endpoint-id",
-      "type": "databricks-agent"
-    }
-  ],
-  "apiBaseUrl": "/api"
+  "agents": [{
+    "id": "databricks-agent-01",
+    "name": "my-agent",
+    "deployment_type": "databricks-endpoint",
+    "endpoint_name": "my-endpoint",
+    "mlflow_experiment_id": "1234567890",  # ← Goes HERE, not .env.local
+    "tools": [...]
+  }]
 }
 ```
 
-### API Requirements
+`config/app.json` (UI branding):
+```json
+{
+  "branding": {
+    "tabTitle": "Phoenix",
+    "appName": "Phoenix",
+    "logoPath": "/logos/u_logo.svg"
+  },
+  "dashboard": {
+    "iframeUrl": "",
+    "showPadding": true
+  }
+}
+```
 
-The host app must provide these backend endpoints:
+`config/about.json` (about page content with hero, sections, CTA)
 
-- `POST /api/invoke_endpoint` - Invoke agent/model endpoint
-- `GET /api/tracing_experiment` - Get MLflow experiment info
-- `POST /api/log_feedback` - Log user feedback
+`app.yaml` (Databricks Apps deployment config)
 
-### Development vs Deployment
+## Project Structure
 
-- **Local dev**: Uses hardcoded defaults from `config.ts`
-- **Deployed**: Loads config from `app_config.json` at runtime
-- **Backward compatible**: Still works as standalone app
+```
+databricks-genai-app-template/
+├── server/                     # FastAPI backend
+│   ├── agents/
+│   │   ├── handlers/          # Deployment handlers
+│   │   │   ├── base.py       # BaseHandler interface
+│   │   │   └── databricks_endpoint.py  # Current implementation
+│   │   └── databricks_assistant/  # Example agent code
+│   ├── auth/                  # Auth strategies
+│   │   ├── base.py           # BaseAuthStrategy
+│   │   ├── http_token.py     # HttpTokenAuth (current)
+│   │   └── workspace_client.py  # WorkspaceClientAuth (future)
+│   ├── routers/
+│   │   └── agent.py          # Main API routes
+│   ├── app.py                # FastAPI app entry
+│   └── chat_storage.py       # In-memory ChatStorage
+├── client/                    # Next.js frontend
+│   ├── app/                  # Pages
+│   ├── components/
+│   │   ├── chat/ChatView.tsx  # Main chat + trace collection
+│   │   └── modals/TraceModal.tsx  # Trace display
+│   ├── lib/types.ts          # TypeScript interfaces
+│   └── contexts/             # React contexts
+├── config/                    # JSON configuration
+├── scripts/                   # Build/deploy scripts
+└── docs/                      # Documentation
+```
 
-### Documentation
+## Architecture Patterns
 
-- See `DEPLOYMENT.md` for complete integration guide
-- Includes patterns for static and dynamic configuration
-- Backend API specifications
-- Troubleshooting guide
+### Handler Pattern (server/agents/handlers/)
+
+Enables support for multiple agent deployment types:
+
+```python
+# Current: Databricks Model Serving
+'databricks-endpoint': DatabricksEndpointHandler
+
+# Future (TODO):
+'local-agent': LocalAgentHandler
+'openai-compatible': OpenAIHandler
+'agent-bricks-mas': AgentBricksMASHandler
+```
+
+**Key locations:**
+- `server/agents/handlers/base.py` - BaseHandler interface
+- `server/agents/handlers/databricks_endpoint.py:40-112` - Current implementation (passthrough forwarding)
+- `server/routers/agent.py:191-202` - Handler selection logic
+
+### Authentication Strategy (server/auth/)
+
+Strategy pattern for different credential types:
+
+```python
+# For HTTP endpoints (current)
+HttpTokenAuth:
+  - Dev: Uses DATABRICKS_TOKEN from .env.local
+  - Prod: Uses x-forwarded-access-token header
+  - Returns: (host, token) tuple
+
+# For local agents (future)
+WorkspaceClientAuth:
+  - Dev: WorkspaceClient with PAT
+  - Prod: WorkspaceClient with forwarded token
+  - Returns: WorkspaceClient instance
+```
+
+**Key locations:**
+- `server/auth/base.py` - BaseAuthStrategy interface
+- `server/auth/http_token.py` - HttpTokenAuth implementation
+- `server/routers/agent.py:176-179` - Strategy selection
+
+### Request Flow
+
+1. POST /api/invoke_endpoint (server/routers/agent.py:122)
+2. Create MLflow trace with client_request_id (line 143-163)
+3. Select handler based on deployment_type (line 191-202)
+4. Get credentials via auth strategy (line 176-179)
+5. Call handler.invoke() which streams SSE (databricks_endpoint.py:40-112)
+6. Frontend collects trace data from stream (client/components/chat/ChatView.tsx:334-760)
+7. Save messages with trace_summary (server/routers/agent.py:238-270)
+8. Feedback links to trace via time-proximity matching (agent.py:306-326)
+
+## Handler-Specific Implementation: databricks-endpoint
+
+**IMPORTANT:** Current trace implementation is specific to databricks-endpoint handler only.
+
+### Trace Collection (Client-Side)
+
+**File:** `client/components/chat/ChatView.tsx`
+
+Process:
+1. **Lines 437-443**: Receives `trace.client_request_id` event
+2. **Lines 451-481**: Captures `function_call` events from stream
+3. **Lines 507-541**: Captures `function_call_output` events
+4. **Lines 606-677**: Handles optional `trace.summary` event from Databricks
+5. **Lines 706-725**: Creates fallback trace summary if none provided
+6. **Lines 656-676, 736-760**: Attaches trace_summary to message
+
+**What's captured:**
+- Function call names, arguments, outputs
+- Call IDs for linking
+- Client request ID (for feedback)
+
+**NOT captured (not in SSE events):**
+- Duration/timing data (always 0ms)
+- LLM call details
+- Full span hierarchy
+
+### Backend Handler (Passthrough)
+
+**File:** `server/agents/handlers/databricks_endpoint.py`
+
+```python
+# Lines 76-112: Simple forwarding of Databricks SSE events
+async for line in response.aiter_lines():
+    event = json.loads(json_str)
+    yield f'data: {json_str}\n\n'  # Passthrough only
+```
+
+- No MLflow API integration
+- No trace processing
+- Simply forwards events to frontend
+
+**Future handlers may differ** - local agents could create traces with full control and timing.
+
+## Development Workflow
+
+### Local Development
+
+1. **Setup:** Run `./scripts/setup.sh` once
+2. **Start:** Run `./scripts/start_dev.sh`
+   - Backend: http://localhost:8000 (uvicorn with auto-reload)
+   - Frontend: http://localhost:3000 (Next.js dev server)
+3. **Edit code:** Changes auto-reload (Python) or hot-reload (React)
+4. **Format:** Run `./scripts/fix.sh` before committing
+5. **Test API:** Use curl to test endpoints:
+   ```bash
+   curl -X POST http://localhost:8000/api/invoke_endpoint \
+     -H "Content-Type: application/json" \
+     -d '{"agent_id":"databricks-agent-01","chat_id":"test","message":"hello"}'
+   ```
+
+### Code Quality
+
+```bash
+./scripts/fix.sh    # Runs ruff (Python) + prettier (JS/TS)
+./scripts/check.sh  # Runs ruff check + TypeScript compiler
+```
+
+## Deployment
+
+### Process
+
+```bash
+./scripts/deploy.sh
+```
+
+**What it does:**
+1. Generates `requirements.txt` from pyproject.toml
+2. Builds frontend: `npm install && npm run build` → creates `client/out/`
+3. Syncs to workspace using `.databricksignore` filters
+4. Deploys app using `app.yaml` configuration
+5. Verifies with `databricks apps list`
+
+### Configuration
+
+**app.yaml:**
+```yaml
+command:
+  - "uvicorn"
+  - "server.app:app"
+  - "--host"
+  - "0.0.0.0"
+
+env:
+  - name: ENV
+    value: production  # Triggers OAuth mode
+  - name: DATABRICKS_HOST
+    value: "https://your-workspace.databricks.net"
+```
+
+### Authentication in Production
+
+- **Local dev:** Uses `DATABRICKS_TOKEN` (PAT) from `.env.local`
+- **Production:** Uses OAuth with `x-forwarded-access-token` header (automatically provided by Databricks Apps)
+- Code automatically detects and switches between modes based on `ENV` variable
+
+### Post-Deployment
+
+1. Check status: `databricks apps list`
+2. View logs: `https://{app-url}/logz` (requires browser auth)
+3. Test chat interface
+4. Verify feedback and MLflow traces
+
+## Common Gotchas
+
+### Configuration
+
+- ❌ **MLFLOW_EXPERIMENT_ID in .env.local** - WRONG, goes in config/agents.json
+- ✅ **mlflow_experiment_id in agents.json** - CORRECT
+- Frontend on port 3000, backend on port 8000 (NOT proxied)
+- Use npm, NOT bun
+
+### Traces
+
+- Trace data is **client-side only** for databricks-endpoint handler
+- No MLflow API integration in current implementation
+- Duration always 0ms (no timing data in SSE events)
+- Future handlers (local-agent, etc.) may have different trace capabilities
+
+### Chat Storage
+
+- In-memory only (lost on restart)
+- Maximum 10 chats (oldest auto-deleted)
+- Single-user mode (no isolation)
+- No edit/delete functionality
+
+### Deployment
+
+- Must build frontend before deploying
+- `.databricksignore` controls what syncs (includes client/out/, excludes node_modules)
+- Dependency conflicts: Pin to exact versions in pyproject.toml
+- Check app status with `databricks apps list`
+
+## Key Code Locations
+
+### Backend Routes
+- `server/routers/agent.py:122-277` - Main invoke_endpoint route
+- `server/routers/agent.py:279-340` - Feedback logging with trace linking
+- `server/app.py:55-71` - Static file serving for frontend
+
+### Frontend Chat
+- `client/components/chat/ChatView.tsx:334-760` - Message streaming and trace collection
+- `client/components/modals/TraceModal.tsx` - Trace display UI
+- `client/lib/types.ts:39-71` - TraceSummary interface
+
+### Handlers & Auth
+- `server/agents/handlers/databricks_endpoint.py:40-112` - SSE streaming
+- `server/auth/http_token.py:12-38` - Token-based auth
+
+### Storage
+- `server/chat_storage.py:8-156` - ChatStorage class with 10 chat limit
+
+## Documentation Reference
+
+**For users (comprehensive guides):**
+- `README.md` - Overview, quick start, architecture
+- `docs/user-guide.md` - Setup, configuration, deployment
+- `docs/developer-guide.md` - Architecture deep dive, adding handlers
+- `docs/limitations-and-roadmap.md` - Current limits and planned features
+
+**For features (implementation details):**
+- `docs/features/tracing.md` - Trace collection (databricks-endpoint specific)
+- `docs/features/feedback.md` - Thumbs up/down and MLflow logging
+- `docs/features/chat-storage.md` - In-memory storage details
+- `docs/features/session-management.md` - Stream handling
+
+## Troubleshooting
+
+### Authentication Errors
+- Local: Check `DATABRICKS_HOST` and `DATABRICKS_TOKEN` in `.env.local`
+- Production: Check `app.yaml` has correct `DATABRICKS_HOST`
+- Never commit `.env.local` to git
+
+### Agent Not Found
+- Verify `endpoint_name` in `config/agents.json` matches actual endpoint
+- Check endpoint is in READY state in Databricks workspace
+- Confirm endpoint is accessible with token/credentials
+
+### Deployment Fails
+- Run `databricks apps list` to check app status
+- View logs at `{app-url}/logz` in browser
+- Check for dependency conflicts in deploy.sh output
+- Pin conflicting packages to exact versions in pyproject.toml
+
+### Build Errors
+- Frontend: `cd client && npm run build`
+- Backend: `uv sync` to update dependencies
+- Run `./scripts/fix.sh` to fix formatting issues
+
+## Git Operations
+
+- Use `git pp` instead of `git push` for pushing changes (if configured)
 
 ## Reading Databricks Apps Logs
 
-- **Log Access Method**: Databricks Apps logs require OAuth authentication and are accessible through:
-  1. Web UI: `https://{app-url}/logz` (requires browser authentication)
-  2. WebSocket stream: `wss://{app-url}/logz/stream` (requires authenticated session)
-- **Authentication**: Apps use OAuth2 flow redirecting to Databricks workspace for authentication
-- **Error Detection Strategy**: Since programmatic log access requires auth, use deployment output and app status:
-  1. Check `databricks apps list` for app status (ACTIVE/FAILED)
-  2. Monitor deploy.sh output for "Error installing requirements" messages
-  3. Use app HTTP response codes (302 = running, 500 = error)
-- **Dependency Conflict Resolution**: When pip dependency conflicts occur (e.g., "but you have xyz version"), pin the conflicting packages in pyproject.toml to the exact versions that are already installed in Databricks Apps
-- **Common Conflicts**: Packages like tenacity, pillow, websockets, pyarrow, markupsafe, werkzeug, and flask often conflict with pre-installed versions
-- **Python Version Requirements**: If databricks-connect version conflicts occur, ensure the requires-python version in pyproject.toml matches the requirements (e.g., databricks-connect==16.2.0 requires Python>=3.12)
-
-## Viewing the UI with Playwright
-
-To view and interact with the development UI:
-
-1. Ensure the dev server is running: `./dev.sh`
-2. Use Playwright MCP tools:
-   - Navigate: `mcp__playwright__browser_navigate` to `http://localhost:5433`
-   - Screenshot: `mcp__playwright__browser_take_screenshot`
-   - View DOM: `mcp__playwright__browser_snapshot` to see the accessibility tree and query elements
-   - Network: `mcp__playwright__browser_network_requests` to see all network requests
-   - Interact: `mcp__playwright__browser_click`, `mcp__playwright__browser_type`, etc.
-   - Debug: `mcp__playwright__browser_console_messages` to see console errors
+- **Access:** `https://{app-url}/logz` (requires browser OAuth authentication)
+- **Cannot programmatically access** - logs require authenticated session
+- **Error detection:** Check `databricks apps list` for ACTIVE/FAILED status
+- **Dependency conflicts:** Pin packages to exact versions in pyproject.toml
