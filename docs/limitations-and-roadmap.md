@@ -286,6 +286,93 @@ Uses time-proximity linking to match router trace to agent trace within 3-second
 
 ---
 
+## 📈 Automatic Chart Rendering for Data Responses
+
+**Status:** Not Implemented
+**Priority:** Medium
+**Complexity:** Medium
+**Estimated Effort:** 2-3 days
+
+### Goals
+
+Automatically detect and render charts/visualizations when agent returns tabular data or structured data suitable for visualization.
+
+### Current Behavior
+
+- Agent may return data in markdown tables
+- Data displayed as text only
+- User must manually interpret numbers
+- No visual representation
+
+### Desired Behavior
+
+**Automatic Detection:**
+- Parse agent responses for tabular data (markdown tables, JSON arrays, CSV)
+- Detect data patterns (time series, categorical, numerical)
+- Auto-suggest appropriate chart types (line, bar, pie, scatter)
+
+**Smart Rendering:**
+- Show both table and chart side-by-side
+- Allow chart type switching (line ↔ bar ↔ pie)
+- Interactive charts with tooltips, zoom, pan
+- Download chart as image
+
+### Implementation Approach
+
+**Backend Enhancement:**
+```python
+# In handler response processing
+if detect_tabular_data(response):
+    structured_data = extract_table(response)
+    chart_config = suggest_chart_type(structured_data)
+    return {
+        "text": response,
+        "visualization": {
+            "type": "auto",
+            "data": structured_data,
+            "suggested_chart": chart_config
+        }
+    }
+```
+
+**Frontend Enhancement:**
+- Enhance existing ChartRenderer component
+- Add automatic chart type detection
+- Add chart controls (type selector, download)
+- Use existing visualization library (recharts/chart.js)
+
+### Data Sources to Handle
+
+1. **Markdown tables** - Parse with regex/markdown parser
+2. **JSON arrays** - Direct structured data
+3. **CSV inline** - Parse with CSV parser
+4. **SQL results** - Tabular format from python_exec or sql tools
+
+### Chart Types to Support
+
+- **Line charts** - Time series, trends
+- **Bar charts** - Categorical comparisons
+- **Pie charts** - Proportions, percentages
+- **Scatter plots** - Correlations
+- **Area charts** - Cumulative data
+- **Table view** - Always available fallback
+
+### Benefits
+
+- ✅ Better data comprehension
+- ✅ Instant visual insights
+- ✅ Professional presentation
+- ✅ No manual chart creation needed
+- ✅ Matches expectations from other AI tools (ChatGPT, Claude, etc.)
+
+### Related Features
+
+- Table extraction already exists in `table_parser.py`
+- ChartRenderer component already exists
+- Need to connect detection → rendering pipeline
+
+---
+
 ## Related Documentation
 
 - [Chat Storage Implementation](features/chat-storage.md)
