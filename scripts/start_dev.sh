@@ -1,14 +1,35 @@
 #!/bin/bash
 
+BACKEND_PORT=8000
+FRONTEND_PORT=3000
+
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "🚀 Starting Development Servers"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
-echo "Backend (FastAPI):  http://localhost:8000"
-echo "Frontend (Next.js): http://localhost:3000"
+echo "Backend (FastAPI):  http://localhost:$BACKEND_PORT"
+echo "Frontend (Next.js): http://localhost:$FRONTEND_PORT"
 echo ""
 echo "Press Ctrl+C to stop both servers"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+
+# Function to kill process on a port
+kill_port() {
+  local port=$1
+  local pids=$(lsof -ti :$port 2>/dev/null)
+  if [ -n "$pids" ]; then
+    echo "⚠️  Port $port is in use. Killing existing processes..."
+    echo "$pids" | xargs kill -9 2>/dev/null
+    sleep 1
+    echo "✅ Port $port cleared"
+  fi
+}
+
+# Clear ports before starting
+echo "🔍 Checking ports..."
+kill_port $BACKEND_PORT
+kill_port $FRONTEND_PORT
 echo ""
 
 # Load environment variables from .env.local
@@ -34,16 +55,16 @@ fi
 source .venv/bin/activate
 
 # Start FastAPI backend in background
-echo "🔧 Starting FastAPI backend on port 8000..."
-uvicorn server.app:app --reload --port 8000 &
+echo "🔧 Starting FastAPI backend on port $BACKEND_PORT..."
+uvicorn server.app:app --reload --port $BACKEND_PORT &
 BACKEND_PID=$!
 
 # Wait a bit for backend to start
 sleep 3
 
 # Start Next.js frontend in background
-echo "🎨 Starting Next.js frontend on port 3000..."
-cd client && npm run dev &
+echo "🎨 Starting Next.js frontend on port $FRONTEND_PORT..."
+cd client && npm run dev -- -p $FRONTEND_PORT &
 FRONTEND_PID=$!
 
 # Function to cleanup on exit

@@ -7,7 +7,7 @@ import { ChatInput } from "./ChatInput";
 import { FeedbackModal } from "@/components/modals/FeedbackModal";
 import { TraceModal } from "@/components/modals/TraceModal";
 import { FunctionCallNotification } from "@/components/notifications/FunctionCallNotification";
-import { Message, TraceSummary } from "@/lib/types";
+import { Message } from "@/lib/types";
 
 // Dev-only logger
 const devLog = (...args: any[]) => {
@@ -54,7 +54,7 @@ export function ChatView({
     }>;
     userMessage?: string;
     assistantResponse?: string;
-    masFlow?: any; // MAS-specific supervisor/specialist flow
+    masFlow?: any;
   }>({ isOpen: false, traceId: "" });
   const [activeFunctionCalls, setActiveFunctionCalls] = useState<
     Array<{
@@ -67,21 +67,15 @@ export function ChatView({
   >([]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  // Stream management refs
   const abortControllerRef = useRef<AbortController | null>(null);
   const activeStreamChatIdRef = useRef<string | undefined>(undefined);
 
   // Load chat messages when chatId changes
   useEffect(() => {
-    // Check if we're switching to a different chat or starting new
     const isDifferentChat = chatId !== currentSessionId;
 
     if (isDifferentChat) {
-      // Only abort if we're LEAVING a chat (not creating a new one)
-      // If currentSessionId is set, we're switching away from it
       if (currentSessionId) {
-        // Abort any active stream from the previous chat
         if (abortControllerRef.current) {
           devLog("🛑 Aborting stream for previous chat:", currentSessionId);
           abortControllerRef.current.abort();
@@ -90,25 +84,17 @@ export function ChatView({
         activeStreamChatIdRef.current = undefined;
       }
 
-      devLog("🔄 Chat session changed:", {
-        from: currentSessionId,
-        to: chatId,
-      });
+      devLog("🔄 Chat session changed:", { from: currentSessionId, to: chatId });
       setCurrentSessionId(chatId);
 
       if (chatId) {
         devLog("📂 Loading chat history for:", chatId);
         loadChatHistory(chatId);
       } else {
-        // New chat - completely reset state
         devLog("🆕 New chat - resetting all state");
         setMessages([]);
         setIsLoading(false);
-        setFeedbackModal({
-          isOpen: false,
-          messageId: "",
-          feedbackType: "positive",
-        });
+        setFeedbackModal({ isOpen: false, messageId: "", feedbackType: "positive" });
         setTraceModal({ isOpen: false, traceId: "" });
       }
     }
@@ -142,16 +128,12 @@ export function ChatView({
     try {
       const response = await fetch(`/api/chats/${id}`);
 
-      // Check if response is OK
       if (!response.ok) {
-        console.error(
-          `Failed to load chat: ${response.status} ${response.statusText}`,
-        );
+        console.error(`Failed to load chat: ${response.status} ${response.statusText}`);
         setMessages([]);
         return;
       }
 
-      // Check if response is JSON
       const contentType = response.headers.get("content-type");
       if (!contentType || !contentType.includes("application/json")) {
         console.error("Response is not JSON:", contentType);
@@ -161,7 +143,6 @@ export function ChatView({
 
       const chat = await response.json();
 
-      // Restore the agent for this chat
       if (chat.agent_id && onAgentChange) {
         devLog("🔄 Restoring agent for chat:", chat.agent_id);
         onAgentChange(chat.agent_id);
@@ -170,7 +151,6 @@ export function ChatView({
       const loadedMessages = chat.messages.map((msg: any) => ({
         ...msg,
         timestamp: new Date(msg.timestamp),
-        // Map backend snake_case to frontend camelCase
         traceId: msg.trace_id,
         traceSummary: msg.trace_summary,
       }));
@@ -187,16 +167,11 @@ export function ChatView({
     if (!content.trim()) return;
 
     devLog("📤 Sending message:", content);
-    devLog("🎯 Current state:", {
-      chatId,
-      selectedAgentId,
-      hasOnChatIdChange: !!onChatIdChange,
-    });
 
-    // Create new AbortController for this request
     const abortController = new AbortController();
     abortControllerRef.current = abortController;
 
+    // Add user message to UI immediately
     const userMessage: Message = {
       id: `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       role: "user",
@@ -206,217 +181,96 @@ export function ChatView({
 
     setMessages((prev) => [...prev, userMessage]);
     setIsLoading(true);
+    setActiveFunctionCalls([]);
 
-    // Create assistant message ID (but don't add to messages yet - wait for first stream event)
     const assistantMessageId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     let assistantMessageCreated = false;
-    devLog("💬 Prepared message ID:", assistantMessageId);
-
-    // Declare variables outside try block so they're accessible in finally
-    let activeChatId: string | undefined = chatId;
     let streamedContent = "";
-    let traceId = "";
-    let traceSummary: TraceSummary | null = null;
-    // Track function calls locally during streaming (not state - state updates are async!)
-    const collectedFunctionCalls: Array<{
-      call_id: string;
-      name: string;
-      arguments?: any;
-      output?: any;
-    }> = [];
+    let activeChatId = chatId;
 
     try {
-      // If no chatId, we need to create a new chat first
-      if (!activeChatId) {
-        devLog("📝 Creating new chat with agent:", selectedAgentId);
-        const createResponse = await fetch("/api/chats", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            title: content.slice(0, 50),
-            agent_id: selectedAgentId, // Save the agent with the chat
-          }),
-        });
-
-        if (!createResponse.ok) {
-          throw new Error(`Failed to create chat: ${createResponse.status}`);
-        }
-
-        const newChat = await createResponse.json();
-        activeChatId = newChat.id;
-        devLog(
-          "✅ Created new chat:",
-          activeChatId,
-          "with agent:",
-          selectedAgentId,
-        );
-
-        // Update internal session ID immediately to prevent reset
-        setCurrentSessionId(activeChatId);
-
-        // Update parent component with new chatId
-        if (activeChatId && onChatIdChange) {
-          onChatIdChange(activeChatId);
-        }
-      }
-
-      if (!activeChatId) {
-        throw new Error("No chat ID available");
-      }
-
-      // Capture the chatId for this stream (frozen for validation)
-      const streamChatId = activeChatId;
-      activeStreamChatIdRef.current = streamChatId;
-      devLog("🎯 Stream chatId locked:", streamChatId);
-
-      // Clear any previous function call notifications
-      setActiveFunctionCalls([]);
-
-      devLog(
-        "🔌 Calling /api/invoke_endpoint with chatId:",
-        activeChatId,
-        "agentId:",
-        selectedAgentId,
-      );
-
-      // Development: Call backend directly to avoid Next.js dev server buffering the stream
-      // Production: Use relative URL (same origin - FastAPI serves both frontend and API)
+      // Call invoke_endpoint - backend handles chat creation if needed
       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "";
       const response = await fetch(`${backendUrl}/api/invoke_endpoint`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           agent_id: selectedAgentId,
+          chat_id: chatId, // Will be null for new chats - backend creates one
           messages: [...messages, userMessage].map((m) => ({
             role: m.role,
             content: m.content,
           })),
-          stream: true, // Enable streaming
         }),
         signal: abortController.signal,
       });
 
-      devLog(
-        "📡 Response status:",
-        response.status,
-        "Content-Type:",
-        response.headers.get("Content-Type"),
-      );
-
       if (!response.ok) {
         const errorText = await response.text();
-        console.error("API error:", errorText);
         throw new Error(`API returned ${response.status}: ${errorText}`);
       }
-
-      // Streaming response handling
-      console.log(`[Stream] Starting response from agent: ${selectedAgentId}`);
-
-      devLog("🌊 STREAMING: About to start reading stream");
-      devLog("🌊 STREAMING: response.body exists?", !!response.body);
 
       const reader = response.body?.getReader();
       const decoder = new TextDecoder();
 
       if (!reader) {
-        console.error("❌ STREAMING: No reader from response body!");
         throw new Error("No response body");
       }
 
-      devLog("🌊 STREAMING: Reader created successfully");
-      devLog("📖 Starting to read stream...");
-
       let buffer = "";
-      // streamedContent, traceId, traceSummary now declared outside try block
       let lastUpdateTime = 0;
-      const UPDATE_INTERVAL = 50; // Update UI every 50ms for smooth streaming
+      const UPDATE_INTERVAL = 50;
 
       try {
-        devLog("🌊 STREAMING: Entering read loop");
-        let chunkCount = 0;
         while (true) {
           const { done, value } = await reader.read();
-          if (done) {
-            devLog("🌊 STREAMING: Stream done");
-            break;
-          }
-
-          chunkCount++;
-          devLog(`🌊 STREAMING: Chunk ${chunkCount}, bytes:`, value?.length);
+          if (done) break;
 
           buffer += decoder.decode(value, { stream: true });
           const lines = buffer.split("\n");
-          devLog(`🌊 STREAMING: Split into ${lines.length} lines`);
-
-          // Keep the last incomplete line in the buffer
           buffer = lines.pop() || "";
 
           for (const line of lines) {
-            // Skip empty lines
-            if (!line.trim()) continue;
-
-            // Skip lines that don't start with data:
-            if (!line.startsWith("data: ")) continue;
+            if (!line.trim() || !line.startsWith("data: ")) continue;
 
             const data = line.slice(6).trim();
-
-            // Skip empty data after extraction
-            if (!data) continue;
-
-            // Detect HTML responses (error indicators)
-            if (data.startsWith("<") || data.startsWith("<!DOCTYPE")) {
-              console.error(
-                "❌ CLIENT: Received HTML instead of JSON:",
-                data.substring(0, 200),
-              );
-              continue;
-            }
-
-            // Log raw data for trace.summary events
-            if (data.includes("trace.summary")) {
-              devLog("🔍 RAW TRACE.SUMMARY LINE:", data.substring(0, 200));
-            }
-
-            if (data === "[DONE]") {
-              devLog("Stream completed");
-              continue;
-            }
+            if (!data || data === "[DONE]") continue;
 
             try {
               const event = JSON.parse(data);
               devLog("📨 Received event:", event.type);
 
-              // Log trace.summary events in detail
-              if (event.type === "trace.summary") {
-                devLog("🎯 TRACE SUMMARY EVENT RECEIVED:", event);
+              // Handle chat.created - backend created a new chat for us
+              if (event.type === "chat.created") {
+                activeChatId = event.chat_id;
+                devLog("✅ Backend created chat:", activeChatId);
+
+                setCurrentSessionId(activeChatId);
+                activeStreamChatIdRef.current = activeChatId;
+
+                if (activeChatId && onChatIdChange) {
+                  onChatIdChange(activeChatId);
+                }
+                continue;
               }
 
-              // Handle text deltas
+              // Handle text deltas - update UI in real-time
               if (event.type === "response.output_text.delta") {
                 streamedContent += event.delta;
 
-                // Validate stream is still for current chat
-                if (activeStreamChatIdRef.current !== streamChatId) {
-                  devLog(
-                    "⚠️ Ignoring text delta from old stream (chat switched)",
-                  );
-                  continue;
-                }
-
-                // Create assistant message on first delta
                 if (!assistantMessageCreated) {
                   assistantMessageCreated = true;
-                  const assistantMessage: Message = {
-                    id: assistantMessageId,
-                    role: "assistant",
-                    content: streamedContent,
-                    timestamp: new Date(),
-                  };
-                  setMessages((prev) => [...prev, assistantMessage]);
-                  devLog("✨ Created assistant message on first stream");
+                  setMessages((prev) => [
+                    ...prev,
+                    {
+                      id: assistantMessageId,
+                      role: "assistant",
+                      content: streamedContent,
+                      timestamp: new Date(),
+                    },
+                  ]);
                   lastUpdateTime = Date.now();
                 } else {
-                  // Throttle updates: only update UI every UPDATE_INTERVAL ms
                   const now = Date.now();
                   if (now - lastUpdateTime >= UPDATE_INTERVAL) {
                     setMessages((prev) =>
@@ -431,59 +285,14 @@ export function ChatView({
                 }
               }
 
-              // Handle client_request_id from backend (for MLflow trace linking)
-              if (event.type === "trace.client_request_id") {
-                traceId = event.client_request_id;
-                devLog("📋 Received client_request_id for trace:", traceId);
-              }
-
-              // Handle trace ID (legacy - keeping for backward compatibility)
-              if (event.id && !traceId) {
-                traceId = event.id;
-              }
-
-              // Handle completed items (for final text and function calls)
+              // Handle function calls - for real-time notification UI
               if (event.type === "response.output_item.done") {
                 const item = event.item;
 
-                // Handle function call start
                 if (item?.type === "function_call") {
                   devLog("🔧 Function call started:", item.name);
+                  const args = parseJsonField(item.arguments);
 
-                  // Parse arguments intelligently: try JSON if it looks like JSON, otherwise keep as-is
-                  let args = item.arguments || {};
-                  if (typeof item.arguments === "string") {
-                    const trimmed = item.arguments.trim();
-                    // Check if string looks like JSON (starts with { or [)
-                    if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
-                      try {
-                        args = JSON.parse(item.arguments);
-                        devLog("   Parsed arguments as JSON");
-                      } catch {
-                        // Not valid JSON despite looking like it, keep as string
-                        devLog(
-                          "   Arguments look like JSON but failed to parse, keeping as string",
-                        );
-                        args = { raw: item.arguments };
-                      }
-                    } else {
-                      // Plain string arguments, wrap in object
-                      devLog("   Plain string arguments:", item.arguments);
-                      args = { raw: item.arguments };
-                    }
-                  } else if (item.arguments) {
-                    // Already an object
-                    args = item.arguments;
-                  }
-
-                  // Add to local collected list (for saving to backend)
-                  collectedFunctionCalls.push({
-                    call_id: item.call_id,
-                    name: item.name,
-                    arguments: args,
-                  });
-
-                  // Also update state (for real-time notifications UI)
                   setActiveFunctionCalls((prev) => [
                     ...prev,
                     {
@@ -495,88 +304,38 @@ export function ChatView({
                   ]);
                 }
 
-                // Handle function call output
                 if (item?.type === "function_call_output") {
                   devLog("✅ Function call completed:", item.call_id);
+                  const output = parseJsonField(item.output);
 
-                  // Parse output intelligently: try JSON if it looks like JSON, otherwise keep as-is
-                  let output = item.output || {};
-                  if (typeof item.output === "string") {
-                    const trimmed = item.output.trim();
-                    // Check if string looks like JSON (starts with { or [)
-                    if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
-                      try {
-                        output = JSON.parse(item.output);
-                        devLog("   Parsed output as JSON");
-                      } catch {
-                        // Not valid JSON despite looking like it, keep as string
-                        devLog(
-                          "   Output looks like JSON but failed to parse, keeping as string",
-                        );
-                        output = { message: item.output };
-                      }
-                    } else {
-                      // Plain string (e.g., MAS handoff message), wrap in object
-                      devLog(
-                        "   Plain string output (MAS handoff):",
-                        item.output,
-                      );
-                      output = { message: item.output };
-                    }
-                  } else if (item.output) {
-                    // Already an object
-                    output = item.output;
-                  }
-
-                  // Update local collected list with output
-                  const fcIndex = collectedFunctionCalls.findIndex(
-                    (fc) => fc.call_id === item.call_id,
-                  );
-                  if (fcIndex !== -1) {
-                    collectedFunctionCalls[fcIndex].output = output;
-                  }
-
-                  // Also update state (for real-time notifications UI)
                   setActiveFunctionCalls((prev) =>
                     prev.map((fc) =>
                       fc.call_id === item.call_id
-                        ? {
-                            ...fc,
-                            output: output,
-                            status: "completed" as const,
-                          }
+                        ? { ...fc, output, status: "completed" as const }
                         : fc,
                     ),
                   );
                 }
 
-                // Update final text if available
-                if (item?.type === "message" && item.content) {
+                // Handle final message content - only use if no deltas were received
+                // (for MAS, deltas are the source of truth as done events may have duplicated content)
+                if (item?.type === "message" && item.content && !streamedContent) {
                   const textContent = item.content.find(
                     (c: any) => c.type === "output_text",
                   );
                   if (textContent?.text) {
                     streamedContent = textContent.text;
-
-                    // Validate stream is still for current chat
-                    if (activeStreamChatIdRef.current !== streamChatId) {
-                      devLog(
-                        "⚠️ Ignoring final text from old stream (chat switched)",
-                      );
-                      continue;
-                    }
-
-                    // Ensure assistant message exists
                     if (!assistantMessageCreated) {
                       assistantMessageCreated = true;
-                      const assistantMessage: Message = {
-                        id: assistantMessageId,
-                        role: "assistant",
-                        content: streamedContent,
-                        timestamp: new Date(),
-                      };
-                      setMessages((prev) => [...prev, assistantMessage]);
-                      devLog("✨ Created assistant message from complete text");
+                      setMessages((prev) => [
+                        ...prev,
+                        {
+                          id: assistantMessageId,
+                          role: "assistant",
+                          content: streamedContent,
+                          timestamp: new Date(),
+                        },
+                      ]);
                     } else {
                       setMessages((prev) =>
                         prev.map((msg) =>
@@ -589,194 +348,47 @@ export function ChatView({
                   }
                 }
               }
-
-              // Handle trace summary
-              if (event.type === "trace.summary") {
-                traceSummary = event.traceSummary;
-
-                devLog(
-                  "📊 Received trace summary for message:",
-                  assistantMessageId,
-                );
-                devLog("   Trace ID:", traceSummary?.trace_id);
-                devLog(
-                  "   Function calls in summary:",
-                  traceSummary?.function_calls?.length || 0,
-                );
-                devLog(
-                  "   Collected function calls:",
-                  collectedFunctionCalls.length,
-                );
-
-                // IMPORTANT: Merge our collected function calls into trace summary
-                // Databricks may not send detailed function_calls in trace.summary,
-                // but we collected them during streaming for notifications
-                if (traceSummary && collectedFunctionCalls.length > 0) {
-                  // Map our collected function calls to the expected format
-                  traceSummary.function_calls = collectedFunctionCalls.map(
-                    (fc) => ({
-                      call_id: fc.call_id,
-                      name: fc.name,
-                      arguments: fc.arguments || {},
-                      output: fc.output || {},
-                    }),
-                  );
-                  devLog(
-                    "✅ Merged collected function calls into trace summary:",
-                    traceSummary.function_calls.length,
-                  );
-                }
-
-                // Validate stream is still for current chat
-                if (activeStreamChatIdRef.current !== streamChatId) {
-                  devLog(
-                    "⚠️ Ignoring trace summary from old stream (chat switched)",
-                  );
-                  continue;
-                }
-
-                // Ensure assistant message exists before updating trace
-                if (!assistantMessageCreated) {
-                  assistantMessageCreated = true;
-                  const assistantMessage: Message = {
-                    id: assistantMessageId,
-                    role: "assistant",
-                    content: streamedContent,
-                    timestamp: new Date(),
-                    traceId: traceSummary?.trace_id || traceId,
-                    traceSummary: traceSummary || undefined,
-                  };
-                  setMessages((prev) => [...prev, assistantMessage]);
-                  devLog("✨ Created assistant message with trace");
-                } else {
-                  // Update ONLY this specific message with trace data
-                  setMessages((prev) =>
-                    prev.map((msg) =>
-                      msg.id === assistantMessageId
-                        ? {
-                            ...msg,
-                            traceId: traceSummary?.trace_id || traceId,
-                            traceSummary: traceSummary || undefined, // Use the cloned object
-                          }
-                        : msg,
-                    ),
-                  );
-                }
-              }
-            } catch (parseError: any) {
-              // Enhanced error logging for debugging
-              const dataPreview =
-                data.length > 200 ? data.substring(0, 200) + "..." : data;
-
-              if (data.includes("{") || data.includes("[")) {
-                // Looks like JSON but failed to parse
-                console.error(
-                  "❌ CLIENT: JSON parse error:",
-                  parseError.message,
-                );
-                console.error("   Data preview:", dataPreview);
-                console.error("   Full data length:", data.length);
-              } else {
-                // Doesn't look like JSON
-                devLog("⚠️  CLIENT: Skipping non-JSON line:", dataPreview);
-              }
+            } catch (parseError) {
+              // Skip non-JSON lines
             }
           }
         }
 
-        // Final update with all collected data (only if needed)
-        devLog("✅ Stream finished for message:", assistantMessageId);
-        devLog("   Final content length:", streamedContent.length);
-        devLog("   Trace summary:", traceSummary ? "attached" : "none");
-        devLog("   Collected function calls:", collectedFunctionCalls.length);
-
-        // If we have function calls but no trace summary, create a minimal one
-        if (!traceSummary && collectedFunctionCalls.length > 0) {
-          traceSummary = {
-            trace_id: traceId || "",
-            duration_ms: 0,
-            status: "completed",
-            tools_called: [],
-            retrieval_calls: [],
-            llm_calls: [],
-            total_tokens: 0,
-            spans_count: 0,
-            function_calls: collectedFunctionCalls.map((fc) => ({
-              call_id: fc.call_id,
-              name: fc.name,
-              arguments: fc.arguments || {},
-              output: fc.output || {},
-            })),
-          };
-          devLog("✅ Created trace summary from collected function calls");
+        // Final content update
+        if (assistantMessageCreated && streamedContent) {
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === assistantMessageId
+                ? { ...msg, content: streamedContent }
+                : msg,
+            ),
+          );
         }
 
-        // Validate stream is still for current chat before final update
-        if (activeStreamChatIdRef.current !== streamChatId) {
-          devLog(
-            "⚠️ Stream completed but chat already switched - skipping final update",
-          );
-        } else {
-          // Ensure assistant message was created (in case no events triggered creation)
-          if (!assistantMessageCreated && streamedContent) {
-            assistantMessageCreated = true;
-            const assistantMessage: Message = {
-              id: assistantMessageId,
-              role: "assistant",
-              content: streamedContent,
-              timestamp: new Date(),
-              traceId: traceId,
-              traceSummary: traceSummary || undefined,
-            };
-            setMessages((prev) => [...prev, assistantMessage]);
-            devLog("✨ Created assistant message at stream end");
-          } else if (assistantMessageCreated) {
-            // Update existing message with final data
-            setMessages((prev) =>
-              prev.map((msg) => {
-                if (msg.id !== assistantMessageId) {
-                  return msg; // Don't modify other messages
-                }
-
-                return {
-                  ...msg,
-                  content: streamedContent || msg.content,
-                  traceId: traceId || msg.traceId,
-                  traceSummary: traceSummary || msg.traceSummary,
-                };
-              }),
-            );
-          }
+        // Reload chat from backend to get stored messages with trace_id
+        if (activeChatId) {
+          devLog("📂 Reloading chat to get trace data:", activeChatId);
+          await loadChatHistory(activeChatId);
         }
       } finally {
         reader.releaseLock();
       }
     } catch (error) {
-      // Handle AbortError gracefully (user switched chats)
       if (error instanceof Error && error.name === "AbortError") {
         devLog("✅ Stream aborted cleanly - user switched chats");
-        // Remove any temporary assistant message created before abort
         if (assistantMessageCreated) {
-          setMessages((prev) =>
-            prev.filter((msg) => msg.id !== assistantMessageId),
-          );
+          setMessages((prev) => prev.filter((msg) => msg.id !== assistantMessageId));
         }
-        return; // Don't show error to user
+        return;
       }
 
-      // Handle real errors
       console.error("❌ Failed to send message:", error);
 
-      // Remove the temporary assistant message on error (if it was created)
       if (assistantMessageCreated) {
-        setMessages((prev) =>
-          prev.filter((msg) => msg.id !== assistantMessageId),
-        );
+        setMessages((prev) => prev.filter((msg) => msg.id !== assistantMessageId));
       }
 
-      // Show detailed error message
-      const errorMessage =
-        error instanceof Error ? error.message : "Unknown error";
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
       setMessages((prev) => [
         ...prev,
         {
@@ -788,38 +400,7 @@ export function ChatView({
       ]);
     } finally {
       setIsLoading(false);
-      // Clear abort controller ref
       abortControllerRef.current = null;
-
-      // Save messages to backend after streaming completes
-      // This ensures chat history persists when switching between conversations
-      if (activeChatId && assistantMessageCreated && streamedContent) {
-        try {
-          devLog("💾 Saving messages to backend for chat:", activeChatId);
-          await fetch(`/api/chats/${activeChatId}/messages`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              messages: [
-                {
-                  role: "user",
-                  content: userMessage.content,
-                },
-                {
-                  role: "assistant",
-                  content: streamedContent,
-                  trace_id: traceId,
-                  trace_summary: traceSummary,
-                },
-              ],
-            }),
-          });
-          devLog("✅ Messages saved to backend");
-        } catch (saveError) {
-          console.error("Failed to save messages to backend:", saveError);
-          // Don't throw - this is a background save operation
-        }
-      }
     }
   };
 
@@ -828,15 +409,12 @@ export function ChatView({
   };
 
   const handleTrace = (messageId: string) => {
-    // Find the specific message by its unique ID
     const message = messages.find((m) => m.id === messageId);
-
     if (!message) {
       console.error("❌ Message not found:", messageId);
       return;
     }
 
-    // Find the user message that came before this assistant message
     const messageIndex = messages.findIndex((m) => m.id === messageId);
     let userMessage = "";
     for (let i = messageIndex - 1; i >= 0; i--) {
@@ -846,18 +424,13 @@ export function ChatView({
       }
     }
 
-    const traceId = message.traceId || "";
-    const functionCalls = message.traceSummary?.function_calls;
-    const masFlow = message.traceSummary?.mas_flow;
-    const assistantResponse = message.content;
-
     setTraceModal({
       isOpen: true,
-      traceId,
-      functionCalls: functionCalls,
+      traceId: message.traceId || "",
+      functionCalls: message.traceSummary?.function_calls,
       userMessage,
-      assistantResponse,
-      masFlow,
+      assistantResponse: message.content,
+      masFlow: message.traceSummary?.mas_flow,
     });
   };
 
@@ -867,33 +440,19 @@ export function ChatView({
     if (!message?.traceId) {
       console.error("No trace ID for message:", feedbackModal.messageId);
       toast.error("Cannot submit feedback: No trace ID found");
-      setFeedbackModal({
-        isOpen: false,
-        messageId: "",
-        feedbackType: "positive",
-      });
+      setFeedbackModal({ isOpen: false, messageId: "", feedbackType: "positive" });
       return;
     }
 
     if (!selectedAgentId) {
       console.error("No agent selected");
       toast.error("Cannot submit feedback: No agent selected");
-      setFeedbackModal({
-        isOpen: false,
-        messageId: "",
-        feedbackType: "positive",
-      });
+      setFeedbackModal({ isOpen: false, messageId: "", feedbackType: "positive" });
       return;
     }
 
-    // ⚡ OPTIMISTIC UI: Close modal immediately for instant feedback
-    setFeedbackModal({
-      isOpen: false,
-      messageId: "",
-      feedbackType: "positive",
-    });
+    setFeedbackModal({ isOpen: false, messageId: "", feedbackType: "positive" });
 
-    // Submit feedback in background
     try {
       const feedbackValue = feedbackModal.feedbackType === "positive";
 
@@ -915,7 +474,6 @@ export function ChatView({
       }
 
       devLog("✅ Feedback logged successfully");
-      // Silent success - no toast needed, modal already closed
     } catch (error) {
       console.error("Failed to log feedback:", error);
       toast.error("Failed to submit feedback. Please try again.");
@@ -924,7 +482,6 @@ export function ChatView({
 
   return (
     <div className="flex flex-col h-full bg-transparent">
-      {/* Messages Container - Scrollable */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden pb-6 bg-transparent">
         <MessageList
           messages={messages}
@@ -936,7 +493,6 @@ export function ChatView({
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Chat Input - Fixed at bottom */}
       <div className="flex-shrink-0 border-t border-[var(--color-border)]/20 bg-[var(--color-background-1)]/95 backdrop-blur-sm">
         <ChatInput
           onSendMessage={sendMessage}
@@ -947,7 +503,6 @@ export function ChatView({
         />
       </div>
 
-      {/* Modals */}
       <FeedbackModal
         isOpen={feedbackModal.isOpen}
         onClose={() => setFeedbackModal((prev) => ({ ...prev, isOpen: false }))}
@@ -965,12 +520,29 @@ export function ChatView({
         masFlow={traceModal.masFlow}
       />
 
-      {/* Function Call Notification */}
       <FunctionCallNotification
         functionCalls={activeFunctionCalls}
         onDismiss={() => setActiveFunctionCalls([])}
         autoHideDuration={5000}
+        isProcessing={isLoading}
+        agentName={selectedAgentId}
       />
     </div>
   );
+}
+
+// Helper function to parse JSON fields
+function parseJsonField(value: any): any {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+      try {
+        return JSON.parse(value);
+      } catch {
+        return { raw: value };
+      }
+    }
+    return { raw: value };
+  }
+  return value || {};
 }

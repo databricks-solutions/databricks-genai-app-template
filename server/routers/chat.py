@@ -1,121 +1,110 @@
-"""Chat management endpoints for creating and managing chat sessions."""
+"""Chat management endpoints for managing chat sessions.
+
+All endpoints are scoped to the current authenticated user.
+Chat creation and message storage is handled by /invoke_endpoint.
+"""
 
 import logging
-import uuid
-from datetime import datetime
 from typing import Optional
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 from fastapi.responses import Response
 from pydantic import BaseModel
 
-from ..chat_storage import Message, storage
+from ..auth.user_service import get_current_user
+from ..chat_storage import storage
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-class CreateChatRequest(BaseModel):
-  """Request to create a new chat."""
+class UpdateChatRequest(BaseModel):
+  """Request to update a chat."""
 
-  title: Optional[str] = 'New Chat'
-  agent_id: Optional[str] = None
-
-
-class AddMessageRequest(BaseModel):
-  """Request to add messages to a chat."""
-
-  messages: list[dict]  # List of {role, content}
+  title: Optional[str] = None
 
 
 @router.get('/chats')
-async def get_all_chats():
-  """Get all chats sorted by updated_at (newest first).
+async def get_all_chats(request: Request):
+  """Get all chats for the current user sorted by updated_at (newest first).
 
   Returns list of chat objects with messages.
   """
-  logger.info('Fetching all chats')
-  chats = storage.get_all()
-  logger.info(f'Retrieved {len(chats)} chats')
+  user_email = await get_current_user(request)
+  user_storage = storage.get_storage_for_user(user_email)
+
+  logger.info(f'Fetching all chats for user: {user_email}')
+  chats = user_storage.get_all()
+  logger.info(f'Retrieved {len(chats)} chats for user: {user_email}')
 
   # Convert to dict for JSON serialization
   return [chat.dict() for chat in chats]
 
 
-@router.post('/chats')
-async def create_new_chat(request: CreateChatRequest):
-  """Create a new chat session.
-
-  If 10 chats already exist, deletes the oldest chat.
-  """
-  logger.info(f'Creating new chat: title="{request.title}", agent_id={request.agent_id}')
-
-  chat = storage.create(title=request.title, agent_id=request.agent_id)
-
-  logger.info(f'Chat created: {chat.id}')
-  return chat.dict()
-
-
 @router.get('/chats/{chat_id}')
-async def get_chat_by_id(chat_id: str):
-  """Get specific chat by ID with all messages."""
-  logger.info(f'Fetching chat: {chat_id}')
+async def get_chat_by_id(request: Request, chat_id: str):
+  """Get specific chat by ID for the current user."""
+  user_email = await get_current_user(request)
+  user_storage = storage.get_storage_for_user(user_email)
 
-  chat = storage.get(chat_id)
+  logger.info(f'Fetching chat {chat_id} for user: {user_email}')
+
+  chat = user_storage.get(chat_id)
   if not chat:
-    logger.warning(f'Chat not found: {chat_id}')
+    logger.warning(f'Chat not found: {chat_id} for user: {user_email}')
     return Response(content=f'Chat {chat_id} not found', status_code=404)
 
-  logger.info(f'Retrieved chat {chat_id} with {len(chat.messages)} messages')
+  logger.info(f'Retrieved chat {chat_id} with {len(chat.messages)} messages for user: {user_email}')
   return chat.dict()
 
 
-@router.post('/chats/{chat_id}/messages')
-async def add_messages_to_chat(chat_id: str, request: AddMessageRequest):
-  """Add messages to an existing chat."""
-  logger.info(f'Adding {len(request.messages)} messages to chat: {chat_id}')
+@router.patch('/chats/{chat_id}')
+async def update_chat(request: Request, chat_id: str, body: UpdateChatRequest):
+  """Update a chat (e.g., rename title) for the current user."""
+  user_email = await get_current_user(request)
+  user_storage = storage.get_storage_for_user(user_email)
 
-  chat = storage.get(chat_id)
+  logger.info(f'Updating chat {chat_id} for user: {user_email}')
+
+  chat = user_storage.get(chat_id)
   if not chat:
-    logger.warning(f'Chat not found: {chat_id}')
+    logger.warning(f'Chat not found: {chat_id} for user: {user_email}')
     return Response(content=f'Chat {chat_id} not found', status_code=404)
 
-  # Add each message
-  for msg_data in request.messages:
-    message = Message(
-      id=f'msg_{uuid.uuid4().hex[:12]}',
-      role=msg_data['role'],
-      content=msg_data['content'],
-      timestamp=datetime.now(),
-      trace_id=msg_data.get('trace_id'),  # Optional trace ID from MLflow
-      trace_summary=msg_data.get('trace_summary'),  # Optional trace summary data
-    )
-    storage.add_message(chat_id, message)
+  # Update title if provided
+  if body.title is not None:
+    chat.title = body.title
+    logger.info(f'Updated chat {chat_id} title to: {body.title}')
 
-  logger.info(f'Added messages to chat {chat_id}, now has {len(chat.messages)} total messages')
-  return {'success': True, 'message_count': len(chat.messages)}
+  return chat.dict()
 
 
 @router.delete('/chats/{chat_id}')
-async def delete_chat_by_id(chat_id: str):
-  """Delete specific chat by ID."""
-  logger.info(f'Deleting chat: {chat_id}')
+async def delete_chat_by_id(request: Request, chat_id: str):
+  """Delete specific chat by ID for the current user."""
+  user_email = await get_current_user(request)
+  user_storage = storage.get_storage_for_user(user_email)
 
-  success = storage.delete(chat_id)
+  logger.info(f'Deleting chat {chat_id} for user: {user_email}')
+
+  success = user_storage.delete(chat_id)
   if not success:
-    logger.warning(f'Chat not found for deletion: {chat_id}')
+    logger.warning(f'Chat not found for deletion: {chat_id} for user: {user_email}')
     return Response(content=f'Chat {chat_id} not found', status_code=404)
 
-  logger.info(f'Chat deleted: {chat_id}')
+  logger.info(f'Chat deleted: {chat_id} for user: {user_email}')
   return {'success': True, 'deleted_chat_id': chat_id}
 
 
 @router.delete('/chats')
-async def clear_all_chats():
-  """Delete all chats."""
-  logger.info('Clearing all chats')
+async def clear_all_chats(request: Request):
+  """Delete all chats for the current user."""
+  user_email = await get_current_user(request)
+  user_storage = storage.get_storage_for_user(user_email)
 
-  count = storage.clear_all()
+  logger.info(f'Clearing all chats for user: {user_email}')
 
-  logger.info(f'Cleared {count} chats')
+  count = user_storage.clear_all()
+
+  logger.info(f'Cleared {count} chats for user: {user_email}')
   return {'success': True, 'deleted_count': count}

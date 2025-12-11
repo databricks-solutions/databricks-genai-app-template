@@ -94,18 +94,35 @@ class ConfigLoader:
     return self._about_config
 
   def get_agent_by_id(self, agent_id: str) -> Optional[Dict[str, Any]]:
-    """Get a specific agent configuration by ID.
+    """Get a specific agent configuration by ID or endpoint_name.
+
+    Supports both formats:
+    - New format: {"endpoint_name": "mas-xxx-endpoint", ...}
+    - Legacy format: {"id": "agent-id", ...}
 
     Args:
-        agent_id: The agent ID to look up
+        agent_id: The agent ID or endpoint_name to look up
 
     Returns:
-        Agent configuration dict, or None if not found
+        Agent configuration dict with endpoint_name, or None if not found
     """
     agents = self.agents_config.get('agents', [])
     for agent in agents:
-      if agent.get('id') == agent_id:
-        return agent
+      # Handle string format (legacy - just endpoint name)
+      if isinstance(agent, str):
+        if agent == agent_id:
+          return {'endpoint_name': agent}
+        continue
+
+      # Handle object format
+      # Match by endpoint_name (new format) or id (legacy)
+      if agent.get('endpoint_name') == agent_id or agent.get('id') == agent_id:
+        # Ensure endpoint_name is always set
+        result = dict(agent)
+        if 'endpoint_name' not in result and 'id' in result:
+          result['endpoint_name'] = result['id']
+        return result
+
     return None
 
   def reload(self):

@@ -11,15 +11,15 @@
  */
 
 :root {
-  /* Minimal color fallbacks - match themes.ts default-dark (isDefault: true) */
+  /* Minimal color fallbacks - match themes.ts default (isDefault: true) */
   /* These are overridden immediately by ThemeContext on app load */
-  --color-text-heading: #ffffff;
-  --color-text-primary: #e5e5e5;
-  --color-text-muted: #b3b3b3;
-  --color-accent-primary: #4c809a;
-  --color-bg-primary: #141414;
-  --color-bg-secondary: #111922;
-  --color-border: #333333;
+  --color-text-heading: #1B3139;
+  --color-text-primary: #2D4A54;
+  --color-text-muted: #6B7C84;
+  --color-accent-primary: #1B3139;
+  --color-bg-primary: #F9F7F4;
+  --color-bg-secondary: #EEEDE9;
+  --color-border: #B5B3AD;
 
   /* Status colors - semantic meaning */
   --color-success: #46d369;

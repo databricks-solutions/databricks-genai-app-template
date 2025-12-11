@@ -1,72 +1,26 @@
 {
   "agents": [
     {
-      "id": "databricks-agent-01",
-      "name": "ags-mro-agent",
-      "deployment_type": "databricks-endpoint",
-      "endpoint_name": "agents_thales-ags_mro-ags-mro-agent-4",
-      "display_name": "AGS MRO Agent",
-      "display_description": "Monitor, analyze and improve MRO & Reliability operations across sites and airlines.",
-      "chat_title": "Wingman.ai",
-      "chat_subtitle": "Start a conversation to analyze Thales MRO & Reliability operations and metrics accross sites & fleets.",
-      "llm": "databricks-claude-sonnet-4/",
-      "tools": [
-        {
-          "display_name": "MRO Weekly Metrics",
-          "type": "Genie Room",
-          "display_description": "Weekly metrics per repair site, airline and part number family. Including AOG hours, TAT days, SLA risk scores, and more.",
-          "url": "https://adb-984752964297111.11.azuredatabricks.net/genie/rooms/01f0c482e842191587af6a40ad4044d8?o=984752964297111"
-        },
-        {
-          "display_name": "MRO Projections",
-          "type": "Genie Room",
-          "display_description": "Projections on AOG hours and percentage of repairs completed within SLAs, according to changes in PN stock changes and/or or TAT reduction, per repair site.",
-          "url": "https://adb-984752964297111.11.azuredatabricks.net/genie/rooms/01f0c4834b771b25a781884404c4af77?o=984752964297111"
-        },
-        {
-          "display_name": "Tech Notes",
-          "type": "Vector Search",
-          "display_description": "Previous repair notes and failure analysis from reliability teams.",
-          "url": "https://adb-984752964297111.11.azuredatabricks.net/explore/data/thales/ags_vx/idx_mro_notes?o=984752964297111&activeTab=sample"
-        },
-        {
-          "display_name": "Python Exec",
-          "type": "Function",
-          "display_description": "Python code generation and execution. The agent will use this whenever is relevant to the user query. All code will run in an isolated environment.",
-          "url": "https://adb-984752964297111.11.azuredatabricks.net/explore/data/functions/system/ai/python_exec?o=984752964297111"
-        }
-      ],
-      "mlflow_experiment_id": "2640373444635244",
-      "mlflow_experiment_url": "https://adb-984752964297111.11.azuredatabricks.net/ml/experiments/2640373444635244/traces?o=984752964297111",
-      "mlflow_traces_url": "https://adb-984752964297111.11.azuredatabricks.net/ml/experiments/2640373444635244/traces?o=984752964297111"
+      "endpoint_name": "mas-209415fd-endpoint"
     },
     {
-      "id": "databricks-mas-02",
-      "name": "ags-mro-agent-bricks-mas",
-      "deployment_type": "agent-bricks-mas",
-      "endpoint_name": "mas-c58a2ef5-endpoint",
-      "display_name": "Agent Bricks MAS - MRO Agent",
-      "display_description": "Monitor, analyze and improve MRO & Reliability operations across sites and airlines.",
-      "chat_title": "Agent Bricks MRO Agent",
-      "chat_subtitle": "Start a conversation to analyze Thales MRO & Reliability operations and metrics accross sites & fleets.",
-      "llm": "",
+      "endpoint_name": "my-custom-agent-endpoint",
+      "display_name": "Custom Sales Agent",
+      "display_description": "A custom agent that helps with sales forecasting and pipeline analysis.",
       "tools": [
         {
-          "display_name": "MRO Weekly Metrics",
-          "type": "Genie Room",
-          "display_description": "Weekly metrics per repair site, airline and part number family. Including AOG hours, TAT days, SLA risk scores, and more.",
-          "url": "https://adb-984752964297111.11.azuredatabricks.net/genie/rooms/01f0c482e842191587af6a40ad4044d8?o=984752964297111"
+          "name": "sales_forecast",
+          "display_name": "Sales Forecaster",
+          "description": "Predicts future sales based on historical data and market trends",
+          "type": "function"
         },
         {
-          "display_name": "Python Exec",
-          "type": "Function",
-          "display_description": "Python code generation and execution. The agent will use this whenever is relevant to the user query. All code will run in an isolated environment.",
-          "url": "https://adb-984752964297111.11.azuredatabricks.net/explore/data/functions/system/ai/python_exec?o=984752964297111"
+          "name": "pipeline_analyzer",
+          "display_name": "Pipeline Analyzer",
+          "description": "Analyzes your sales pipeline and identifies bottlenecks",
+          "type": "function"
         }
-      ],
-      "mlflow_experiment_id": "78886706908448",
-      "mlflow_experiment_url": "https://adb-984752964297111.11.azuredatabricks.net/ml/experiments/78886706908448/traces?o=984752964297111",
-      "mlflow_traces_url": "https://adb-984752964297111.11.azuredatabricks.net/ml/experiments/78886706908448/traces?o=984752964297111"
+      ]
     }
   ]
 }

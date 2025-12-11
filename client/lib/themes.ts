@@ -67,7 +67,7 @@ export const PREDEFINED_THEMES: PredefinedTheme[] = [
     id: "default",
     name: "Default Light",
     description: "Clean light theme with navy and warm neutrals",
-    isDefault: false,
+    isDefault: true,
     colors: {
       // TEXT COLORS
       textHeading: "#1B3139",
@@ -117,7 +117,7 @@ export const PREDEFINED_THEMES: PredefinedTheme[] = [
     id: "default-dark",
     name: "Default Dark",
     description: "Default dark theme with ocean blue branding",
-    isDefault: true,
+    isDefault: false,
     colors: {
       // TEXT COLORS
       textHeading: "#FFFFFF",

@@ -120,26 +120,39 @@ export function TraceModal({
   const getIcon = (type: string) => {
     switch (type) {
       case "llm":
-        return <Brain className="h-5 w-5 text-purple-500" />;
+        return <Brain className="h-4 w-4 text-purple-500" />;
       case "tool":
-        return <Code className="h-5 w-5 text-blue-500" />;
+        return <Code className="h-4 w-4 text-blue-500" />;
       case "retrieval":
-        return <Database className="h-5 w-5 text-green-500" />;
+        return <Database className="h-4 w-4 text-green-500" />;
       default:
-        return <Clock className="h-5 w-5 text-orange-500" />;
+        return <Brain className="h-4 w-4 text-[var(--color-accent)]" />;
+    }
+  };
+
+  const getTypeLabel = (type: string) => {
+    switch (type) {
+      case "llm":
+        return "AI";
+      case "tool":
+        return "Tool";
+      case "retrieval":
+        return "Search";
+      default:
+        return "Step";
     }
   };
 
   const getTypeBadgeColor = (type: string) => {
     switch (type) {
       case "llm":
-        return "bg-purple-500/10 text-purple-600";
+        return "bg-purple-100 text-purple-700";
       case "tool":
-        return "bg-blue-500/10 text-blue-600";
+        return "bg-blue-100 text-blue-700";
       case "retrieval":
-        return "bg-green-500/10 text-green-600";
+        return "bg-green-100 text-green-700";
       default:
-        return "bg-orange-500/10 text-orange-600";
+        return "bg-gray-100 text-gray-600";
     }
   };
 
@@ -181,6 +194,63 @@ export function TraceModal({
     );
   };
 
+  // Helper to check if value is a primitive (string, number, boolean) vs object
+  const isPrimitive = (value: any): boolean => {
+    return (
+      value === null ||
+      value === undefined ||
+      typeof value === "string" ||
+      typeof value === "number" ||
+      typeof value === "boolean"
+    );
+  };
+
+  // Render input/output section handling both primitives and objects
+  const renderDataSection = (data: any, label: string, dotColor: string) => {
+    if (!data) return null;
+
+    // If it's a primitive, render it directly without Object.entries
+    if (isPrimitive(data)) {
+      const formattedValue = formatValue(data);
+      return (
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 mb-1">
+            <div className={`h-1.5 w-1.5 rounded-full ${dotColor}`}></div>
+            <h4 className="text-sm font-medium text-[var(--color-muted-foreground)]">
+              {label}
+            </h4>
+          </div>
+          <div className="bg-[var(--color-background)] rounded-md p-2.5 border border-[var(--color-border)]">
+            <pre className="text-xs text-[var(--color-foreground)] font-mono whitespace-pre-wrap break-words">
+              {formattedValue}
+            </pre>
+          </div>
+        </div>
+      );
+    }
+
+    // If it's an object, check it has keys
+    if (typeof data === "object" && Object.keys(data).length === 0) {
+      return null;
+    }
+
+    return (
+      <div className="space-y-2">
+        <div className="flex items-center gap-2 mb-1">
+          <div className={`h-1.5 w-1.5 rounded-full ${dotColor}`}></div>
+          <h4 className="text-sm font-medium text-[var(--color-muted-foreground)]">
+            {label}
+          </h4>
+        </div>
+        <div className="space-y-2">
+          {Object.entries(data).map(([key, value]) =>
+            renderKeyValue(key, value),
+          )}
+        </div>
+      </div>
+    );
+  };
+
   const renderSpan = (
     span: TraceSpan,
     path: string = "",
@@ -197,12 +267,12 @@ export function TraceModal({
       <div key={spanPath} className={`${depth > 0 ? "ml-8 mt-3" : "mb-4"}`}>
         <div
           className={`
-            relative rounded-xl border-2 overflow-hidden transition-all duration-200
+            relative rounded-xl border overflow-hidden transition-all duration-200
             ${
               hasChildren
                 ? isExpanded
-                  ? "border-[var(--color-accent)] bg-[var(--color-background)] shadow-lg"
-                  : "border-[var(--color-border)] bg-[var(--color-background-secondary)] hover:border-[var(--color-accent)] hover:shadow-md cursor-pointer"
+                  ? "border-[var(--color-accent)]/50 bg-[var(--color-background)] shadow-md"
+                  : "border-[var(--color-border)] bg-[var(--color-background-secondary)] hover:border-[var(--color-accent)]/50 hover:shadow-sm cursor-pointer"
                 : "border-[var(--color-border)] bg-[var(--color-background)]"
             }
           `}
@@ -235,16 +305,16 @@ export function TraceModal({
 
             {/* Name and Type */}
             <div className="flex-1 min-w-0">
-              <div className="font-mono font-bold text-[var(--color-foreground)] truncate">
+              <div className="font-medium text-[var(--color-foreground)] truncate">
                 {span.name}
               </div>
             </div>
 
             {/* Type Badge */}
             <span
-              className={`flex-shrink-0 text-xs font-bold px-3 py-1 rounded-full ${getTypeBadgeColor(span.type)}`}
+              className={`flex-shrink-0 text-xs font-medium px-2.5 py-1 rounded-full ${getTypeBadgeColor(span.type)}`}
             >
-              {span.type.toUpperCase()}
+              {getTypeLabel(span.type)}
             </span>
 
             {/* Duration */}
@@ -260,38 +330,10 @@ export function TraceModal({
           {shouldShowDetails && (span.input || span.output) && (
             <div className="p-5 space-y-4 bg-[var(--color-background)]">
               {/* Input Section */}
-              {span.input && Object.keys(span.input).length > 0 && (
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 pb-2 border-b border-[var(--color-border)]">
-                    <div className="h-1.5 w-1.5 rounded-full bg-blue-500"></div>
-                    <h4 className="text-sm font-bold text-[var(--color-foreground)] uppercase tracking-wide">
-                      Input Parameters
-                    </h4>
-                  </div>
-                  <div className="space-y-2">
-                    {Object.entries(span.input).map(([key, value]) =>
-                      renderKeyValue(key, value),
-                    )}
-                  </div>
-                </div>
-              )}
+              {renderDataSection(span.input, "Input", "bg-blue-400")}
 
               {/* Output Section */}
-              {span.output && Object.keys(span.output).length > 0 && (
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 pb-2 border-b border-[var(--color-border)]">
-                    <div className="h-1.5 w-1.5 rounded-full bg-green-500"></div>
-                    <h4 className="text-sm font-bold text-[var(--color-foreground)] uppercase tracking-wide">
-                      Output Result
-                    </h4>
-                  </div>
-                  <div className="space-y-2">
-                    {Object.entries(span.output).map(([key, value]) =>
-                      renderKeyValue(key, value),
-                    )}
-                  </div>
-                </div>
-              )}
+              {renderDataSection(span.output, "Output", "bg-green-400")}
             </div>
           )}
         </div>
@@ -324,17 +366,17 @@ export function TraceModal({
           {/* Header */}
           <div className="relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-accent)]/10 via-[var(--color-accent)]/5 to-transparent"></div>
-            <div className="relative flex items-center justify-between px-6 py-5 border-b-2 border-[var(--color-border)]">
-              <div className="flex items-center gap-4">
-                <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-[var(--color-accent)] to-[var(--color-accent)]/70 flex items-center justify-center shadow-lg">
-                  <Code className="h-6 w-6 text-white" />
+            <div className="relative flex items-center justify-between px-6 py-4 border-b border-[var(--color-border)]">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-lg bg-[var(--color-accent)]/10 flex items-center justify-center">
+                  <Code className="h-5 w-5 text-[var(--color-accent)]" />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-[var(--color-foreground)]">
-                    Execution Trace
+                  <h2 className="text-xl font-semibold text-[var(--color-foreground)]">
+                    What happened
                   </h2>
                   <p className="text-sm text-[var(--color-muted-foreground)] mt-0.5">
-                    Function calls • Inputs • Outputs
+                    See the steps the assistant took to answer
                   </p>
                 </div>
               </div>
@@ -355,7 +397,7 @@ export function TraceModal({
               /* MAS Flow Visualization */
               <div className="max-w-5xl mx-auto space-y-6">
                 {/* Supervisor Header */}
-                <div className="bg-gradient-to-r from-purple-500/10 to-blue-500/10 rounded-xl border-2 border-purple-500/30 p-6">
+                <div className="bg-gradient-to-r from-purple-500/10 to-blue-500/10 rounded-xl border border-purple-500/20 p-5">
                   <div className="flex items-center gap-3 mb-2">
                     <Users className="h-6 w-6 text-purple-500" />
                     <h3 className="text-xl font-bold text-[var(--color-foreground)]">
@@ -382,7 +424,7 @@ export function TraceModal({
                     </div>
 
                     {/* Specialist Card */}
-                    <div className="ml-12 bg-gradient-to-r from-blue-500/10 to-green-500/10 rounded-xl border-2 border-blue-500/30 p-6 space-y-4">
+                    <div className="ml-12 bg-gradient-to-r from-blue-500/10 to-green-500/10 rounded-xl border border-blue-500/20 p-5 space-y-4">
                       {/* Specialist Header */}
                       <div className="flex items-center gap-3">
                         <Brain className="h-6 w-6 text-blue-500" />
@@ -396,9 +438,9 @@ export function TraceModal({
 
                       {/* Request */}
                       <div className="space-y-2">
-                        <div className="flex items-center gap-2 pb-2 border-b border-[var(--color-border)]">
-                          <div className="h-1.5 w-1.5 rounded-full bg-blue-500"></div>
-                          <h5 className="text-sm font-bold text-[var(--color-foreground)] uppercase tracking-wide">
+                        <div className="flex items-center gap-2 mb-1">
+                          <div className="h-1.5 w-1.5 rounded-full bg-blue-400"></div>
+                          <h5 className="text-sm font-medium text-[var(--color-muted-foreground)]">
                             Request
                           </h5>
                         </div>
@@ -410,10 +452,10 @@ export function TraceModal({
                       {/* Specialist Messages */}
                       {handoff.message_count > 0 && (
                         <div className="space-y-2">
-                          <div className="flex items-center gap-2 pb-2 border-b border-[var(--color-border)]">
-                            <div className="h-1.5 w-1.5 rounded-full bg-green-500"></div>
-                            <h5 className="text-sm font-bold text-[var(--color-foreground)] uppercase tracking-wide">
-                              Specialist Response ({handoff.message_count}{" "}
+                          <div className="flex items-center gap-2 mb-1">
+                            <div className="h-1.5 w-1.5 rounded-full bg-green-400"></div>
+                            <h5 className="text-sm font-medium text-[var(--color-muted-foreground)]">
+                              Response ({handoff.message_count}{" "}
                               messages)
                             </h5>
                           </div>
@@ -449,7 +491,7 @@ export function TraceModal({
                 ))}
 
                 {/* Final Synthesis */}
-                <div className="bg-gradient-to-r from-green-500/10 to-purple-500/10 rounded-xl border-2 border-green-500/30 p-6">
+                <div className="bg-gradient-to-r from-green-500/10 to-purple-500/10 rounded-xl border border-green-500/20 p-5">
                   <div className="flex items-center gap-3 mb-2">
                     <Users className="h-6 w-6 text-green-500" />
                     <h3 className="text-lg font-bold text-[var(--color-foreground)]">
@@ -470,12 +512,14 @@ export function TraceModal({
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center h-full">
-                <Database className="h-12 w-12 text-[var(--color-muted-foreground)] mb-4 opacity-50" />
+                <div className="h-12 w-12 rounded-full bg-[var(--color-muted)]/50 flex items-center justify-center mb-4">
+                  <Brain className="h-6 w-6 text-[var(--color-muted-foreground)]" />
+                </div>
                 <div className="text-[var(--color-muted-foreground)] font-medium">
-                  No trace data available
+                  No tools were used
                 </div>
                 <div className="text-xs text-[var(--color-muted-foreground)] mt-2 max-w-md text-center">
-                  This response did not use any tools
+                  The assistant answered directly without using any tools
                 </div>
               </div>
             )}

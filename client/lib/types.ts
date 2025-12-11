@@ -130,28 +130,52 @@ export interface Chat {
   updatedAt: Date;
 }
 
+export interface VolumeInfo {
+  name: string;
+  path: string;
+  indexed_rows?: number;
+  state?: string;
+}
+
 export interface Tool {
   display_name: string;
-  display_description: string;
+  description?: string;
+  display_description?: string;
   long_description?: string;
-  type?: string;
-  url: string;
+  type?: string; // "genie-space", "serving-endpoint", "app", "ka"
+  url?: string;
   learn_more?: string;
+  // MAS sub-tool identifiers
+  genie_space_id?: string;
+  serving_endpoint_name?: string;
+  app_name?: string;
+  // Enriched data from APIs
+  volumes?: VolumeInfo[]; // KA volume paths
+  tables?: string[]; // Genie table identifiers
+  genie_display_name?: string;
+  ka_display_name?: string;
+  warehouse_id?: string;
 }
 
 export interface Agent {
   id: string;
   name: string;
+  endpoint_name: string;
+  tile_id?: string;
   display_name: string;
   display_description: string;
-  chat_title: string;
-  chat_subtitle: string;
-  endpoint_url: string;
-  llm: string;
+  instructions?: string;
+  status?: string; // "ONLINE", "OFFLINE", "PROVISIONING", "NOT_READY"
+  chat_title?: string;
+  chat_subtitle?: string;
+  endpoint_url?: string;
+  llm?: string;
   tools: Tool[];
-  mlflow_experiment_id: string;
-  mlflow_experiment_url: string;
-  mlflow_traces_url: string;
+  deployment_type?: string;
+  mlflow_experiment_id?: string;
+  mlflow_experiment_url?: string;
+  mlflow_traces_url?: string;
+  error?: string; // If agent failed to load
 }
 
 export interface AgentMetadata {

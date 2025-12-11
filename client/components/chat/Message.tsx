@@ -108,66 +108,66 @@ export function Message({ message, onFeedback, onViewTrace }: MessageProps) {
           `}
         >
           {isUser ? (
-            <p className="whitespace-pre-wrap break-words text-[var(--color-chat-text)]">
+            <p className="whitespace-pre-wrap break-words text-sm text-[var(--color-chat-text)]">
               {message.content}
             </p>
           ) : (
-            <div className="prose prose-sm max-w-none break-words text-[var(--color-text-primary)]">
+            <div className="prose prose-sm max-w-none break-words text-sm text-[var(--color-text-primary)]">
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
                 components={{
                   // Headings
                   h1: ({ children }) => (
-                    <h1 className="text-2xl font-bold text-[var(--color-text-heading)] mt-6 mb-4 pb-2 border-b-2 border-[var(--color-border)]">
+                    <h1 className="text-lg font-bold text-[var(--color-text-heading)] mt-4 mb-2 pb-1 border-b border-[var(--color-border)]">
                       {children}
                     </h1>
                   ),
                   h2: ({ children }) => (
-                    <h2 className="text-xl font-bold text-[var(--color-text-heading)] mt-5 mb-3 pb-1.5 border-b border-[var(--color-border)]">
+                    <h2 className="text-base font-bold text-[var(--color-text-heading)] mt-3 mb-2 pb-1 border-b border-[var(--color-border)]">
                       {children}
                     </h2>
                   ),
                   h3: ({ children }) => (
-                    <h3 className="text-lg font-semibold text-[var(--color-text-heading)] mt-4 mb-2">
+                    <h3 className="text-sm font-semibold text-[var(--color-text-heading)] mt-3 mb-1.5">
                       {children}
                     </h3>
                   ),
                   h4: ({ children }) => (
-                    <h4 className="text-base font-semibold text-[var(--color-text-heading)] mt-3 mb-2">
+                    <h4 className="text-sm font-semibold text-[var(--color-text-heading)] mt-2 mb-1">
                       {children}
                     </h4>
                   ),
                   h5: ({ children }) => (
-                    <h5 className="text-sm font-semibold text-[var(--color-text-heading)] mt-3 mb-1.5">
+                    <h5 className="text-sm font-medium text-[var(--color-text-heading)] mt-2 mb-1">
                       {children}
                     </h5>
                   ),
                   h6: ({ children }) => (
-                    <h6 className="text-sm font-medium text-[var(--color-text-muted)] mt-2 mb-1.5">
+                    <h6 className="text-xs font-medium text-[var(--color-text-muted)] mt-1.5 mb-1">
                       {children}
                     </h6>
                   ),
 
                   // Paragraphs
                   p: ({ children }) => (
-                    <p className="mb-3 leading-relaxed text-[var(--color-text-primary)]">
+                    <p className="mb-2 leading-normal text-[var(--color-text-primary)]">
                       {children}
                     </p>
                   ),
 
                   // Lists
                   ul: ({ children }) => (
-                    <ul className="my-3 ml-6 space-y-1.5 list-disc marker:text-[var(--color-accent-primary)]">
+                    <ul className="my-2 ml-5 space-y-1 list-disc marker:text-[var(--color-accent-primary)]">
                       {children}
                     </ul>
                   ),
                   ol: ({ children }) => (
-                    <ol className="my-3 ml-6 space-y-1.5 list-decimal marker:text-[var(--color-accent-primary)] marker:font-semibold">
+                    <ol className="my-2 ml-5 space-y-1 list-decimal marker:text-[var(--color-accent-primary)] marker:font-semibold">
                       {children}
                     </ol>
                   ),
                   li: ({ children }) => (
-                    <li className="leading-relaxed text-[var(--color-text-primary)] pl-1">
+                    <li className="leading-normal text-[var(--color-text-primary)] pl-0.5">
                       {children}
                     </li>
                   ),
@@ -321,19 +321,20 @@ export function Message({ message, onFeedback, onViewTrace }: MessageProps) {
                 </span>
               </div>
             )}
-            {message.traceSummary.tools_called.length > 0 && (
-              <div
-                className="flex items-center gap-1 px-2 py-1 rounded-md bg-[var(--color-muted)] text-[var(--color-text-muted)]"
-                title={`Tools: ${message.traceSummary.tools_called.map((t) => t.name).join(", ")}`}
+            {message.traceSummary.tools_called?.length > 0 && (
+              <button
+                onClick={() => onViewTrace(message.id)}
+                className="flex items-center gap-1 px-2 py-1 rounded-md bg-[var(--color-muted)] text-[var(--color-text-muted)] hover:bg-[var(--color-primary)]/10 hover:text-[var(--color-primary)] transition-colors cursor-pointer"
+                title={`Click to view details: ${message.traceSummary.tools_called.map((t) => t.name).join(", ")}`}
               >
                 <Wrench className="h-3 w-3" />
                 <span>
                   {message.traceSummary.tools_called.length} tool
                   {message.traceSummary.tools_called.length !== 1 ? "s" : ""}
                 </span>
-              </div>
+              </button>
             )}
-            {message.traceSummary.retrieval_calls.length > 0 && (
+            {message.traceSummary.retrieval_calls?.length > 0 && (
               <div
                 className="flex items-center gap-1 px-2 py-1 rounded-md bg-[var(--color-muted)] text-[var(--color-text-muted)]"
                 title="Document retrievals"
@@ -372,7 +373,7 @@ export function Message({ message, onFeedback, onViewTrace }: MessageProps) {
             >
               <ThumbsDown className="h-3.5 w-3.5" />
             </Button>
-            {message.traceId && (
+            {(message.traceId || (message.traceSummary?.tools_called?.length ?? 0) > 0) && (
               <Button
                 variant="ghost"
                 size="icon"

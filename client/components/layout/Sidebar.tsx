@@ -20,7 +20,7 @@ import Image from "next/image";
 import { toast } from "sonner";
 import { useAgents } from "@/hooks/useAgents";
 
-interface Chat {
+export interface Chat {
   id: string;
   title: string;
   lastMessage: string;
@@ -39,6 +39,8 @@ interface SidebarProps {
   onCollapse?: (collapsed: boolean) => void;
   selectedAgentId?: string;
   onAgentChange?: (agentId: string) => void;
+  chats: Chat[]; // Chat list managed by parent
+  onChatsChange: (chats: Chat[]) => void; // Callback to update chats
 }
 
 export function Sidebar({
@@ -52,8 +54,9 @@ export function Sidebar({
   onCollapse,
   selectedAgentId: propSelectedAgentId,
   onAgentChange,
+  chats,
+  onChatsChange,
 }: SidebarProps) {
-  const [chats, setChats] = useState<Chat[]>([]);
   const [hoveredChat, setHoveredChat] = useState<string | null>(null);
   const [editingChat, setEditingChat] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState("");
@@ -75,11 +78,6 @@ export function Sidebar({
       onAgentChange(agents[0].id);
     }
   }, [agents, propSelectedAgentId, onAgentChange]);
-
-  // Fetch chat history on mount and when currentChatId changes (new chat created)
-  useEffect(() => {
-    fetchChatHistory();
-  }, [currentChatId]);
 
   // Set mounted state for Portal
   useEffect(() => {
@@ -124,40 +122,11 @@ export function Sidebar({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isToolsOpen]);
 
-  const fetchChatHistory = async () => {
-    try {
-      const response = await fetch("/api/chats");
-      const data = await response.json();
-
-      // Transform to sidebar format
-      const chats = data.map((chat: any) => ({
-        id: chat.id,
-        title: chat.title,
-        lastMessage:
-          chat.messages.length > 0
-            ? chat.messages[chat.messages.length - 1].content
-            : "",
-        timestamp: new Date(chat.updated_at),
-        preview:
-          chat.messages.length > 0
-            ? chat.messages[chat.messages.length - 1].content.slice(0, 50) +
-              "..."
-            : "",
-      }));
-
-      setChats(chats);
-    } catch (error) {
-      console.error("Failed to fetch chat history:", error);
-      toast.error("Failed to load chat history");
-    }
-  };
-
   const handleDeleteChat = async (chatId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     try {
-      // Mock API call - replace with actual implementation
       await fetch(`/api/chats/${chatId}`, { method: "DELETE" });
-      setChats(chats.filter((chat) => chat.id !== chatId));
+      onChatsChange(chats.filter((chat) => chat.id !== chatId));
       if (currentChatId === chatId) {
         onNewChat();
       }
@@ -178,14 +147,13 @@ export function Sidebar({
 
   const saveRename = async (chatId: string) => {
     try {
-      // Mock API call - replace with actual implementation
       await fetch(`/api/chats/${chatId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title: editTitle }),
       });
 
-      setChats(
+      onChatsChange(
         chats.map((chat) =>
           chat.id === chatId ? { ...chat, title: editTitle } : chat,
         ),
@@ -230,7 +198,7 @@ export function Sidebar({
               </p>
             </div>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-1">
               {chats.map((chat) => (
                 <div
                   key={chat.id}
@@ -238,11 +206,11 @@ export function Sidebar({
                   onMouseEnter={() => setHoveredChat(chat.id)}
                   onMouseLeave={() => setHoveredChat(null)}
                   className={`
-                    group relative p-3.5 rounded-xl cursor-pointer transition-all duration-200
+                    group relative px-2.5 py-2 rounded-lg cursor-pointer transition-all duration-200
                     ${
                       currentChatId === chat.id
-                        ? "bg-gradient-to-br from-[var(--color-primary-navy)] via-[var(--color-primary-navy)]/90 to-[var(--color-primary-navy)] text-[var(--color-white)] shadow-md border border-[var(--color-primary-navy)]/10"
-                        : "bg-[var(--color-white)]/40 hover:bg-[var(--color-white)]/70 text-[var(--color-foreground)] border border-transparent hover:border-[var(--color-primary-navy)]/15 hover:shadow-sm"
+                        ? "bg-gradient-to-br from-[var(--color-primary-navy)] via-[var(--color-primary-navy)]/90 to-[var(--color-primary-navy)] text-[var(--color-white)] shadow-sm border border-[var(--color-primary-navy)]/10"
+                        : "bg-[var(--color-white)]/40 hover:bg-[var(--color-white)]/70 text-[var(--color-foreground)] border border-transparent hover:border-[var(--color-primary-navy)]/15"
                     }
                   `}
                 >
@@ -262,65 +230,67 @@ export function Sidebar({
                     />
                   ) : (
                     <>
-                      <h3
-                        className={`font-semibold text-sm truncate pr-12 leading-tight ${
-                          currentChatId === chat.id
-                            ? "text-[var(--color-white)]"
-                            : "text-[var(--color-primary-navy)]"
-                        }`}
-                      >
-                        {chat.title}
-                      </h3>
+                      <div className="flex items-center justify-between gap-2">
+                        <h3
+                          className={`font-medium text-xs truncate flex-1 ${
+                            currentChatId === chat.id
+                              ? "text-[var(--color-white)]"
+                              : "text-[var(--color-primary-navy)]"
+                          }`}
+                        >
+                          {chat.title}
+                        </h3>
+                        <span
+                          className={`text-[10px] flex-shrink-0 ${
+                            currentChatId === chat.id
+                              ? "text-[var(--color-white)]/60"
+                              : "text-[var(--color-primary-navy)]/40"
+                          }`}
+                        >
+                          {formatDistanceToNow(chat.timestamp, {
+                            addSuffix: false,
+                          })}
+                        </span>
+                      </div>
                       <p
-                        className={`text-xs mt-2 truncate leading-relaxed ${
-                          currentChatId === chat.id
-                            ? "text-[var(--color-white)]/85"
-                            : "text-[var(--color-primary-navy)]/60"
-                        }`}
-                      >
-                        {chat.preview}
-                      </p>
-                      <p
-                        className={`text-[11px] mt-1.5 ${
+                        className={`text-[11px] mt-0.5 truncate ${
                           currentChatId === chat.id
                             ? "text-[var(--color-white)]/70"
                             : "text-[var(--color-primary-navy)]/50"
                         }`}
                       >
-                        {formatDistanceToNow(chat.timestamp, {
-                          addSuffix: true,
-                        })}
+                        {chat.preview}
                       </p>
                     </>
                   )}
 
-                  {/* Action buttons */}
+                  {/* Action buttons - show on hover, positioned on the right of preview line */}
                   {(hoveredChat === chat.id || currentChatId === chat.id) &&
                     !editingChat && (
-                      <div className="absolute right-2.5 top-3 flex gap-2">
+                      <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
                           onClick={(e) => handleRenameChat(chat.id, e)}
-                          className="transition-all duration-200 group/btn"
+                          className="p-1 rounded hover:bg-black/10 transition-colors"
                           title="Rename"
                         >
                           <Edit2
-                            className={`h-3.5 w-3.5 transition-colors ${
+                            className={`h-3 w-3 ${
                               currentChatId === chat.id
                                 ? "text-[var(--color-white)]/70 hover:text-[var(--color-white)]"
-                                : "text-[var(--color-primary-navy)]/60 hover:text-[var(--color-primary-navy)]"
+                                : "text-[var(--color-primary-navy)]/50 hover:text-[var(--color-primary-navy)]"
                             }`}
                           />
                         </button>
                         <button
                           onClick={(e) => handleDeleteChat(chat.id, e)}
-                          className="transition-all duration-200 group/btn"
+                          className="p-1 rounded hover:bg-black/10 transition-colors"
                           title="Delete"
                         >
                           <Trash2
-                            className={`h-3.5 w-3.5 transition-colors ${
+                            className={`h-3 w-3 ${
                               currentChatId === chat.id
                                 ? "text-[var(--color-white)]/70 hover:text-[var(--color-white)]"
-                                : "text-[var(--color-primary-navy)]/60 hover:text-[var(--color-error)]"
+                                : "text-[var(--color-primary-navy)]/50 hover:text-[var(--color-error)]"
                             }`}
                           />
                         </button>

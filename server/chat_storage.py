@@ -1,9 +1,9 @@
-"""In-memory chat storage with max 10 chats limit.
+"""In-memory chat storage with max 10 chats limit per user.
 
 This module provides simple in-memory storage for chat sessions.
-- Max 10 chats per session (oldest deleted when limit reached)
+- Max 10 chats per user (oldest deleted when limit reached)
 - Chat persistence only during app runtime
-- User isolation not implemented (single-user mode for v1)
+- User isolation via email-scoped storage
 """
 
 import uuid
@@ -36,7 +36,7 @@ class Chat(BaseModel):
 
 
 class ChatStorage:
-  """In-memory storage for chat sessions.
+  """In-memory storage for chat sessions for a single user.
 
   Features:
   - Stores up to max_chats (default 10)
@@ -138,5 +138,58 @@ class ChatStorage:
     return count
 
 
-# Global singleton instance
-storage = ChatStorage(max_chats=10)
+class UserScopedChatStorage:
+  """User-scoped chat storage manager.
+
+  Maintains separate ChatStorage instances per user (by email).
+  Each user has their own isolated chat history.
+  """
+
+  def __init__(self, max_chats_per_user: int = 10):
+    """Initialize user-scoped storage.
+
+    Args:
+        max_chats_per_user: Maximum chats per user (default 10)
+    """
+    self._user_storages: Dict[str, ChatStorage] = {}
+    self._max_chats_per_user = max_chats_per_user
+
+  def get_storage_for_user(self, user_email: str) -> ChatStorage:
+    """Get or create ChatStorage for a specific user.
+
+    Args:
+        user_email: User's email address
+
+    Returns:
+        ChatStorage instance for the user
+    """
+    if user_email not in self._user_storages:
+      self._user_storages[user_email] = ChatStorage(max_chats=self._max_chats_per_user)
+
+    return self._user_storages[user_email]
+
+  def get_all_users(self) -> List[str]:
+    """Get list of all users with chat storage.
+
+    Returns:
+        List of user email addresses
+    """
+    return list(self._user_storages.keys())
+
+  def clear_user_storage(self, user_email: str) -> bool:
+    """Clear all storage for a specific user.
+
+    Args:
+        user_email: User's email address
+
+    Returns:
+        True if user existed and was cleared, False otherwise
+    """
+    if user_email in self._user_storages:
+      del self._user_storages[user_email]
+      return True
+    return False
+
+
+# Global singleton instance - user-scoped storage
+storage = UserScopedChatStorage(max_chats_per_user=10)

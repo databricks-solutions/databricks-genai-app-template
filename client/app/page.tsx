@@ -1,13 +1,15 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { TopBar } from "@/components/layout/TopBar";
-import { Sidebar } from "@/components/layout/Sidebar";
+import { Sidebar, Chat } from "@/components/layout/Sidebar";
 import { MainContent } from "@/components/layout/MainContent";
 import { EditModePanel } from "@/components/modals/EditModePanel";
 import { CustomThemeProvider } from "@/contexts/ThemeContext";
+import { AgentsProvider } from "@/contexts/AgentsContext";
+import { UserProvider } from "@/contexts/UserContext";
 
 // Dev-only logger
 const devLog = (...args: any[]) => {
@@ -52,6 +54,37 @@ function HomeContent() {
     string | undefined
   >(undefined);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [chats, setChats] = useState<Chat[]>([]);
+
+  // Fetch chats from API - accepts optional signal for cancellation
+  const fetchChats = useCallback(async (signal?: AbortSignal) => {
+    try {
+      const response = await fetch("/api/chats", { signal });
+      const data = await response.json();
+
+      // Transform to sidebar format
+      const chatList: Chat[] = data.map((chat: any) => ({
+        id: chat.id,
+        title: chat.title,
+        lastMessage:
+          chat.messages.length > 0
+            ? chat.messages[chat.messages.length - 1].content
+            : "",
+        timestamp: new Date(chat.updated_at),
+        preview:
+          chat.messages.length > 0
+            ? chat.messages[chat.messages.length - 1].content.slice(0, 50) +
+              "..."
+            : "",
+      }));
+
+      setChats(chatList);
+    } catch (error) {
+      // Ignore abort errors
+      if (error instanceof Error && error.name === "AbortError") return;
+      console.error("Failed to fetch chat history:", error);
+    }
+  }, []);
 
   useEffect(() => {
     setMounted(true);
@@ -60,7 +93,15 @@ function HomeContent() {
     if (savedCollapsed !== null) {
       setIsSidebarCollapsed(savedCollapsed === "true");
     }
-  }, []);
+
+    // Fetch chats with abort controller for StrictMode cleanup
+    const abortController = new AbortController();
+    fetchChats(abortController.signal);
+
+    return () => {
+      abortController.abort();
+    };
+  }, [fetchChats]);
 
   const handleTabChange = (tab: "chat" | "dashboard" | "tools" | "about") => {
     setActiveTab(tab);
@@ -101,6 +142,16 @@ function HomeContent() {
     }
   };
 
+  // Handle chat ID changes - refresh sidebar when a new chat is created
+  const handleChatIdChange = (chatId: string) => {
+    const isNewChat = currentChatId === undefined && chatId !== undefined;
+    setCurrentChatId(chatId);
+    if (isNewChat) {
+      // Refresh chat list to show the new chat
+      fetchChats();
+    }
+  };
+
   if (!mounted) return null;
 
   return (
@@ -138,6 +189,8 @@ function HomeContent() {
                 }}
                 selectedAgentId={selectedAgentId}
                 onAgentChange={setSelectedAgentId}
+                chats={chats}
+                onChatsChange={setChats}
               />
             </div>
 
@@ -151,6 +204,8 @@ function HomeContent() {
               onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
               selectedAgentId={selectedAgentId}
               onAgentChange={setSelectedAgentId}
+              chats={chats}
+              onChatsChange={setChats}
             />
           </>
         )}
@@ -159,7 +214,7 @@ function HomeContent() {
         <MainContent
           activeTab={activeTab}
           currentChatId={currentChatId}
-          onChatIdChange={setCurrentChatId}
+          onChatIdChange={handleChatIdChange}
           selectedAgentId={selectedAgentId}
           onAgentChange={setSelectedAgentId}
           initialChatMessage={initialChatMessage}
@@ -176,7 +231,11 @@ function HomeContent() {
 export default function Home() {
   return (
     <CustomThemeProvider>
-      <HomeContent />
+      <UserProvider>
+        <AgentsProvider>
+          <HomeContent />
+        </AgentsProvider>
+      </UserProvider>
     </CustomThemeProvider>
   );
 }

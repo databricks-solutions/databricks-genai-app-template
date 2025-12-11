@@ -2,8 +2,9 @@
 
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
-import { Edit, User } from "lucide-react";
+import { Edit } from "lucide-react";
 import { getAppConfig, type AppBranding } from "@/lib/config";
+import { useUserInfo } from "@/hooks/useUserInfo";
 
 interface TopBarProps {
   activeTab: "chat" | "dashboard" | "tools" | "about";
@@ -23,6 +24,7 @@ export function TopBar({
     description: "",
     logoPath: "/logos/databricks-symbol-color.svg",
   });
+  const { userInfo } = useUserInfo();
 
   useEffect(() => {
     getAppConfig().then((config) => setBranding(config.branding));
@@ -34,6 +36,9 @@ export function TopBar({
     { id: "tools" as const, label: "Tools" },
     { id: "about" as const, label: "About" },
   ];
+
+  // Extract username part from email for display
+  const displayName = userInfo?.user?.split("@")[0] || "";
 
   return (
     <header className="sticky top-0 z-30 w-full h-[var(--header-height)] bg-[var(--color-background-2)] backdrop-blur-lg border-b border-[var(--color-border)]">
@@ -89,7 +94,7 @@ export function TopBar({
           </nav>
 
           {/* Icons */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             {/* Edit Mode Toggle */}
             <button
               onClick={onEditModeToggle}
@@ -99,13 +104,20 @@ export function TopBar({
               <Edit className="h-4 w-4 text-[var(--color-icon-inactive)] group-hover:text-[var(--color-icon-active)] transition-colors" />
             </button>
 
-            {/* User Avatar */}
-            <button
-              className="group h-9 w-9 rounded-full hover:bg-[var(--color-icon-hover)]/10 transition-all duration-200 flex items-center justify-center"
-              title="User profile"
-            >
-              <User className="h-4 w-4 text-[var(--color-icon-inactive)] group-hover:text-[var(--color-icon-active)] transition-colors" />
-            </button>
+            {/* User Email */}
+            {displayName && (
+              <div
+                className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--color-bg-tertiary)] border border-[var(--color-border)]"
+                title={userInfo?.user}
+              >
+                <div className="w-6 h-6 rounded-full bg-[var(--color-accent-primary)] flex items-center justify-center text-white text-xs font-medium">
+                  {displayName.charAt(0).toUpperCase()}
+                </div>
+                <span className="text-sm text-[var(--color-text-primary)] max-w-[120px] truncate">
+                  {displayName}
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </div>

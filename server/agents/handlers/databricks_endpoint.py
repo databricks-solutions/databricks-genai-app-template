@@ -1,15 +1,16 @@
-"""Handler for Databricks model serving endpoints."""
+"""Handler for Databricks model serving endpoints.
 
+Uses the MLflow deployments client to call endpoints with return_trace=True
+to get full trace data from Databricks.
+"""
+
+import asyncio
 import json
 import logging
 from typing import Any, AsyncGenerator, Dict, List
 
-import httpx
-import requests
-from fastapi import Request
+from mlflow.deployments import get_deploy_client
 
-from ...auth.strategies import HttpTokenAuth
-from ..table_parser import extract_table_from_markdown
 from .base import BaseDeploymentHandler
 
 logger = logging.getLogger(__name__)
@@ -18,176 +19,73 @@ logger = logging.getLogger(__name__)
 class DatabricksEndpointHandler(BaseDeploymentHandler):
   """Handler for Databricks model serving endpoints.
 
-  Handles both streaming and non-streaming invocations of Databricks
-  serving endpoints using the Agent API format.
-
-  Uses HttpTokenAuth strategy for authentication (user token forwarding).
+  Uses MLflow deployments client with return_trace=True for full trace support.
   """
 
   def __init__(self, agent_config: Dict[str, Any]):
-    """Initialize handler with agent configuration.
-
-    Args:
-      agent_config: Agent config containing 'endpoint_name'
-    """
-    # Initialize with HttpTokenAuth strategy for calling HTTP endpoints
-    super().__init__(agent_config, auth_strategy=HttpTokenAuth())
+    """Initialize handler with agent configuration."""
+    super().__init__(agent_config)
     self.endpoint_name = agent_config.get('endpoint_name')
 
     if not self.endpoint_name:
       raise ValueError(f'Agent {agent_config.get("id")} has no endpoint_name configured')
 
-  async def invoke_stream(
-    self, messages: List[Dict[str, str]], client_request_id: str, request: Request
+  async def predict_stream(
+    self, messages: List[Dict[str, str]], endpoint_name: str
   ) -> AsyncGenerator[str, None]:
-    """Stream response from Databricks serving endpoint.
+    """Stream response from Databricks endpoint using MLflow deployments client.
 
-    Args:
-      messages: List of messages with 'role' and 'content' keys
-      client_request_id: Unique ID for trace linking (from endpoint)
-      request: FastAPI Request object (for auth headers)
-
-    Yields:
-      Server-Sent Events (SSE) formatted strings with JSON data
+    Uses an async queue to bridge the synchronous MLflow generator with async streaming,
+    preventing the event loop from being blocked during iteration.
     """
-    # Emit client_request_id as first event for frontend to capture
-    logger.info(f'Emitting client_request_id to frontend: {client_request_id}')
-    trace_event = {'type': 'trace.client_request_id', 'client_request_id': client_request_id}
-    yield f'data: {json.dumps(trace_event)}\n\n'
+    logger.debug(f'Calling endpoint: {endpoint_name}')
 
-    # Get Databricks credentials using auth strategy
-    host, token = self.auth_strategy.get_credentials(request)
+    client = get_deploy_client('databricks')
 
-    # Build request payload (Databricks Agent API format with streaming enabled)
-    payload = {
+    inputs = {
       'input': messages,
-      'stream': True,  # CRITICAL: Tell Databricks to stream the response
-    }
-    url = f'{host}/serving-endpoints/{self.endpoint_name}/invocations'
-    headers = {
-      'Authorization': f'Bearer {token}',
-      'Content-Type': 'application/json',
+      'databricks_options': {
+        'return_trace': True,
+      },
     }
 
-    logger.info(f'Calling Databricks endpoint (streaming): {self.endpoint_name}')
+    # Use a queue to bridge sync generator -> async generator
+    queue: asyncio.Queue = asyncio.Queue()
+    loop = asyncio.get_event_loop()
 
-    # Use async httpx client for proper async streaming
-    async with httpx.AsyncClient(timeout=300.0) as client:
-      async with client.stream('POST', url, json=payload, headers=headers) as response:
-        response.raise_for_status()
+    def consume_sync_generator():
+      """Run in thread pool to consume sync generator without blocking event loop."""
+      try:
+        response = client.predict_stream(endpoint=endpoint_name, inputs=inputs)
+        for chunk in response:
+          logger.debug(f'Chunk: {chunk}')
+          # Put chunk into queue (thread-safe with call_soon_threadsafe)
+          loop.call_soon_threadsafe(queue.put_nowait, ('chunk', chunk))
+        # Signal completion
+        loop.call_soon_threadsafe(queue.put_nowait, ('done', None))
+      except Exception as e:
+        logger.error(f'Error calling endpoint {endpoint_name}: {e}')
+        loop.call_soon_threadsafe(queue.put_nowait, ('error', str(e)))
 
-        # Stream response chunks line by line
-        async for line in response.aiter_lines():
-          if not line:
-            continue
+    # Start consuming in thread pool (non-blocking)
+    asyncio.get_event_loop().run_in_executor(None, consume_sync_generator)
 
-          # Skip empty lines
-          if not line.strip():
-            continue
-
-          # Handle [DONE] marker
-          if line.strip() == 'data: [DONE]' or line.strip() == '[DONE]':
-            yield 'data: [DONE]\n\n'
-            continue
-
-          # Extract JSON from SSE format
-          json_str = line.strip()
-          if json_str.startswith('data: '):
-            json_str = json_str[6:].strip()
-          elif json_str.startswith('data:'):
-            json_str = json_str[5:].strip()
-
-          if not json_str:
-            continue
-
-          try:
-            # Parse the JSON event to validate it (don't need result, just validation)
-            _ = json.loads(json_str)
-
-            # Forward the event to the client
-            yield f'data: {json_str}\n\n'
-
-          except json.JSONDecodeError as e:
-            logger.warning(f'Failed to parse JSON from stream: {e}, line: {json_str[:200]}')
-            continue
-
-  def invoke(
-    self, messages: List[Dict[str, str]], client_request_id: str, request: Request
-  ) -> Dict[str, Any]:
-    """Non-streaming invocation of Databricks serving endpoint.
-
-    Args:
-      messages: List of messages with 'role' and 'content' keys
-      client_request_id: Unique ID for trace linking (from endpoint)
-      request: FastAPI Request object (for auth headers)
-
-    Returns:
-      OpenAI-compatible response format with choices, message, content
-    """
-    # Get Databricks credentials using auth strategy
-    host, token = self.auth_strategy.get_credentials(request)
-
-    # Build request payload (Databricks Agent API format)
-    payload = {'input': messages}
-    url = f'{host}/serving-endpoints/{self.endpoint_name}/invocations'
-    headers = {
-      'Authorization': f'Bearer {token}',
-      'Content-Type': 'application/json',
-    }
-
-    logger.info(f'Calling Databricks endpoint: {self.endpoint_name}')
-
-    # Make request to Databricks
-    response = requests.post(url, json=payload, headers=headers)
-    response.raise_for_status()
-    result = response.json()
-
-    logger.info(f'Raw response from {self.endpoint_name}: {result}')
-
-    # Extract text from nested response structure
-    # Response format: {'output': [{'content': [{'text': '...', 'type': 'output_text'}]}]}
+    # Yield chunks as they arrive (non-blocking async iteration)
     try:
-      text_content = result.get('output', [{}])[0].get('content', [{}])[0].get('text', '')
-      # Fallback to older format if needed
-      if not text_content:
-        text_content = (
-          result.get('predictions', [{}])[0].get('candidates', [{}])[0].get('text', str(result))
-        )
-    except (IndexError, KeyError, TypeError, AttributeError):
-      # Last resort: stringify the whole result
-      text_content = str(result)
+      while True:
+        msg_type, data = await queue.get()
 
-    # Extract structured data from markdown tables
-    structured_data = extract_table_from_markdown(text_content)
+        if msg_type == 'chunk':
+          yield f'data: {json.dumps(data)}\n\n'
+        elif msg_type == 'error':
+          yield f'data: {json.dumps({"type": "error", "error": data})}\n\n'
+          yield 'data: [DONE]\n\n'
+          break
+        elif msg_type == 'done':
+          yield 'data: [DONE]\n\n'
+          break
 
-    # Build response message
-    message_content = {
-      'role': 'assistant',
-      'content': text_content,
-    }
-
-    # Add structured data if table was found
-    if structured_data:
-      message_content['structured_data'] = structured_data
-      logger.info(
-        f'✅ Extracted table with {len(structured_data["rows"])} rows, '
-        f'chart type: {structured_data["chart_config"]["type"]}'
-      )
-    else:
-      logger.info('No table found in response')
-
-    # Format as OpenAI-compatible response for frontend
-    formatted_response = {
-      'choices': [
-        {
-          'message': message_content,
-          'index': 0,
-          'finish_reason': 'stop',
-        }
-      ],
-      'usage': {},
-      'model': self.endpoint_name,
-      'object': 'chat.completion',
-    }
-
-    return formatted_response
+    except Exception as e:
+      logger.error(f'Error in async stream: {e}')
+      yield f'data: {json.dumps({"type": "error", "error": str(e)})}\n\n'
+      yield 'data: [DONE]\n\n'

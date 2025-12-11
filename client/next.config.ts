@@ -1,12 +1,14 @@
 import type { NextConfig } from "next";
 
+const isDev = process.env.NODE_ENV === 'development';
+
 const nextConfig: NextConfig = {
   // Enable React strict mode for better error detection
   reactStrictMode: true,
 
-  // Static export for production deployment
-  // This only affects `next build`, not `next dev`
-  output: 'export',
+  // Static export for production deployment only
+  // In dev mode, we need rewrites to work for API proxying
+  ...(isDev ? {} : { output: 'export' }),
 
   // Dev mode uses rewrites to proxy API calls to FastAPI backend
   async rewrites() {
