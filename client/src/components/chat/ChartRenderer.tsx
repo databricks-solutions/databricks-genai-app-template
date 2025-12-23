@@ -15,6 +15,7 @@ import {
 } from "chart.js";
 import { Line, Bar, Pie } from "react-chartjs-2";
 import { Visualization } from "@/lib/types";
+import { useThemeContext } from "@/contexts/ThemeContext";
 
 // Register ChartJS components
 ChartJS.register(
@@ -35,17 +36,12 @@ interface ChartRendererProps {
 
 export function ChartRenderer({ visualization }: ChartRendererProps) {
   const { type, data, options: customOptions } = visualization;
+  const { colors, typography } = useThemeContext();
 
-  // Get theme colors from CSS variables
-  const textColor = getComputedStyle(document.documentElement)
-    .getPropertyValue("--color-text-primary")
-    .trim();
-  const bgColor = getComputedStyle(document.documentElement)
-    .getPropertyValue("--color-bg-elevated")
-    .trim();
-  const borderColor = getComputedStyle(document.documentElement)
-    .getPropertyValue("--color-border")
-    .trim();
+  // Use theme colors directly from context
+  const textColor = colors.textPrimary;
+  const bgColor = colors.bgElevated || colors.bgSecondary;
+  const borderColor = colors.border;
 
   // Default options with theme support
   const defaultOptions: ChartOptions<any> = {
@@ -58,9 +54,8 @@ export function ChartRenderer({ visualization }: ChartRendererProps) {
         labels: {
           color: textColor,
           font: {
-            family: getComputedStyle(document.documentElement).getPropertyValue(
-              "--font-family",
-            ),
+            family: typography.fontFamily,
+            size: 12,
           },
         },
       },
@@ -101,6 +96,14 @@ export function ChartRenderer({ visualization }: ChartRendererProps) {
 
   const options = { ...defaultOptions, ...customOptions };
 
+  // Chart colors based on theme
+  const chartColors = [
+    colors.accentPrimary,
+    colors.success,
+    colors.info,
+    colors.warning,
+  ];
+
   // Enhance data with theme colors if not provided
   const enhancedData =
     type === "table"
@@ -109,15 +112,16 @@ export function ChartRenderer({ visualization }: ChartRendererProps) {
           ...data,
           datasets:
             "datasets" in data
-              ? data.datasets?.map((dataset, index) => ({
-                  ...dataset,
-                  borderColor: dataset.borderColor || getDefaultColor(index),
-                  backgroundColor:
-                    dataset.backgroundColor ||
-                    (type === "line"
-                      ? getDefaultColor(index) + "20"
-                      : getDefaultColor(index)),
-                })) || []
+              ? data.datasets?.map((dataset, index) => {
+                  const color = chartColors[index % chartColors.length];
+                  return {
+                    ...dataset,
+                    borderColor: dataset.borderColor || color,
+                    backgroundColor:
+                      dataset.backgroundColor ||
+                      (type === "line" ? `${color}20` : color),
+                  };
+                }) || []
               : [],
         };
 
@@ -137,26 +141,6 @@ export function ChartRenderer({ visualization }: ChartRendererProps) {
   };
 
   return <div className="w-full">{renderChart()}</div>;
-}
-
-function getDefaultColor(index: number): string {
-  const colors = [
-    getComputedStyle(document.documentElement)
-      .getPropertyValue("--color-chart-primary")
-      .trim(),
-    getComputedStyle(document.documentElement)
-      .getPropertyValue("--color-chart-secondary")
-      .trim(),
-    getComputedStyle(document.documentElement)
-      .getPropertyValue("--color-chart-accent")
-      .trim(),
-  ];
-  // Fallback colors if CSS variables are not set
-  const fallbacks = ["#22D3EE", "#06B6D4", "#10B981"];
-
-  const color =
-    colors[index % colors.length] || fallbacks[index % fallbacks.length];
-  return color;
 }
 
 interface TableData {

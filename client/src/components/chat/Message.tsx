@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import {
   ThumbsUp,
   ThumbsDown,
@@ -11,6 +11,8 @@ import {
   Copy,
   Check,
   AlertCircle,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { Message as MessageType } from "@/lib/types";
 import { ChartRenderer } from "./ChartRenderer";
@@ -92,6 +94,7 @@ function CodeBlock({ language, value }: { language: string; value: string }) {
 export function Message({ message, onFeedback, onViewTrace, compact = false }: MessageProps) {
   const isUser = message.role === "user";
   const isError = message.isError === true;
+  const [visualizationsVisible, setVisualizationsVisible] = useState(true);
 
   return (
     <div
@@ -295,10 +298,31 @@ export function Message({ message, onFeedback, onViewTrace, compact = false }: M
 
           {/* Visualizations */}
           {message.visualizations && message.visualizations.length > 0 && (
-            <div className="mt-4 space-y-4">
-              {message.visualizations.map((viz, index) => (
-                <ChartRenderer key={index} visualization={viz} />
-              ))}
+            <div className="mt-4 space-y-3">
+              {/* Toggle Button */}
+              <button
+                onClick={() => setVisualizationsVisible(!visualizationsVisible)}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--color-muted)]/50 hover:bg-[var(--color-muted)] border border-[var(--color-border)]/40 hover:border-[var(--color-border)] transition-all duration-200 text-sm text-[var(--color-text-primary)] hover:text-[var(--color-accent-primary)] group"
+                title={visualizationsVisible ? "Hide visualizations" : "Show visualizations"}
+              >
+                {visualizationsVisible ? (
+                  <EyeOff className="h-3.5 w-3.5 transition-transform group-hover:scale-110" />
+                ) : (
+                  <Eye className="h-3.5 w-3.5 transition-transform group-hover:scale-110" />
+                )}
+                <span className="font-medium">
+                  {visualizationsVisible ? "Hide" : "Show"} {message.visualizations.length > 1 ? "Charts" : "Chart"}
+                </span>
+              </button>
+
+              {/* Charts */}
+              {visualizationsVisible && (
+                <div className="space-y-4 animate-in fade-in-0 slide-in-from-top-2 duration-300">
+                  {message.visualizations.map((viz, index) => (
+                    <ChartRenderer key={index} visualization={viz} />
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>

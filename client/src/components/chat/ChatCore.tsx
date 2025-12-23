@@ -10,6 +10,7 @@ import { FunctionCallNotification } from "@/components/notifications/FunctionCal
 import { Message } from "@/lib/types";
 import { useUserInfo } from "@/hooks/useUserInfo";
 import { useAgents } from "@/hooks/useAgents";
+import { detectAndGenerateVisualizations } from "@/lib/tableDetector";
 
 // Dev-only logger
 const devLog = (...args: any[]) => {
@@ -180,13 +181,25 @@ export function ChatCore({
         onAgentChange(chat.agent_id);
       }
 
-      const loadedMessages = chat.messages.map((msg: any) => ({
-        ...msg,
-        timestamp: new Date(msg.timestamp),
-        traceId: msg.trace_id,
-        traceSummary: msg.trace_summary,
-        isError: msg.is_error,
-      }));
+      const loadedMessages = chat.messages.map((msg: any) => {
+        const baseMessage = {
+          ...msg,
+          timestamp: new Date(msg.timestamp),
+          traceId: msg.trace_id,
+          traceSummary: msg.trace_summary,
+          isError: msg.is_error,
+        };
+
+        // Regenerate visualizations for assistant messages
+        if (msg.role === "assistant" && msg.content && !msg.is_error) {
+          const visualizations = detectAndGenerateVisualizations(msg.content);
+          if (visualizations.length > 0) {
+            return { ...baseMessage, visualizations };
+          }
+        }
+
+        return baseMessage;
+      });
 
       devLog("Loaded", loadedMessages.length, "messages from chat history");
       setMessages(loadedMessages);
@@ -443,12 +456,23 @@ export function ChatCore({
           }
         }
 
-        // Final content update - mark streaming as complete
+        // Final content update - mark streaming as complete and detect visualizations
         if (assistantMessageCreated && streamedContent) {
+          // Detect markdown tables and generate visualizations
+          const visualizations = detectAndGenerateVisualizations(streamedContent);
+          if (visualizations.length > 0) {
+            devLog(`Detected ${visualizations.length} visualization(s) from markdown tables`);
+          }
+
           setMessages((prev) =>
             prev.map((msg) =>
               msg.id === assistantMessageId
-                ? { ...msg, content: streamedContent, isStreaming: false }
+                ? {
+                    ...msg,
+                    content: streamedContent,
+                    isStreaming: false,
+                    visualizations: visualizations.length > 0 ? visualizations : undefined,
+                  }
                 : msg,
             ),
           );
