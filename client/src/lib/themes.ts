@@ -74,11 +74,11 @@ export const PREDEFINED_THEMES: PredefinedTheme[] = [
       textPrimary: "#18181B", // Zinc-900 for body text
       textMuted: "#71717A", // Zinc-500 for secondary content
 
-      // BRAND/ACCENT - Professional blue
-      accentPrimary: "#2c76af", // Ocean blue - professional and trustworthy
+      // BRAND/ACCENT - Vibrant coral
+      accentPrimary: "#FF5F46", // Coral/orange red - energetic and modern
 
-      // ANIMATED BACKGROUND - Lighter blue particles
-      animatedBgColor: "#66abd6", // Light blue for subtle effect
+      // ANIMATED BACKGROUND - Deep red particles
+      animatedBgColor: "#bd210f", // Darker red for bold presence
 
       // BACKGROUNDS - Pure white with warm neutral secondary
       bgPrimary: "#FFFFFF", // Pure white for maximum clarity
@@ -106,11 +106,11 @@ export const PREDEFINED_THEMES: PredefinedTheme[] = [
     animatedBackground: {
       particleCount: 25,
       connectionDistance: 80,
-      particleOpacity: 0.08,
-      lineOpacity: 0.05,
+      particleOpacity: 0.1,
+      lineOpacity: 0.5,
       particleSize: 1.5,
-      lineWidth: 0.8,
-      animationSpeed: 0.4,
+      lineWidth: 1.2,
+      animationSpeed: 1.1,
     },
   },
   {

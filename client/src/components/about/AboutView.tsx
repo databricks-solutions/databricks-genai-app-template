@@ -94,14 +94,14 @@ export function AboutView() {
 
           {/* Hero text - Floats in from right, fades and moves on scroll */}
           <div
-            className="absolute top-8 md:top-16 right-8 md:right-16 max-w-xl transition-all duration-500 animate-float-in-right"
+            className="absolute top-24 md:top-32 right-8 md:right-16 max-w-xl transition-all duration-500 animate-float-in-right"
             style={{
               opacity: Math.max(1 - scrollY / 200, 0),
               transform: `translateY(${scrollY / 2}px)`,
               visibility: scrollY > 250 ? "hidden" : "visible",
             }}
           >
-            <div className="border-l-4 border-[var(--color-accent-primary)] pl-6 py-4 bg-white/60 backdrop-blur-xl rounded-r-xl shadow-2xl">
+            <div className="px-6 py-4 bg-white/85 backdrop-blur-xl rounded-xl shadow-2xl">
               <h1 className="text-3xl md:text-5xl font-bold text-[var(--color-text-heading)] mb-3 leading-tight">
                 Databricks: The Data Intelligence Platform
               </h1>
@@ -119,7 +119,7 @@ export function AboutView() {
         {/* Rest of Content - Scrolls over the video with backdrop */}
         <div className="relative z-10">
           <div
-            className="max-w-7xl mx-auto px-6 md:px-8 py-16 md:py-24 bg-[var(--color-background)]/95 backdrop-blur-xl rounded-t-3xl shadow-2xl"
+            className="max-w-7xl mx-auto px-6 md:px-8 py-16 md:py-24 bg-white/70 backdrop-blur-xl rounded-t-3xl shadow-2xl"
             style={{
               transform: `translateY(${-scrollY / 10}px)`,
             }}
@@ -163,7 +163,7 @@ export function AboutView() {
                   </ul>
                 </div>
                 <div>
-                  <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-[var(--color-background)]/80 backdrop-blur-xl shadow-2xl hover:shadow-3xl transition-all duration-500 hover:scale-105 border border-[var(--color-border)]/30">
+                  <div className="relative aspect-[4/3] rounded-2xl overflow-hidden shadow-2xl hover:shadow-3xl transition-all duration-500 hover:scale-105">
                     <img src="/images/img1.png" alt="Building the data foundations" className="w-full h-full object-contain" />
                   </div>
                 </div>
@@ -205,7 +205,7 @@ export function AboutView() {
                   </ul>
                 </div>
                 <div className="md:col-start-1 md:row-start-1">
-                  <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-[var(--color-background)]/80 backdrop-blur-xl shadow-2xl hover:shadow-3xl transition-all duration-500 hover:scale-105 border border-[var(--color-border)]/30">
+                  <div className="relative aspect-[4/3] rounded-2xl overflow-hidden shadow-2xl hover:shadow-3xl transition-all duration-500 hover:scale-105">
                     <img src="/images/img2.png" alt="Unlocking value at every level" className="w-full h-full object-contain" />
                   </div>
                 </div>
@@ -251,7 +251,7 @@ export function AboutView() {
                   </ul>
                 </div>
                 <div>
-                  <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-[var(--color-background)]/80 backdrop-blur-xl shadow-2xl hover:shadow-3xl transition-all duration-500 hover:scale-105 border border-[var(--color-border)]/30">
+                  <div className="relative aspect-[4/3] rounded-2xl overflow-hidden shadow-2xl hover:shadow-3xl transition-all duration-500 hover:scale-105">
                     <img src="/images/img3.png" alt="The Databricks Advantage" className="w-full h-full object-contain" />
                   </div>
                 </div>
@@ -297,7 +297,7 @@ export function AboutView() {
                   </ul>
                 </div>
                 <div className="md:col-start-1 md:row-start-1">
-                  <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-[var(--color-background)]/80 backdrop-blur-xl shadow-2xl hover:shadow-3xl transition-all duration-500 hover:scale-105 border border-[var(--color-border)]/30">
+                  <div className="relative aspect-[4/3] rounded-2xl overflow-hidden shadow-2xl hover:shadow-3xl transition-all duration-500 hover:scale-105">
                     <img src="/images/img4.png" alt="Power AI with tools" className="w-full h-full object-contain" />
                   </div>
                 </div>
