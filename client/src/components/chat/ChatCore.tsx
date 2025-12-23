@@ -91,6 +91,7 @@ export function ChatCore({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const activeStreamChatIdRef = useRef<string | undefined>(undefined);
+  const abortReasonRef = useRef<"user_stopped" | "chat_switched" | null>(null);
 
   // Load chat messages when chatId changes
   useEffect(() => {
@@ -100,6 +101,7 @@ export function ChatCore({
       if (currentSessionId) {
         if (abortControllerRef.current) {
           devLog("Aborting stream for previous chat:", currentSessionId);
+          abortReasonRef.current = "chat_switched";
           abortControllerRef.current.abort();
           abortControllerRef.current = null;
         }
@@ -456,13 +458,37 @@ export function ChatCore({
       }
     } catch (error) {
       if (error instanceof Error && error.name === "AbortError") {
-        devLog("Stream aborted cleanly - user switched chats");
-        if (assistantMessageCreated) {
-          setMessages((prev) =>
-            prev.filter((msg) => msg.id !== assistantMessageId),
-          );
+        const abortReason = abortReasonRef.current;
+        abortReasonRef.current = null; // Reset the reason
+
+        if (abortReason === "user_stopped") {
+          devLog("Stream stopped by user - keeping partial message");
+          if (assistantMessageCreated && streamedContent) {
+            // Keep the partial message and mark it as interrupted
+            setMessages((prev) =>
+              prev.map((msg) =>
+                msg.id === assistantMessageId
+                  ? {
+                      ...msg,
+                      content: streamedContent + "\n\n_[Generation stopped by user]_",
+                      isStreaming: false,
+                      isInterrupted: true,
+                    }
+                  : msg,
+              ),
+            );
+          }
+          return;
+        } else {
+          // Chat switched - remove the partial message
+          devLog("Stream aborted cleanly - user switched chats");
+          if (assistantMessageCreated) {
+            setMessages((prev) =>
+              prev.filter((msg) => msg.id !== assistantMessageId),
+            );
+          }
+          return;
         }
-        return;
       }
 
       console.error("Failed to send message:", error);
@@ -492,6 +518,14 @@ export function ChatCore({
 
   const handleFeedback = (messageId: string, type: "positive" | "negative") => {
     setFeedbackModal({ isOpen: true, messageId, feedbackType: type });
+  };
+
+  const handleStop = () => {
+    if (abortControllerRef.current) {
+      devLog("User stopped generation");
+      abortReasonRef.current = "user_stopped";
+      abortControllerRef.current.abort();
+    }
   };
 
   const handleTrace = (messageId: string) => {
@@ -607,7 +641,9 @@ export function ChatCore({
       >
         <ChatInput
           onSendMessage={sendMessage}
+          onStop={handleStop}
           disabled={isLoading}
+          isLoading={isLoading}
           selectedAgentId={selectedAgentId}
           onAgentChange={onAgentChange}
           hasMessages={messages.length > 0}

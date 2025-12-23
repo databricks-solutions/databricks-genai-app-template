@@ -1,11 +1,13 @@
 
 import React, { useState, useRef, KeyboardEvent, useEffect } from "react";
-import { ArrowUp, ChevronDown, Check, Loader2, AlertCircle } from "lucide-react";
+import { ArrowUp, ChevronDown, Check, Loader2, AlertCircle, Square } from "lucide-react";
 import { useAgents } from "@/hooks/useAgents";
 
 interface ChatInputProps {
   onSendMessage: (message: string) => void;
+  onStop?: () => void; // Callback to stop streaming
   disabled?: boolean;
+  isLoading?: boolean; // Whether a message is currently streaming
   selectedAgentId?: string;
   onAgentChange?: (agentId: string) => void;
   hasMessages?: boolean; // Whether the current chat has messages (locks agent)
@@ -16,7 +18,9 @@ interface ChatInputProps {
 
 export function ChatInput({
   onSendMessage,
+  onStop,
   disabled = false,
+  isLoading = false,
   selectedAgentId: propSelectedAgentId,
   onAgentChange,
   hasMessages = false,
@@ -203,18 +207,30 @@ export function ChatInput({
                 </div>
               )}
 
-              {/* Send Button */}
-              <button
-                onClick={handleSend}
-                disabled={!message.trim() || disabled}
-                className={`flex-shrink-0 rounded-xl flex items-center justify-center transition-all duration-300 ${compact ? "h-7 w-7" : "h-8 w-8"} ${
-                  message.trim() && !disabled
-                    ? "bg-[var(--color-accent-primary)] hover:bg-[var(--color-accent-primary)]/80 text-white hover:scale-105 shadow-md hover:shadow-lg"
-                    : "bg-[var(--color-muted)] text-[var(--color-muted-foreground)] cursor-not-allowed opacity-50"
-                }`}
-              >
-                <ArrowUp className={compact ? "h-3.5 w-3.5" : "h-4 w-4"} />
-              </button>
+              {/* Send/Stop Button */}
+              {isLoading ? (
+                /* Stop Button - shown while streaming */
+                <button
+                  onClick={onStop}
+                  className={`flex-shrink-0 rounded-xl flex items-center justify-center transition-all duration-300 ${compact ? "h-7 w-7" : "h-8 w-8"} bg-[var(--color-accent-primary)] hover:bg-[var(--color-accent-primary)]/80 text-white hover:scale-105 shadow-md hover:shadow-lg`}
+                  title="Stop generating"
+                >
+                  <Square className={compact ? "h-3.5 w-3.5" : "h-4 w-4"} fill="currentColor" />
+                </button>
+              ) : (
+                /* Send Button - shown when not streaming */
+                <button
+                  onClick={handleSend}
+                  disabled={!message.trim() || disabled}
+                  className={`flex-shrink-0 rounded-xl flex items-center justify-center transition-all duration-300 ${compact ? "h-7 w-7" : "h-8 w-8"} ${
+                    message.trim() && !disabled
+                      ? "bg-[var(--color-accent-primary)] hover:bg-[var(--color-accent-primary)]/80 text-white hover:scale-105 shadow-md hover:shadow-lg"
+                      : "bg-[var(--color-muted)] text-[var(--color-muted-foreground)] cursor-not-allowed opacity-50"
+                  }`}
+                >
+                  <ArrowUp className={compact ? "h-3.5 w-3.5" : "h-4 w-4"} />
+                </button>
+              )}
             </div>
           </div>
         </div>

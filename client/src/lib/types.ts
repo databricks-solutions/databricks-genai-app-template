@@ -97,6 +97,7 @@ export interface Message {
   traceSummary?: TraceSummary;
   isError?: boolean;
   isStreaming?: boolean;
+  isInterrupted?: boolean;
 }
 
 export interface Visualization {
