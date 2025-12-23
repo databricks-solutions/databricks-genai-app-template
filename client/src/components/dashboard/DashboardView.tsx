@@ -92,7 +92,7 @@ export function DashboardView() {
               <code className="px-2.5 py-1 bg-[var(--color-accent-primary)]/10 backdrop-blur-sm rounded-lg text-sm font-mono text-[var(--color-accent-primary)] border border-[var(--color-accent-primary)]/20">
                 dashboard.dashboardId
               </code>{" "}
-              to your Databricks dashboard ID (e.g., 01f0e00bd7a714ccab3704ea38d93c32)
+              to your Databricks dashboard ID
             </li>
             <li>
               Customize the{" "}

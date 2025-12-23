@@ -26,12 +26,16 @@
 
   body {
     @apply bg-background text-foreground;
-    font-family: var(--db-font-primary, 'DM Sans', sans-serif);
+    font-family: var(--db-font-primary, 'Inter', sans-serif);
+    font-size: 15px; /* Modern, comfortable reading size */
+    font-weight: 400;
+    line-height: 1.6;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
 
-  /* Typography - Databricks Style */
+  /* Typography - Modern & Refined */
   h1,
   h2,
   h3,
@@ -39,78 +43,120 @@
   h5,
   h6 {
     color: var(--color-text-heading);
+    letter-spacing: -0.02em; /* Tighter tracking for headings */
   }
 
-  /* All headings use primary font (--font-primary / --db-font-accent) */
+  /* Sophisticated type scale with Inter */
   h1 {
-    font-family: var(--db-font-accent, 'Montserrat', sans-serif);
-    font-size: 2.25rem;
+    font-family: var(--db-font-accent, 'Inter', sans-serif);
+    font-size: 2.5rem; /* 40px */
     font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.03em;
   }
 
   h2 {
-    font-family: var(--db-font-accent, 'Montserrat', sans-serif);
-    font-size: 1.875rem;
+    font-family: var(--db-font-accent, 'Inter', sans-serif);
+    font-size: 2rem; /* 32px */
     font-weight: 700;
+    line-height: 1.25;
+    letter-spacing: -0.025em;
   }
 
   h3 {
-    font-family: var(--db-font-accent, 'Montserrat', sans-serif);
-    font-size: 1.5rem;
+    font-family: var(--db-font-accent, 'Inter', sans-serif);
+    font-size: 1.5rem; /* 24px */
     font-weight: 600;
+    line-height: 1.33;
+    letter-spacing: -0.02em;
   }
 
   h4 {
-    font-family: var(--db-font-accent, 'Montserrat', sans-serif);
-    font-size: 1.25rem;
+    font-family: var(--db-font-accent, 'Inter', sans-serif);
+    font-size: 1.25rem; /* 20px */
     font-weight: 600;
+    line-height: 1.4;
+    letter-spacing: -0.015em;
   }
 
   h5 {
-    font-family: var(--db-font-accent, 'Montserrat', sans-serif);
-    font-size: 1.125rem;
-    font-weight: 500;
+    font-family: var(--db-font-accent, 'Inter', sans-serif);
+    font-size: 1.125rem; /* 18px */
+    font-weight: 600;
+    line-height: 1.44;
   }
 
   h6 {
-    font-family: var(--db-font-accent, 'Montserrat', sans-serif);
-    font-size: 1rem;
-    font-weight: 500;
+    font-family: var(--db-font-accent, 'Inter', sans-serif);
+    font-size: 1rem; /* 16px */
+    font-weight: 600;
+    line-height: 1.5;
   }
 
   p {
     color: var(--color-text-primary);
-    line-height: 1.6;
+    line-height: 1.65; /* Optimal readability */
+    font-size: 0.9375rem; /* 15px - slightly smaller for modern feel */
   }
 
   a {
     color: var(--color-accent-primary);
     text-decoration: none;
     font-weight: 500;
+    transition: color 150ms ease;
   }
 
   a:hover {
-    color: var(--color-accent-secondary);
-    text-decoration: underline;
+    color: var(--color-accent-primary);
+    opacity: 0.8;
+  }
+
+  /* Input & Textarea base styles for proper dark mode support */
+  input,
+  textarea,
+  select {
+    color: var(--color-text-primary);
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--color-text-muted);
+    opacity: 0.6;
+  }
+
+  /* Ensure autofill doesn't override colors in dark mode */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  textarea:-webkit-autofill,
+  textarea:-webkit-autofill:hover,
+  textarea:-webkit-autofill:focus {
+    -webkit-text-fill-color: var(--color-text-primary);
+    -webkit-box-shadow: 0 0 0px 1000px var(--color-bg-secondary) inset;
+    transition: background-color 5000s ease-in-out 0s;
   }
 }
 
-/* Custom scrollbar - using theme colors */
+/* Custom scrollbar - refined and minimal */
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--color-scrollbar-track, transparent);
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-scrollbar-thumb, rgb(148 163 184 / 0.5));
-  border-radius: 3px;
+  background: var(--color-border);
+  border-radius: 4px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-scrollbar-thumb-hover, rgb(148 163 184 / 0.7));
+  background: var(--color-text-muted);
+  background-clip: padding-box;
 }
 
 /* Aviation/Aerospace Themed Animations */

@@ -26,14 +26,14 @@ export function HomeView() {
   return (
     <>
       <div className="h-full flex items-center px-12">
-        <div className="max-w-4xl space-y-8">
-          {/* Large title */}
-          <h1 className="text-7xl font-bold text-[var(--color-text-heading)] leading-tight">
+        <div className="max-w-4xl space-y-6">
+          {/* Large title - reduced from 7xl to 5xl for better fit */}
+          <h1 className="text-5xl font-bold text-[var(--color-text-heading)] leading-tight">
             {home.title}
           </h1>
 
-          {/* Description */}
-          <p className="text-xl text-[var(--color-text-muted)] leading-relaxed max-w-2xl">
+          {/* Description - reduced from xl to lg for better balance */}
+          <p className="text-lg text-[var(--color-text-muted)] leading-relaxed max-w-2xl">
             {home.description}
           </p>
 
@@ -47,7 +47,7 @@ export function HomeView() {
 
           {/* Agent status: global error */}
           {!agentsLoading && globalError && (
-            <div className="p-6 rounded-2xl bg-red-50 border border-red-200 shadow-lg space-y-3">
+            <div className="p-4 rounded-2xl bg-red-50 border border-red-200 shadow-lg space-y-2">
               <div className="flex items-center gap-2">
                 <AlertCircle className="h-5 w-5 text-red-600" />
                 <p className="text-lg font-medium text-red-900">Configuration Error</p>
@@ -58,7 +58,7 @@ export function HomeView() {
 
           {/* Agent status: no agents configured */}
           {!agentsLoading && noAgentsConfigured && (
-            <div className="p-6 rounded-2xl bg-red-50 border border-red-200 shadow-lg space-y-3">
+            <div className="p-4 rounded-2xl bg-red-50 border border-red-200 shadow-lg space-y-2">
               <div className="flex items-center gap-2">
                 <AlertCircle className="h-5 w-5 text-red-600" />
                 <p className="text-lg font-medium text-red-900">No Agents Configured</p>
@@ -88,7 +88,7 @@ export function HomeView() {
 
           {/* Agent status: agent-specific errors */}
           {!agentsLoading && agentErrors.length > 0 && (
-            <div className="p-6 rounded-2xl bg-red-50 border border-red-200 shadow-lg space-y-4">
+            <div className="p-4 rounded-2xl bg-red-50 border border-red-200 shadow-lg space-y-3">
               <div className="flex items-center gap-2">
                 <AlertCircle className="h-5 w-5 text-red-600" />
                 <p className="text-lg font-medium text-red-900">Agent Configuration Errors</p>
@@ -115,9 +115,9 @@ export function HomeView() {
 
           {/* Config instructions - only show when using default config */}
           {isDefaultConfig && (
-            <div className="p-6 rounded-2xl bg-[var(--color-bg-secondary)] backdrop-blur-xl border border-[var(--color-border)] shadow-lg space-y-4">
-              <p className="text-lg font-medium text-[var(--color-text-primary)]">To configure your project:</p>
-              <ol className="list-decimal list-inside space-y-3 text-base text-[var(--color-text-muted)]">
+            <div className="p-5 rounded-2xl bg-[var(--color-bg-secondary)] backdrop-blur-xl border border-[var(--color-border)] shadow-lg space-y-3">
+              <p className="text-base font-medium text-[var(--color-text-primary)]">To configure your project:</p>
+              <ol className="list-decimal list-inside space-y-2 text-sm text-[var(--color-text-muted)]">
                 <li>
                   Open{" "}
                   <code className="px-2.5 py-1 bg-[var(--color-accent-primary)]/10 backdrop-blur-sm rounded-lg text-sm font-mono text-[var(--color-accent-primary)] border border-[var(--color-accent-primary)]/20">
@@ -159,7 +159,7 @@ export function HomeView() {
 
           {/* Tracker configuration - only show when using default app_name */}
           {isDefaultAppName && (
-            <div className="p-6 rounded-2xl bg-amber-50 border border-amber-200 shadow-lg space-y-4">
+            <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 shadow-lg space-y-3">
               <p className="text-lg font-medium text-amber-900">Tracker Configuration</p>
               <p className="text-sm text-amber-800">
                 To track your app usage, update{" "}

@@ -66,36 +66,36 @@ export const PREDEFINED_THEMES: PredefinedTheme[] = [
   {
     id: "default",
     name: "Default Light",
-    description: "Clean, modern light theme with perfect contrast",
+    description: "Sophisticated light theme inspired by Linear and Vercel",
     isDefault: true,
     colors: {
-      // TEXT COLORS - High contrast for perfect readability
-      textHeading: "#0F172A", // Deep slate for headings
-      textPrimary: "#1E293B", // Dark slate for body text
-      textMuted: "#64748B", // Medium slate for secondary text
+      // TEXT COLORS - Neutral zinc scale for warmth and sophistication
+      textHeading: "#09090B", // Near-black zinc for maximum impact
+      textPrimary: "#18181B", // Zinc-900 for body text
+      textMuted: "#71717A", // Zinc-500 for secondary content
 
-      // BRAND/ACCENT - Modern, professional blue
-      accentPrimary: "#0EA5E9", // Sky blue - vibrant yet professional
+      // BRAND/ACCENT - Professional blue
+      accentPrimary: "#2c76af", // Ocean blue - professional and trustworthy
 
-      // ANIMATED BACKGROUND - Subtle animation color
-      animatedBgColor: "#0EA5E9",
+      // ANIMATED BACKGROUND - Lighter blue particles
+      animatedBgColor: "#66abd6", // Light blue for subtle effect
 
-      // BACKGROUNDS - Clean white base
-      bgPrimary: "#FFFFFF", // Pure white
-      bgSecondary: "#F8FAFC", // Very light slate for subtle contrast
+      // BACKGROUNDS - Pure white with warm neutral secondary
+      bgPrimary: "#FFFFFF", // Pure white for maximum clarity
+      bgSecondary: "#FAFAFA", // Neutral-50 for subtle elevation
 
-      // UI ELEMENTS - Crisp, visible borders
-      border: "#E2E8F0", // Light slate for clean separation
+      // UI ELEMENTS - Delicate neutral borders
+      border: "#E4E4E7", // Zinc-200 for refined separation
 
-      // STATUS COLORS - Clear semantic colors
-      success: "#10B981", // Emerald green
-      successHover: "#D1FAE5",
-      error: "#EF4444", // Red
-      errorHover: "#FEE2E2",
-      info: "#0EA5E9", // Sky blue
-      infoHover: "#E0F2FE",
-      warning: "#F59E0B", // Amber
-      warningHover: "#FEF3C7",
+      // STATUS COLORS - Vibrant and clear
+      success: "#22C55E", // Green-500
+      successHover: "#DCFCE7", // Green-100
+      error: "#EF4444", // Red-500
+      errorHover: "#FEE2E2", // Red-100
+      info: "#2c76af", // Blue (matches accent)
+      infoHover: "#DBEAFE", // Blue-100
+      warning: "#F59E0B", // Amber-500
+      warningHover: "#FEF3C7", // Amber-100
     },
     typography: {
       primaryFont:
@@ -104,63 +104,63 @@ export const PREDEFINED_THEMES: PredefinedTheme[] = [
         '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
     },
     animatedBackground: {
-      particleCount: 35,
-      connectionDistance: 60,
-      particleOpacity: 0.15,
-      lineOpacity: 0.1,
-      particleSize: 2,
-      lineWidth: 1,
-      animationSpeed: 0.5,
+      particleCount: 25,
+      connectionDistance: 80,
+      particleOpacity: 0.08,
+      lineOpacity: 0.05,
+      particleSize: 1.5,
+      lineWidth: 0.8,
+      animationSpeed: 0.4,
     },
   },
   {
     id: "default-dark",
     name: "Default Dark",
-    description: "Default dark theme with ocean blue branding",
+    description: "Elegant dark theme inspired by Linear and GitHub",
     isDefault: false,
     colors: {
-      // TEXT COLORS
-      textHeading: "#FFFFFF",
-      textPrimary: "#E5E5E5",
-      textMuted: "#B3B3B3",
+      // TEXT COLORS - High contrast on true dark
+      textHeading: "#FAFAFA", // Neutral-50 for crisp headings
+      textPrimary: "#E4E4E7", // Zinc-200 for readable body text
+      textMuted: "#A1A1AA", // Zinc-400 for subtle secondary content
 
-      // BRAND/ACCENT
-      accentPrimary: "#4c809a",
+      // BRAND/ACCENT - Lighter blue for dark backgrounds
+      accentPrimary: "#66abd6", // Light blue - readable on dark
 
-      // ANIMATED BACKGROUND
-      animatedBgColor: "#92c6f7",
+      // ANIMATED BACKGROUND - Subtle blue glow
+      animatedBgColor: "#2c76af", // Ocean blue
 
-      // BACKGROUNDS
-      bgPrimary: "#141414",
-      bgSecondary: "#111922",
+      // BACKGROUNDS - True dark with subtle elevation
+      bgPrimary: "#09090B", // Zinc-950 - true dark
+      bgSecondary: "#18181B", // Zinc-900 - elevated surfaces
 
-      // UI ELEMENTS
-      border: "#333333",
+      // UI ELEMENTS - Subtle but visible borders
+      border: "#27272A", // Zinc-800 for refined separation
 
-      // STATUS COLORS
-      success: "#46D369",
-      successHover: "rgba(70, 211, 105, 0.2)",
-      error: "#E50914",
-      errorHover: "rgba(229, 9, 20, 0.2)",
-      info: "#64B5F6",
-      infoHover: "rgba(100, 181, 246, 0.2)",
-      warning: "#F5A623",
-      warningHover: "rgba(245, 166, 35, 0.2)",
+      // STATUS COLORS - Vibrant but not harsh
+      success: "#22C55E", // Green-500
+      successHover: "rgba(34, 197, 94, 0.15)", // Green with opacity
+      error: "#EF4444", // Red-500
+      errorHover: "rgba(239, 68, 68, 0.15)", // Red with opacity
+      info: "#66abd6", // Light blue (matches accent)
+      infoHover: "rgba(102, 171, 214, 0.15)", // Blue with opacity
+      warning: "#F59E0B", // Amber-500
+      warningHover: "rgba(245, 158, 11, 0.15)", // Amber with opacity
     },
     typography: {
       primaryFont:
-        '"Roboto", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+        '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
       secondaryFont:
-        '"Roboto", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+        '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
     },
     animatedBackground: {
-      particleCount: 60,
-      connectionDistance: 65,
-      particleOpacity: 0.6,
-      lineOpacity: 0.8,
-      particleSize: 5,
-      lineWidth: 3.8,
-      animationSpeed: 1.0,
+      particleCount: 30,
+      connectionDistance: 80,
+      particleOpacity: 0.12,
+      lineOpacity: 0.08,
+      particleSize: 2,
+      lineWidth: 1,
+      animationSpeed: 0.4,
     },
   },
   {
