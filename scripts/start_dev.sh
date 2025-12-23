@@ -22,9 +22,13 @@ if ! command -v uv &> /dev/null; then
 fi
 
 # Check for bun (JavaScript runtime)
-if ! command -v bun &> /dev/null; then
+# Check both in PATH and in default installation location
+if ! command -v bun &> /dev/null && [ ! -f "$HOME/.bun/bin/bun" ]; then
   MISSING_DEPS+=("bun")
   INSTALL_COMMANDS+=("curl -fsSL https://bun.sh/install | bash")
+elif ! command -v bun &> /dev/null && [ -f "$HOME/.bun/bin/bun" ]; then
+  # Bun is installed but not in PATH, add it
+  export PATH="$HOME/.bun/bin:$PATH"
 fi
 
 # If there are missing dependencies, prompt user
@@ -70,6 +74,50 @@ if [ ${#MISSING_DEPS[@]} -gt 0 ]; then
 fi
 
 echo "✅ All dependencies installed (uv, bun)"
+echo ""
+
+# ============================================================
+# Check Frontend Dependencies (Vite)
+# ============================================================
+
+# Ensure bun is in PATH for the checks below
+if [ -f "$HOME/.bun/bin/bun" ]; then
+  export PATH="$HOME/.bun/bin:$PATH"
+fi
+
+# Check if Vite and other frontend dependencies are installed
+if [ ! -d "client/node_modules" ] || [ ! -d "client/node_modules/vite" ]; then
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  echo "📦 Frontend Dependencies Not Installed"
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  echo ""
+  echo "Vite and other frontend dependencies need to be installed."
+  echo ""
+
+  read -p "Would you like to install them now? (y/N) " -n 1 -r
+  echo ""
+
+  if [[ $REPLY =~ ^[Yy]$ ]]; then
+    echo ""
+    echo "📥 Installing frontend dependencies with bun..."
+    cd client && bun install
+    if [ $? -eq 0 ]; then
+      echo "✅ Frontend dependencies installed successfully"
+      cd ..
+    else
+      echo "❌ Failed to install frontend dependencies"
+      exit 1
+    fi
+    echo ""
+  else
+    echo ""
+    echo "Please install frontend dependencies manually:"
+    echo "  cd client && bun install"
+    exit 1
+  fi
+fi
+
+echo "✅ Frontend dependencies installed (vite)"
 echo ""
 
 # ============================================================

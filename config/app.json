@@ -3,14 +3,6 @@
   "enable_tracker": true,
   "demo_catalog_id": "",
   "agents": [
-    {
-      "mas_id": "a45eb36c4-0e8a-4094-aa86-67df6e0b455d",
-      "question_examples": [
-        "What can you help me with?",
-        "How do I get started?",
-        "Show me an example query"
-      ]
-    }
   ],
   "branding": {
     "name": "Databricks",
@@ -23,7 +15,7 @@
   "dashboard": {
     "title": "Dashboard",
     "subtitle": "Dashboard",
-    "iframeUrl": "",
+    "dashboardId": "",
     "showPadding": true
   }
 }

@@ -62,13 +62,10 @@ databricks-genai-app-template/
 git clone <repo-url>
 cd databricks-genai-app-template
 
-# 2. Run setup (creates .env.local, installs dependencies)
-./scripts/setup.sh
-
-# 3. Configure your agent in config/app.json
+# 2. Configure your agent in config/app.json
 #    Set endpoint_name to your Databricks serving endpoint
 
-# 4. Start development servers
+# 3. Start development servers
 ./scripts/start_dev.sh
 ```
 
@@ -240,11 +237,6 @@ Databricks Apps automatically handles OAuth authentication - no tokens needed in
 | **Database errors** | Check `LAKEBASE_PG_URL` format, ensure `?sslmode=require` is included |
 | **Build failures** | Run `./scripts/fix.sh`, then `uv sync` and `cd client && bun install` |
 
-## Documentation
-
-- [User Guide](docs/user-guide.md) - Detailed setup and configuration
-- [Developer Guide](docs/developer-guide.md) - Architecture and extension patterns
-- [Limitations & Roadmap](docs/limitations-and-roadmap.md) - Known limitations and planned features
 
 ## License
 

@@ -51,7 +51,7 @@
   "dashboard": {
     "title": "Dashboard",
     "subtitle": "Dashboard",
-    "iframeUrl": "",
+    "dashboardId": "01f0e00bd7a714ccab3704ea38d93c32",
     "showPadding": true
   }
 }

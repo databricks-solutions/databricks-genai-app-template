@@ -57,7 +57,7 @@ export interface HomeConfig {
 export interface DashboardConfig {
   title: string;
   subtitle: string;
-  iframeUrl: string;
+  dashboardId: string;
   showPadding: boolean;
 }
 
@@ -122,7 +122,7 @@ export async function getAppConfig(): Promise<AppConfig> {
         dashboard: {
           title: "Dashboard",
           subtitle: "Analytics and insights",
-          iframeUrl: "",
+          dashboardId: "",
           showPadding: true,
         },
       };

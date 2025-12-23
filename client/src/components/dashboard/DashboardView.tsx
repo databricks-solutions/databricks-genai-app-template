@@ -2,13 +2,15 @@ import React, { useEffect, useState } from "react";
 import { Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { getAppConfig, type DashboardConfig } from "@/lib/config";
+import { useUserInfo } from "@/hooks/useUserInfo";
 
 export function DashboardView() {
   const navigate = useNavigate();
+  const { userInfo } = useUserInfo();
   const [dashboard, setDashboard] = useState<DashboardConfig>({
     title: "Dashboard",
     subtitle: "Loading...",
-    iframeUrl: "",
+    dashboardId: "",
     showPadding: true,
   });
 
@@ -16,7 +18,12 @@ export function DashboardView() {
     getAppConfig().then((config) => setDashboard(config.dashboard));
   }, []);
 
-  const { title, subtitle, iframeUrl, showPadding } = dashboard;
+  const { title, subtitle, dashboardId, showPadding } = dashboard;
+
+  // Build the embed URL from dashboardId and workspace URL
+  const iframeUrl = dashboardId && userInfo?.workspace_url
+    ? `${userInfo.workspace_url}/embed/dashboardsv3/${dashboardId}`
+    : "";
 
   // Case 1: Dashboard iframe is provided
   if (iframeUrl) {
@@ -83,9 +90,9 @@ export function DashboardView() {
             <li>
               Set the{" "}
               <code className="px-2.5 py-1 bg-[var(--color-accent-primary)]/10 backdrop-blur-sm rounded-lg text-sm font-mono text-[var(--color-accent-primary)] border border-[var(--color-accent-primary)]/20">
-                dashboard.iframeUrl
+                dashboard.dashboardId
               </code>{" "}
-              to your Databricks dashboard embed URL
+              to your Databricks dashboard ID (e.g., 01f0e00bd7a714ccab3704ea38d93c32)
             </li>
             <li>
               Customize the{" "}
