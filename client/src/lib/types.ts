@@ -96,6 +96,7 @@ export interface Message {
   visualizations?: Visualization[];
   traceSummary?: TraceSummary;
   isError?: boolean;
+  isStreaming?: boolean;
 }
 
 export interface Visualization {

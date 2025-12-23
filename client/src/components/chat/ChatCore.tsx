@@ -349,6 +349,7 @@ export function ChatCore({
                       role: "assistant",
                       content: streamedContent,
                       timestamp: new Date(),
+                      isStreaming: true,
                     },
                   ]);
                   lastUpdateTime = Date.now();
@@ -358,7 +359,7 @@ export function ChatCore({
                     setMessages((prev) =>
                       prev.map((msg) =>
                         msg.id === assistantMessageId
-                          ? { ...msg, content: streamedContent }
+                          ? { ...msg, content: streamedContent, isStreaming: true }
                           : msg,
                       ),
                     );
@@ -419,13 +420,14 @@ export function ChatCore({
                           role: "assistant",
                           content: streamedContent,
                           timestamp: new Date(),
+                          isStreaming: true,
                         },
                       ]);
                     } else {
                       setMessages((prev) =>
                         prev.map((msg) =>
                           msg.id === assistantMessageId
-                            ? { ...msg, content: streamedContent }
+                            ? { ...msg, content: streamedContent, isStreaming: true }
                             : msg,
                         ),
                       );
@@ -439,12 +441,12 @@ export function ChatCore({
           }
         }
 
-        // Final content update
+        // Final content update - mark streaming as complete
         if (assistantMessageCreated && streamedContent) {
           setMessages((prev) =>
             prev.map((msg) =>
               msg.id === assistantMessageId
-                ? { ...msg, content: streamedContent }
+                ? { ...msg, content: streamedContent, isStreaming: false }
                 : msg,
             ),
           );

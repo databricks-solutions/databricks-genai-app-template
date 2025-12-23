@@ -366,8 +366,8 @@ export function Message({ message, onFeedback, onViewTrace, compact = false }: M
           </div>
         )}
 
-        {/* Action Buttons (for assistant messages, not for errors) */}
-        {!isUser && !isError && (
+        {/* Action Buttons (for assistant messages, not for errors, and not while streaming) */}
+        {!isUser && !isError && !message.isStreaming && (
           <div className="flex items-center gap-2 mt-2">
             <Button
               variant="ghost"
