@@ -131,8 +131,8 @@ export const PREDEFINED_THEMES: PredefinedTheme[] = [
       animatedBgColor: "#2c76af", // Ocean blue
 
       // BACKGROUNDS - True dark with subtle elevation
-      bgPrimary: "#09090B", // Zinc-950 - true dark
-      bgSecondary: "#18181B", // Zinc-900 - elevated surfaces
+      bgPrimary: "#131315", // Zinc-950 - true dark
+      bgSecondary: "#0d0d0d", // Zinc-900 - elevated surfaces
 
       // UI ELEMENTS - Subtle but visible borders
       border: "#27272A", // Zinc-800 for refined separation

@@ -151,6 +151,9 @@ export function CustomThemeProvider({ children }: ThemeProviderProps) {
         // If parsing fails, ensure defaults are applied
         applyColorsToCSS(defaultColors);
       }
+    } else {
+      // No saved colors - save defaults to localStorage so theme is properly detected as selected
+      localStorage.setItem("themeColors", JSON.stringify(defaultColors));
     }
 
     if (savedTypography) {
@@ -163,6 +166,9 @@ export function CustomThemeProvider({ children }: ThemeProviderProps) {
         // If parsing fails, ensure defaults are applied
         applyTypographyToCSS(defaultTypography);
       }
+    } else {
+      // No saved typography - save defaults to localStorage
+      localStorage.setItem("themeTypography", JSON.stringify(defaultTypography));
     }
 
     if (savedAnimatedBg) {
@@ -174,6 +180,9 @@ export function CustomThemeProvider({ children }: ThemeProviderProps) {
         // If parsing fails, ensure defaults are applied
         setAnimatedBackground(defaultAnimatedBackground);
       }
+    } else {
+      // No saved animated background - save defaults to localStorage
+      localStorage.setItem("themeAnimatedBackground", JSON.stringify(defaultAnimatedBackground));
     }
   }, []);
 
