@@ -11,6 +11,7 @@ import { Message } from "@/lib/types";
 import { useUserInfo } from "@/hooks/useUserInfo";
 import { useAgents } from "@/hooks/useAgents";
 import { detectAndGenerateVisualizations } from "@/lib/tableDetector";
+import { detectVisualizationsFromFunctionCalls } from "@/lib/functionOutputDetector";
 
 // Dev-only logger
 const devLog = (...args: any[]) => {
@@ -181,6 +182,11 @@ export function ChatCore({
         onAgentChange(chat.agent_id);
       }
 
+      // Get the agent for this chat (will be selectedAgent or chat's agent_id)
+      const chatAgent = chat.agent_id
+        ? agents.find((a) => a.id === chat.agent_id)
+        : selectedAgent;
+
       const loadedMessages = chat.messages.map((msg: any) => {
         const baseMessage = {
           ...msg,
@@ -192,7 +198,17 @@ export function ChatCore({
 
         // Regenerate visualizations for assistant messages
         if (msg.role === "assistant" && msg.content && !msg.is_error) {
-          const visualizations = detectAndGenerateVisualizations(msg.content);
+          // Priority 1: Detect from function call outputs
+          let visualizations = detectVisualizationsFromFunctionCalls(
+            msg.trace_summary?.function_calls,
+            chatAgent,
+          );
+
+          // Priority 2: Fallback to markdown table detection
+          if (visualizations.length === 0) {
+            visualizations = detectAndGenerateVisualizations(msg.content);
+          }
+
           if (visualizations.length > 0) {
             return { ...baseMessage, visualizations };
           }
@@ -458,14 +474,32 @@ export function ChatCore({
 
         // Final content update - mark streaming as complete and detect visualizations
         if (assistantMessageCreated && streamedContent) {
-          // Detect markdown tables and generate visualizations
-          const visualizations = detectAndGenerateVisualizations(streamedContent);
-          if (visualizations.length > 0) {
-            devLog(`Detected ${visualizations.length} visualization(s) from markdown tables`);
-          }
+          setMessages((prev) => {
+            // Find the current message to access its traceSummary
+            const currentMessage = prev.find((m) => m.id === assistantMessageId);
+            const traceSummary = currentMessage?.traceSummary;
 
-          setMessages((prev) =>
-            prev.map((msg) =>
+            // Priority 1: Detect visualizations from function call outputs (Genie, KA, etc.)
+            let visualizations = detectVisualizationsFromFunctionCalls(
+              traceSummary?.function_calls,
+              selectedAgent,
+            );
+
+            if (visualizations.length > 0) {
+              devLog(
+                `Detected ${visualizations.length} visualization(s) from function call outputs`,
+              );
+            } else {
+              // Priority 2: Fallback to markdown table detection
+              visualizations = detectAndGenerateVisualizations(streamedContent);
+              if (visualizations.length > 0) {
+                devLog(
+                  `Detected ${visualizations.length} visualization(s) from markdown tables`,
+                );
+              }
+            }
+
+            return prev.map((msg) =>
               msg.id === assistantMessageId
                 ? {
                     ...msg,
@@ -474,8 +508,8 @@ export function ChatCore({
                     visualizations: visualizations.length > 0 ? visualizations : undefined,
                   }
                 : msg,
-            ),
-          );
+            );
+          });
         }
       } finally {
         reader.releaseLock();
