@@ -67,13 +67,13 @@ export function TopBar({
         {/* Left Section - Logo & Name */}
         <div className="flex items-center gap-4">
           {/* Logo */}
-          <div className="relative w-24 h-8">
+          <Link to="/" className="relative w-24 h-8 block">
             <img
               src={branding.logo}
               alt={branding.name}
               className="w-full h-full object-contain"
             />
-          </div>
+          </Link>
 
           {/* Name */}
           {branding.name && (

@@ -84,9 +84,9 @@ export function AboutView() {
             Your browser does not support the video tag.
           </video>
 
-          {/* Gradient overlay that intensifies on scroll */}
+          {/* Overlay that intensifies on scroll */}
           <div
-            className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black transition-opacity duration-300"
+            className="absolute inset-0 bg-black transition-opacity duration-300"
             style={{
               opacity: Math.min(scrollY / 200, 0.8),
             }}
@@ -119,7 +119,7 @@ export function AboutView() {
         {/* Rest of Content - Scrolls over the video with backdrop */}
         <div className="relative z-10">
           <div
-            className="max-w-7xl mx-auto px-6 md:px-8 py-16 md:py-24 bg-white/70 backdrop-blur-xl rounded-t-3xl shadow-2xl"
+            className="max-w-7xl mx-auto px-6 md:px-8 py-16 md:py-24 bg-[var(--color-background)] rounded-t-3xl shadow-2xl"
             style={{
               transform: `translateY(${-scrollY / 10}px)`,
             }}
