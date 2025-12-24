@@ -85,11 +85,11 @@ export function AboutView() {
 
           {/* Hero text - Floats in from right, fades and moves on scroll */}
           <div
-            className="absolute top-24 md:top-32 right-8 md:right-16 max-w-xl transition-all duration-500 animate-float-in-right"
+            className="absolute top-24 md:top-32 right-8 md:right-16 max-w-xl transition-all duration-300 ease-out animate-float-in-right"
             style={{
-              opacity: Math.max(1 - scrollY / 200, 0),
-              transform: `translateY(${scrollY / 2}px)`,
-              visibility: scrollY > 250 ? "hidden" : "visible",
+              opacity: Math.max(1 - scrollY / 120, 0),
+              transform: `translateY(${scrollY / 1.5}px) scale(${Math.max(1 - scrollY / 400, 0.95)})`,
+              visibility: scrollY > 150 ? "hidden" : "visible",
             }}
           >
             <div className="px-6 py-4 bg-[var(--color-background)] rounded-xl shadow-2xl" style={{ opacity: 0.85 }}>
@@ -110,10 +110,10 @@ export function AboutView() {
         {/* Rest of Content - Scrolls over the video with backdrop */}
         <div className="relative z-10">
           <div
-            className="max-w-7xl mx-auto px-6 md:px-8 py-16 md:py-24 bg-[var(--color-background)] rounded-t-3xl shadow-2xl"
+            className="max-w-7xl mx-auto px-6 md:px-8 py-16 md:py-24 bg-[var(--color-background)] rounded-t-3xl shadow-2xl transition-transform duration-200 ease-out"
             style={{
-              transform: `translateY(${-scrollY / 10}px)`,
-              opacity: 0.85,
+              transform: `translateY(${Math.max(-scrollY / 8, -60)}px)`,
+              opacity: Math.min(0.85, scrollY / 100 * 0.85),
             }}
           >
             {/* Content Sections */}
