@@ -75,10 +75,10 @@ export const PREDEFINED_THEMES: PredefinedTheme[] = [
       textMuted: "#71717A", // Zinc-500 for secondary content
 
       // BRAND/ACCENT - Vibrant coral
-      accentPrimary: "#FF5F46", // Coral/orange red - energetic and modern
+      accentPrimary: "#2075b6", 
 
-      // ANIMATED BACKGROUND - Deep red particles
-      animatedBgColor: "#bd210f", // Darker red for bold presence
+      // ANIMATED BACKGROUND
+      animatedBgColor: "#4eb4f4", 
 
       // BACKGROUNDS - Pure white with warm neutral secondary
       bgPrimary: "#FFFFFF", // Pure white for maximum clarity
