@@ -93,13 +93,6 @@ def _fetch_user_from_workspace() -> str:
     raise ValueError(f'Could not determine current user: {e}') from e
 
 
-def clear_dev_user_cache() -> None:
-  """Clear the cached dev user. Useful for testing."""
-  global _dev_user_cache
-  _dev_user_cache = None
-  logger.debug('Dev user cache cleared')
-
-
 def get_workspace_url() -> str:
   """Get the Databricks workspace URL.
 
@@ -121,7 +114,7 @@ def get_workspace_url() -> str:
     logger.debug(f'Got workspace URL from env: {_workspace_url_cache}')
     return _workspace_url_cache
 
-  # Fall back to WorkspaceClient config
+  # Fall back to WorkspaceClient config (just reads from config, not a network call)
   try:
     client = WorkspaceClient()
     _workspace_url_cache = client.config.host.rstrip('/')

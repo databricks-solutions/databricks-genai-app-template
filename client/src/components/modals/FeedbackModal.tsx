@@ -71,13 +71,13 @@ export function FeedbackModal({
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-[var(--color-backdrop)] backdrop-blur-sm z-[var(--z-modal)] animate-in fade-in-0 duration-200"
+        className="fixed inset-0 bg-[var(--color-glass-backdrop)] backdrop-blur-sm z-[var(--z-modal)] animate-in fade-in-0 duration-200"
         onClick={onClose}
       />
 
-      {/* Modal */}
+      {/* Modal - Liquid Glass Style */}
       <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[calc(var(--z-modal)+1)] w-full max-w-md animate-in fade-in-0 zoom-in-95 duration-200">
-        <div className="bg-[var(--color-background)] rounded-2xl shadow-xl border border-[var(--color-border)]">
+        <div className="bg-[var(--color-glass-bg)] backdrop-blur-2xl rounded-2xl shadow-2xl shadow-black/10 border border-[var(--color-glass-border)]">
           {isSubmitting ? (
             /* Loading State */
             <>

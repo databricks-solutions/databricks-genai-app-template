@@ -1,5 +1,6 @@
 """Agent invocation and feedback endpoints."""
 
+import asyncio
 import json
 import logging
 import uuid
@@ -78,7 +79,9 @@ async def log_feedback(options: LogAssessmentRequest):
         detail=f'Agent {options.agent_id} has no mlflow_experiment_id configured',
       )"""
 
-    f = mlflow.log_feedback(
+    # Run blocking MLflow call in thread pool
+    f = await asyncio.to_thread(
+      mlflow.log_feedback,
       trace_id=options.trace_id,
       name=options.assessment_name,
       value=options.assessment_value,
@@ -188,6 +191,17 @@ async def invoke_endpoint(request: Request, options: InvokeEndpointRequest):
             # Log event types for debugging trace_id extraction
             if 'databricks_output' in str(event) or event_type in ['response.done', 'response.output_item.done']:
               logger.debug(f'📦 Event type: {event_type}, has databricks_output: {"databricks_output" in event}')
+
+            # Capture error events from handler (e.g., endpoint errors, streaming not supported)
+            if event_type == 'error':
+              error_message = event.get('error', 'Unknown error')
+              logger.error(f'❌ Error event received: {error_message}')
+
+            # Accumulate text from delta events (used by chat completion format endpoints)
+            elif event_type == 'response.output_text.delta':
+              delta_text = event.get('delta', '')
+              if delta_text:
+                final_text += delta_text
 
             # Check for databricks_output at event level (for response.done events)
             event_db_output = event.get('databricks_output', {})

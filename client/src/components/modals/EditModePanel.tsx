@@ -199,9 +199,9 @@ export function EditModePanel({ isOpen, onClose }: EditModePanelProps) {
   return (
     <div
       className={`
-        fixed right-0 top-[var(--header-height)] h-[calc(100vh-var(--header-height))] 
-        w-[400px] bg-[var(--color-background)] border-l border-[var(--color-border)]
-        shadow-xl z-[60] transform transition-transform duration-300
+        fixed right-0 top-[var(--header-height)] h-[calc(100vh-var(--header-height))]
+        w-[400px] bg-[var(--color-glass-bg)] backdrop-blur-2xl border-l border-[var(--color-glass-border)]
+        shadow-2xl shadow-black/10 z-[60] transform transition-transform duration-300
         ${isOpen ? "translate-x-0" : "translate-x-full"}
       `}
     >

@@ -33,6 +33,11 @@
   --color-warning: #F59E0B;
   --color-animated-bg: rgba(189, 33, 15, 0.7);
 
+  /* Glass effect (for modals/popups) */
+  --color-glass-bg: rgba(255, 255, 255, 0.95);
+  --color-glass-border: rgba(228, 228, 231, 0.6);
+  --color-glass-backdrop: rgba(0, 0, 0, 0.4);
+
   /* Tailwind/shadcn compatibility */
   --color-primary: var(--color-accent-primary);
   --color-primary-foreground: #ffffff;

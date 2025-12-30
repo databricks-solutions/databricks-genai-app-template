@@ -20,7 +20,8 @@ router = APIRouter()
 async def get_all_chats(request: Request):
   """Get all chats for the current user sorted by updated_at (newest first).
 
-  Returns list of chat objects with messages.
+  Returns list of chat summary objects (without messages for performance).
+  Use GET /chats/{chat_id} to fetch full chat with messages.
   """
   user_email = await get_current_user(request)
   user_storage = storage.get_storage_for_user(user_email)
@@ -29,8 +30,8 @@ async def get_all_chats(request: Request):
   chats = await user_storage.get_all()
   logger.info(f'Retrieved {len(chats)} chats for user: {user_email}')
 
-  # Convert to dict for JSON serialization
-  return [chat.to_dict() for chat in chats]
+  # Return summary (without messages) for list view performance
+  return [chat.to_dict_summary() for chat in chats]
 
 
 @router.get('/chats/{chat_id}')

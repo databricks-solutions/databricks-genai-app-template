@@ -122,11 +122,11 @@ export function TraceModal({
   const getIcon = (type: string) => {
     switch (type) {
       case "llm":
-        return <Brain className="h-4 w-4 text-purple-500" />;
+        return <Brain className="h-4 w-4 text-[var(--color-accent-primary)]" />;
       case "tool":
-        return <Code className="h-4 w-4 text-blue-500" />;
+        return <Code className="h-4 w-4 text-[var(--color-accent-primary)]" />;
       case "retrieval":
-        return <Database className="h-4 w-4 text-green-500" />;
+        return <Database className="h-4 w-4 text-[var(--color-success)]" />;
       default:
         return <Brain className="h-4 w-4 text-[var(--color-accent-primary)]" />;
     }
@@ -148,13 +148,13 @@ export function TraceModal({
   const getTypeBadgeColor = (type: string) => {
     switch (type) {
       case "llm":
-        return "bg-purple-100 text-purple-700";
+        return "bg-[var(--color-accent-primary)]/10 text-[var(--color-accent-primary)]";
       case "tool":
-        return "bg-blue-100 text-blue-700";
+        return "bg-[var(--color-accent-primary)]/10 text-[var(--color-accent-primary)]";
       case "retrieval":
-        return "bg-green-100 text-green-700";
+        return "bg-[var(--color-success)]/10 text-[var(--color-success)]";
       default:
-        return "bg-gray-100 text-gray-600";
+        return "bg-[var(--color-muted)] text-[var(--color-muted-foreground)]";
     }
   };
 
@@ -328,10 +328,10 @@ export function TraceModal({
           {shouldShowDetails && (span.input || span.output) && (
             <div className="p-5 space-y-4 bg-[var(--color-background)]">
               {/* Input Section */}
-              {renderDataSection(span.input, "Input", "bg-blue-400")}
+              {renderDataSection(span.input, "Input", "bg-[var(--color-accent-primary)]")}
 
               {/* Output Section */}
-              {renderDataSection(span.output, "Output", "bg-green-400")}
+              {renderDataSection(span.output, "Output", "bg-[var(--color-success)]")}
             </div>
           )}
         </div>
@@ -354,13 +354,13 @@ export function TraceModal({
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-[var(--color-backdrop)] backdrop-blur-sm z-[var(--z-modal)] animate-in fade-in-0 duration-200"
+        className="fixed inset-0 bg-[var(--color-glass-backdrop)] backdrop-blur-sm z-[var(--z-modal)] animate-in fade-in-0 duration-200"
         onClick={onClose}
       />
 
-      {/* Modal */}
+      {/* Modal - Liquid Glass Style */}
       <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[calc(var(--z-modal)+1)] w-[85vw] h-[85vh] max-w-6xl animate-in fade-in-0 zoom-in-95 duration-200">
-        <div className="bg-[var(--color-background)] rounded-2xl shadow-xl border border-[var(--color-border)] h-full flex flex-col">
+        <div className="bg-[var(--color-glass-bg)] backdrop-blur-2xl rounded-2xl shadow-2xl shadow-black/10 border border-[var(--color-glass-border)] h-full flex flex-col">
           {/* Header */}
           <div className="relative overflow-hidden">
             <div className="relative flex items-center justify-between px-6 py-4 border-b border-[var(--color-border)] bg-[var(--color-bg-secondary)]">
@@ -407,9 +407,9 @@ export function TraceModal({
               /* MAS Flow Visualization */
               <div className="max-w-5xl mx-auto space-y-6">
                 {/* Supervisor Header */}
-                <div className="bg-purple-500/8 rounded-xl border border-purple-500/20 p-5">
+                <div className="bg-[var(--color-accent-primary)]/8 rounded-xl border border-[var(--color-accent-primary)]/20 p-5">
                   <div className="flex items-center gap-3 mb-2">
-                    <Users className="h-6 w-6 text-purple-500" />
+                    <Users className="h-6 w-6 text-[var(--color-accent-primary)]" />
                     <h3 className="text-xl font-bold text-[var(--color-foreground)]">
                       Supervisor Agent
                     </h3>
@@ -434,10 +434,10 @@ export function TraceModal({
                     </div>
 
                     {/* Specialist Card */}
-                    <div className="ml-12 bg-blue-500/8 rounded-xl border border-blue-500/20 p-5 space-y-4">
+                    <div className="ml-12 bg-[var(--color-accent-primary)]/8 rounded-xl border border-[var(--color-accent-primary)]/20 p-5 space-y-4">
                       {/* Specialist Header */}
                       <div className="flex items-center gap-3">
-                        <Brain className="h-6 w-6 text-blue-500" />
+                        <Brain className="h-6 w-6 text-[var(--color-accent-primary)]" />
                         <h4 className="text-lg font-bold text-[var(--color-foreground)]">
                           Specialist Agent
                         </h4>
@@ -449,7 +449,7 @@ export function TraceModal({
                       {/* Request */}
                       <div className="space-y-2">
                         <div className="flex items-center gap-2 mb-1">
-                          <div className="h-1.5 w-1.5 rounded-full bg-blue-400"></div>
+                          <div className="h-1.5 w-1.5 rounded-full bg-[var(--color-accent-primary)]"></div>
                           <h5 className="text-sm font-medium text-[var(--color-muted-foreground)]">
                             Request
                           </h5>
@@ -463,7 +463,7 @@ export function TraceModal({
                       {handoff.message_count > 0 && (
                         <div className="space-y-2">
                           <div className="flex items-center gap-2 mb-1">
-                            <div className="h-1.5 w-1.5 rounded-full bg-green-400"></div>
+                            <div className="h-1.5 w-1.5 rounded-full bg-[var(--color-success)]"></div>
                             <h5 className="text-sm font-medium text-[var(--color-muted-foreground)]">
                               Response ({handoff.message_count}{" "}
                               messages)
@@ -501,9 +501,9 @@ export function TraceModal({
                 ))}
 
                 {/* Final Synthesis */}
-                <div className="bg-green-500/8 rounded-xl border border-green-500/20 p-5">
+                <div className="bg-[var(--color-success)]/8 rounded-xl border border-[var(--color-success)]/20 p-5">
                   <div className="flex items-center gap-3 mb-2">
-                    <Users className="h-6 w-6 text-green-500" />
+                    <Users className="h-6 w-6 text-[var(--color-success)]" />
                     <h3 className="text-lg font-bold text-[var(--color-foreground)]">
                       Supervisor Synthesis
                     </h3>

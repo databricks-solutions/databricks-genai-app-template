@@ -46,7 +46,7 @@ class ChatModel(Base):
   )
 
   def to_dict(self) -> dict:
-    """Convert to dictionary for JSON serialization."""
+    """Convert to dictionary for JSON serialization (includes messages)."""
     return {
       'id': self.id,
       'user_email': self.user_email,
@@ -55,6 +55,17 @@ class ChatModel(Base):
       'created_at': self.created_at.isoformat() if self.created_at else None,
       'updated_at': self.updated_at.isoformat() if self.updated_at else None,
       'messages': [msg.to_dict() for msg in self.messages] if self.messages else [],
+    }
+
+  def to_dict_summary(self) -> dict:
+    """Convert to summary dictionary (excludes messages for list views)."""
+    return {
+      'id': self.id,
+      'user_email': self.user_email,
+      'title': self.title,
+      'agent_id': self.agent_id,
+      'created_at': self.created_at.isoformat() if self.created_at else None,
+      'updated_at': self.updated_at.isoformat() if self.updated_at else None,
     }
 
 

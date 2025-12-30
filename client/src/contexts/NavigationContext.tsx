@@ -72,14 +72,10 @@ function pathnameToTab(pathname: string): TabType {
   return 'home';
 }
 
-interface ChatMessage {
-  content: string;
-}
-
 interface ChatData {
   id: string;
   title: string;
-  messages: ChatMessage[];
+  agent_id?: string;
   updated_at: string;
 }
 
@@ -130,16 +126,8 @@ export function NavigationProvider({
       const chatList: Chat[] = data.map((chat) => ({
         id: chat.id,
         title: chat.title,
-        lastMessage:
-          chat.messages.length > 0
-            ? chat.messages[chat.messages.length - 1].content
-            : '',
+        agentId: chat.agent_id,
         timestamp: new Date(chat.updated_at),
-        preview:
-          chat.messages.length > 0
-            ? chat.messages[chat.messages.length - 1].content.slice(0, 50) +
-              '...'
-            : '',
       }));
 
       setChats(chatList);

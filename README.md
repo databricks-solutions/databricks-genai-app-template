@@ -73,6 +73,28 @@ Open **http://localhost:3000** - the chat interface connects to your agent.
 
 ## Configuration
 
+### Usage Analytics
+
+To improve user experience and asset quality, this template sends anonymized usage reports. This data is used for product improvement only, not for marketing purposes.
+
+Configure tracking in `config/app.json`:
+
+```json
+{
+  "app_name": "your-app-name",
+  "enable_tracker": true,
+  "demo_catalog_id": "your-catalog-id"
+}
+```
+
+| Setting | Description |
+|---------|-------------|
+| `app_name` | Identifies your app in usage reports |
+| `enable_tracker` | Set to `false` to disable tracking entirely |
+| `demo_catalog_id` | Optional catalog identifier for grouping analytics |
+
+By using this template, you consent to this data collection. If you prefer not to, set `enable_tracker` to `false`. See [NOTICE.md](NOTICE.md) for details.
+
 ### Environment Variables (`.env.local`)
 
 ```bash

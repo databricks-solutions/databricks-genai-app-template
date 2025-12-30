@@ -36,13 +36,31 @@ def fix_mojibake(text: str) -> str:
 
   Some endpoints return UTF-8 bytes interpreted as Latin-1 characters.
   Example: "â€"" (3 Latin-1 chars) should be "—" (em dash in UTF-8).
+
+  Handles mixed content (mojibake + emojis) by fixing only the broken parts.
   """
+  if not text:
+    return text
+
+  # Try the simple approach first (works if no high Unicode chars like emojis)
   try:
-    # Try to fix: encode as Latin-1 (to get raw bytes), decode as UTF-8
     return text.encode('latin-1').decode('utf-8')
   except (UnicodeDecodeError, UnicodeEncodeError):
-    # Already correct encoding, return as-is
-    return text
+    pass
+
+  # Fallback: fix mojibake patterns while preserving high Unicode chars (emojis etc)
+  # Mojibake chars are in the 0x80-0xFF range (Latin-1 extended)
+  import re
+
+  def fix_segment(match: re.Match) -> str:
+    segment = match.group(0)
+    try:
+      return segment.encode('latin-1').decode('utf-8')
+    except (UnicodeDecodeError, UnicodeEncodeError):
+      return segment
+
+  # Match sequences of chars in Latin-1 extended range (likely mojibake)
+  return re.sub(r'[\u0080-\u00ff]+', fix_segment, text)
 
 
 def convert_chat_completion_chunk(chunk: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -51,6 +69,9 @@ def convert_chat_completion_chunk(chunk: Dict[str, Any]) -> Optional[Dict[str, A
   OpenAI format:
     {"id": "...", "object": "chat.completion.chunk",
      "choices": [{"delta": {"content": "text"}, "finish_reason": null}]}
+
+  Gemini format (content is a list):
+    {"choices": [{"delta": {"content": [{"type": "text", "text": "..."}]}}]}
 
   Agent format:
     {"type": "response.output_text.delta", "delta": "text"}
@@ -69,6 +90,20 @@ def convert_chat_completion_chunk(chunk: Dict[str, Any]) -> Optional[Dict[str, A
   content = delta.get('content')
 
   # Skip empty content (role-only chunks, finish chunks)
+  if not content:
+    return None
+
+  # Handle different content formats
+  if isinstance(content, list):
+    # Gemini format: [{"type": "text", "text": "..."}]
+    text_parts = []
+    for item in content:
+      if isinstance(item, dict) and item.get('type') == 'text':
+        text_parts.append(item.get('text', ''))
+      elif isinstance(item, str):
+        text_parts.append(item)
+    content = ''.join(text_parts)
+
   if not content:
     return None
 
@@ -188,8 +223,13 @@ class DatabricksEndpointHandler(BaseDeploymentHandler):
       except Exception as e:
         error_str = str(e)
 
-        # Check if this is a format mismatch error
-        if "Missing required Chat parameter: 'messages'" in error_str:
+        # Check if this is a format mismatch error (multiple error formats exist)
+        needs_chat_format = (
+          "Missing required Chat parameter: 'messages'" in error_str
+          or "Model is missing inputs ['messages']" in error_str
+          or ("extra inputs: ['input']" in error_str and 'messages' in error_str)
+        )
+        if needs_chat_format:
           logger.info(f'Endpoint {endpoint_name} requires chat_completion format, retrying...')
 
           try:

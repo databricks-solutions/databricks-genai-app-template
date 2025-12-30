@@ -32,17 +32,19 @@ class PostgresChatStorage(BaseChatStorage):
     self.max_chats = max_chats
 
   async def get_all(self) -> List[ChatModel]:
-    """Get all chats sorted by updated_at (newest first)."""
+    """Get all chats sorted by updated_at (newest first).
+
+    Note: Does NOT load messages for performance. Use get() to fetch full chat.
+    """
     async with session_scope() as session:
       stmt = (
         select(ChatModel)
-        .options(selectinload(ChatModel.messages))
         .where(ChatModel.user_email == self.user_email)
         .order_by(ChatModel.updated_at.desc())
       )
       result = await session.execute(stmt)
       chats = result.scalars().all()
-      # Return detached copies
+      # Return detached copies (without messages loaded)
       return list(chats)
 
   async def get(self, chat_id: str) -> Optional[ChatModel]:

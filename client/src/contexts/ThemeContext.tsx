@@ -230,6 +230,23 @@ export function CustomThemeProvider({ children }: ThemeProviderProps) {
 
     // Destructive = error
     root.style.setProperty("--color-destructive", c.error);
+
+    // ----------------------------------------------------------
+    // GLASS EFFECT VARIABLES
+    // Semi-transparent backgrounds for modal/popup overlays
+    // ----------------------------------------------------------
+    const bgRgb = hexToRgb(c.bgPrimary);
+    const borderRgb = hexToRgb(c.border);
+    if (bgRgb) {
+      // Glass background with 95% opacity (high opacity prevents backdrop bleed-through)
+      root.style.setProperty("--color-glass-bg", `rgba(${bgRgb.r}, ${bgRgb.g}, ${bgRgb.b}, 0.95)`);
+    }
+    if (borderRgb) {
+      // Glass border with 60% opacity
+      root.style.setProperty("--color-glass-border", `rgba(${borderRgb.r}, ${borderRgb.g}, ${borderRgb.b}, 0.6)`);
+    }
+    // Backdrop overlay - darker for light themes, lighter for dark themes
+    root.style.setProperty("--color-glass-backdrop", isLight ? "rgba(0, 0, 0, 0.4)" : "rgba(0, 0, 0, 0.6)");
   };
 
   // ============================================================

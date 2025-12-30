@@ -2,7 +2,8 @@
 
 import asyncio
 import logging
-from typing import Optional, Tuple
+import time
+from typing import Any, Dict, List, Optional, Tuple
 
 from databricks.sdk import WorkspaceClient
 from databricks.sdk.errors import ResourceDoesNotExist
@@ -15,21 +16,70 @@ from ..services.user import get_current_user, get_workspace_url
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
+# Cache for agents list (5 minute TTL)
+_agents_cache: Optional[Dict[str, Any]] = None
+_agents_cache_timestamp: float = 0
+AGENTS_CACHE_TTL_SECONDS = 300
+
 
 def is_mas_endpoint(endpoint_name: str) -> bool:
   """Check if an endpoint is a MAS (Multi-Agent Supervisor) endpoint."""
   return 'mas' in endpoint_name.lower()
 
 
-def validate_serving_endpoint(endpoint_name: str) -> Tuple[bool, Optional[str], Optional[str]]:
-  """Validate that a serving endpoint exists.
+def validate_agent_config(agent_config, index: int) -> Optional[dict]:
+  """Validate agent configuration format.
 
-  Returns:
-    Tuple of (exists, status, error_message)
-    - exists: True if endpoint exists
-    - status: Endpoint state if exists (e.g., "READY", "NOT_READY")
-    - error_message: Error message if endpoint doesn't exist
+  Returns None if valid, or an error agent dict if invalid.
   """
+  if isinstance(agent_config, str):
+    return {
+      'id': f'agent-{index}',
+      'name': agent_config,
+      'endpoint_name': '',
+      'display_name': f'Invalid Config #{index + 1}',
+      'error': (
+        f"Invalid agent format: got string '{agent_config}' but expected an object. "
+        "Each agent must be an object with 'endpoint_name' or 'mas_id'. "
+        "Example: {\"endpoint_name\": \"my-endpoint\"} or {\"mas_id\": \"uuid-here\"}"
+      ),
+      'status': 'CONFIG_ERROR',
+    }
+
+  if not isinstance(agent_config, dict):
+    return {
+      'id': f'agent-{index}',
+      'name': f'agent-{index}',
+      'endpoint_name': '',
+      'display_name': f'Invalid Config #{index + 1}',
+      'error': (
+        f"Invalid agent format: expected an object but got {type(agent_config).__name__}. "
+        "Each agent must be an object with 'endpoint_name' or 'mas_id'."
+      ),
+      'status': 'CONFIG_ERROR',
+    }
+
+  endpoint_name = agent_config.get('endpoint_name', '')
+  mas_id = agent_config.get('mas_id', '')
+
+  if not endpoint_name and not mas_id:
+    return {
+      'id': f'agent-{index}',
+      'name': f'agent-{index}',
+      'endpoint_name': '',
+      'display_name': agent_config.get('display_name', f'Invalid Config #{index + 1}'),
+      'error': (
+        "Missing required field: agent must have either 'endpoint_name' or 'mas_id'. "
+        "Example: {\"endpoint_name\": \"my-endpoint\"} or {\"mas_id\": \"uuid-here\"}"
+      ),
+      'status': 'CONFIG_ERROR',
+    }
+
+  return None  # Valid
+
+
+def _validate_serving_endpoint_sync(endpoint_name: str) -> Tuple[bool, Optional[str], Optional[str]]:
+  """Synchronous helper to validate serving endpoint."""
   try:
     client = WorkspaceClient()
     endpoint = client.serving_endpoints.get(endpoint_name)
@@ -41,6 +91,18 @@ def validate_serving_endpoint(endpoint_name: str) -> Tuple[bool, Optional[str], 
     logger.warning(f'Could not validate endpoint {endpoint_name}: {e}')
     # Return True with UNKNOWN status - don't block if we can't validate
     return True, 'UNKNOWN', None
+
+
+async def validate_serving_endpoint(endpoint_name: str) -> Tuple[bool, Optional[str], Optional[str]]:
+  """Validate that a serving endpoint exists.
+
+  Returns:
+    Tuple of (exists, status, error_message)
+    - exists: True if endpoint exists
+    - status: Endpoint state if exists (e.g., "READY", "NOT_READY")
+    - error_message: Error message if endpoint doesn't exist
+  """
+  return await asyncio.to_thread(_validate_serving_endpoint_sync, endpoint_name)
 
 
 @router.get('/config/agents')
@@ -55,8 +117,18 @@ async def get_agents():
 
   For MAS endpoints, fetches full details (tools, status, etc.) from the Databricks
   Agent Bricks API. For non-MAS endpoints, uses the tools defined in the config.
+
+  Results are cached for 5 minutes to avoid repeated API calls.
   """
-  logger.info('Fetching available agents')
+  global _agents_cache, _agents_cache_timestamp
+
+  # Check cache first
+  cache_age = time.time() - _agents_cache_timestamp
+  if _agents_cache is not None and cache_age < AGENTS_CACHE_TTL_SECONDS:
+    logger.info(f'Returning cached agents (age: {cache_age:.1f}s)')
+    return _agents_cache
+
+  logger.info('Fetching available agents (cache miss or expired)')
 
   try:
     agents_data = config_loader.agents_config
@@ -65,17 +137,16 @@ async def get_agents():
 
     service = get_agent_bricks_service()
 
-    async def fetch_agent(agent_config):
+    async def fetch_agent(agent_config, index: int):
       """Fetch or build agent details based on config type."""
-      # Handle both string format (legacy) and object format
-      if isinstance(agent_config, str):
-        endpoint_name = agent_config
-        mas_id = None
-        manual_config = {}
-      else:
-        endpoint_name = agent_config.get('endpoint_name', '')
-        mas_id = agent_config.get('mas_id')
-        manual_config = agent_config
+      # Validate config format first
+      validation_error = validate_agent_config(agent_config, index)
+      if validation_error:
+        return validation_error
+
+      endpoint_name = agent_config.get('endpoint_name', '')
+      mas_id = agent_config.get('mas_id')
+      manual_config = agent_config
 
       try:
         # Check if this is a MAS endpoint and has no manually defined tools
@@ -105,7 +176,7 @@ async def get_agents():
           logger.info(f'Using manual config for non-MAS endpoint {endpoint_name}')
 
           # Validate endpoint exists
-          exists, status, error = validate_serving_endpoint(endpoint_name)
+          exists, status, error = await validate_serving_endpoint(endpoint_name)
           if not exists:
             logger.error(f'Endpoint validation failed: {error}')
             return {
@@ -158,10 +229,16 @@ async def get_agents():
         }
 
     # Fetch all agents in parallel
-    agents = await asyncio.gather(*[fetch_agent(config) for config in agent_configs])
+    agents = await asyncio.gather(*[fetch_agent(config, i) for i, config in enumerate(agent_configs)])
 
     logger.info(f'Loaded {len(agents)} agents total')
-    return {'agents': list(agents)}
+    result = {'agents': list(agents)}
+
+    # Cache the result
+    _agents_cache = result
+    _agents_cache_timestamp = time.time()
+
+    return result
 
   except Exception as e:
     logger.error(f'Error loading agents: {str(e)}')

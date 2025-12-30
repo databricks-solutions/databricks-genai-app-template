@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Plus,
   MessageSquare,
@@ -20,9 +20,8 @@ import { useUserContext } from "@/contexts/UserContext";
 export interface Chat {
   id: string;
   title: string;
-  lastMessage: string;
   timestamp: Date;
-  preview: string;
+  agentId?: string; // Agent used for this chat
 }
 
 interface SidebarProps {
@@ -59,6 +58,12 @@ export function Sidebar({
   const [hoveredChat, setHoveredChat] = useState<string | null>(null);
   const { agents } = useAgents();
   const { workspaceUrl, lakebaseConfigured, lakebaseProjectId, lakebaseError } = useUserContext();
+
+  // Filter chats by selected agent
+  const filteredChats = useMemo(() => {
+    if (!propSelectedAgentId) return chats;
+    return chats.filter((chat) => chat.agentId === propSelectedAgentId);
+  }, [chats, propSelectedAgentId]);
 
   // Set default agent when agents are loaded
   useEffect(() => {
@@ -110,7 +115,7 @@ export function Sidebar({
               <Loader2 className="h-8 w-8 mx-auto mb-3 opacity-60 animate-spin" />
               <p className="text-sm font-medium">Loading chats...</p>
             </div>
-          ) : chats.length === 0 ? (
+          ) : filteredChats.length === 0 ? (
             <div className="text-center py-12 text-[var(--color-primary-navy)]/50">
               <MessageSquare className="h-12 w-12 mx-auto mb-3 opacity-40" />
               <p className="text-sm font-medium">No chat history yet</p>
@@ -120,7 +125,7 @@ export function Sidebar({
             </div>
           ) : (
             <div className="space-y-1">
-              {chats.map((chat) => (
+              {filteredChats.map((chat) => (
                 <div
                   key={chat.id}
                   onClick={() => onChatSelect(chat.id)}
@@ -144,15 +149,6 @@ export function Sidebar({
                   >
                     {chat.title}
                   </h3>
-                  <p
-                    className={`text-[11px] mt-0.5 truncate ${
-                      currentChatId === chat.id
-                        ? "text-white/70"
-                        : "text-[var(--color-text-muted)]"
-                    }`}
-                  >
-                    {chat.preview}
-                  </p>
 
                   {/* Delete button - show on hover */}
                   {hoveredChat === chat.id && (
@@ -181,7 +177,7 @@ export function Sidebar({
 
       {/* Lakebase Status Box */}
       {!isCollapsed && (
-        <div className="p-3 border-t border-[var(--color-border)]/20">
+        <div className="p-3">
           {lakebaseConfigured ? (
             lakebaseError ? (
               // Error state
